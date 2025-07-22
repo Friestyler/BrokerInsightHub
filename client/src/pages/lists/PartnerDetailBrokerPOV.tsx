@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare, CheckCircle, XCircle, Eye } from "lucide-react";
+import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare, CheckCircle, XCircle, Eye, ChevronDown } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
@@ -150,6 +150,22 @@ export default function PartnerDetailBrokerPOV() {
   // Saved lists view mode state
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [expandedListsDropdown, setExpandedListsDropdown] = useState(false);
+
+  // Filter state for opportunities
+  const [showOpportunityFilter, setShowOpportunityFilter] = useState(false);
+  const [opportunityFilters, setOpportunityFilters] = useState({
+    status: 'All',
+    stage: 'All', 
+    size: 'All',
+    type: 'All'
+  });
+  const [hasActiveOpportunityFilters, setHasActiveOpportunityFilters] = useState(false);
+  
+  // Dropdown states for opportunity filters
+  const [showOpportunityStatusDropdown, setShowOpportunityStatusDropdown] = useState(false);
+  const [showOpportunityTypeDropdown, setShowOpportunityTypeDropdown] = useState(false);
+  const [showOpportunitySizeDropdown, setShowOpportunitySizeDropdown] = useState(false);
+  const [showOpportunityStageDropdown, setShowOpportunityStageDropdown] = useState(false);
   
   // Missing refs for dropdowns - note: stageDropdownRef already declared below
   
@@ -157,6 +173,27 @@ export default function PartnerDetailBrokerPOV() {
 
   // Always use fresh environment value to ensure we get the latest
   const actualCurrentEnvironment = getCurrentEnvironment();
+
+  // Filter functions
+  const updateOpportunityFilter = (key: string, value: string) => {
+    const newFilters = { ...opportunityFilters, [key]: value };
+    setOpportunityFilters(newFilters);
+    
+    // Check if any filter is active
+    const hasActive = Object.values(newFilters).some(val => val !== 'All');
+    setHasActiveOpportunityFilters(hasActive);
+  };
+
+  const clearOpportunityFilters = () => {
+    const clearedFilters = {
+      status: 'All',
+      stage: 'All',
+      size: 'All',
+      type: 'All'
+    };
+    setOpportunityFilters(clearedFilters);
+    setHasActiveOpportunityFilters(false);
+  };
 
   // Debug logs after state declarations
   console.log('🚨 BROKER VIEW - RENDER - Render key:', renderKey);
@@ -331,6 +368,14 @@ export default function PartnerDetailBrokerPOV() {
     staleTime: 2 * 60 * 1000,
   });
 
+  // Fetch filter options for opportunities
+  const { data: filterOptions = {} } = useQuery({
+    queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/opportunities/filters`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/partners/${partnerId}/opportunities/filters`),
+    enabled: !!partnerId && activeTab === 'opportunities',
+    staleTime: 5 * 60 * 1000,
+  });
+
   // For broker view, fetch opportunities with proper list filtering
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
     queryKey: [`/api/${actualCurrentEnvironment}/opportunities`, activeOpportunitiesList?.id],
@@ -442,6 +487,62 @@ export default function PartnerDetailBrokerPOV() {
   const [showCustomerViewsDropdown, setShowCustomerViewsDropdown] = useState(false);
   const [showCustomerStatusDropdown, setShowCustomerStatusDropdown] = useState(false);
   const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
+
+  // Filter opportunities based on search and filters - using baseOpportunities for proper list integration
+  const filteredOpportunities = baseOpportunities.filter((opportunity: any) => {
+    // Filter by search text
+    if (filterText) {
+      const searchLower = filterText.toLowerCase();
+      const matchesSearch = 
+        opportunity.title?.toLowerCase().includes(searchLower) ||
+        opportunity.clientName?.toLowerCase().includes(searchLower) ||
+        opportunity.stage?.toLowerCase().includes(searchLower) ||
+        opportunity.account_manager_name?.toLowerCase().includes(searchLower) ||
+        opportunity.insurance_description?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+    
+    // Apply opportunity filters
+    if (opportunityFilters.status !== 'All' && opportunity.stage !== opportunityFilters.status) {
+      return false;
+    }
+    
+    if (opportunityFilters.stage !== 'All' && opportunity.stage !== opportunityFilters.stage) {
+      return false;
+    }
+    
+    if (opportunityFilters.type !== 'All' && opportunity.insurance_description !== opportunityFilters.type) {
+      return false;
+    }
+    
+    if (opportunityFilters.size !== 'All') {
+      const estimatedValue = parseFloat(opportunity.estimated_value) || 0;
+      let matchesSize = false;
+      
+      switch (opportunityFilters.size) {
+        case 'Small (<€50k)':
+          matchesSize = estimatedValue < 50000;
+          break;
+        case 'Medium (€50k-€200k)':
+          matchesSize = estimatedValue >= 50000 && estimatedValue <= 200000;
+          break;
+        case 'Large (>€200k)':
+          matchesSize = estimatedValue > 200000;
+          break;
+        default:
+          matchesSize = true;
+      }
+      
+      if (!matchesSize) return false;
+    }
+    
+    return true;
+  });
+
+  // Create unique values for filter dropdowns
+  const uniqueOpportunityStatuses = [...new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean))];
+  const uniqueOpportunityTypes = [...new Set(allOpportunities.map((opp: any) => opp.insurance_description).filter(Boolean))];
+  const uniqueOpportunitySizes = ['Small (<€50k)', 'Medium (€50k-€200k)', 'Large (>€200k)'];
 
   // Filter customers based on search and filters
   const filteredCustomers = partnerCustomers.filter((customer: any) => {
@@ -865,36 +966,7 @@ export default function PartnerDetailBrokerPOV() {
     return true;
   });
 
-  // Further filter opportunities based on search and selected filters
-  const filteredOpportunities = baseOpportunities.filter((opportunity: any) => {
-    // Filter by search text
-    if (filterText) {
-      const searchLower = filterText.toLowerCase();
-      const matchesSearch = 
-        opportunity.title?.toLowerCase().includes(searchLower) ||
-        opportunity.clientName?.toLowerCase().includes(searchLower) ||
-        opportunity.customerName?.toLowerCase().includes(searchLower) ||
-        opportunity.stage?.toLowerCase().includes(searchLower);
-      if (!matchesSearch) return false;
-    }
-    
-    // Filter by status/stage if selected
-    if (selectedStatus && selectedStatus !== 'all' && opportunity.stage !== selectedStatus) {
-      return false;
-    }
-    
-    // Filter by customer if selected
-    if (selectedCustomer && selectedCustomer !== 'all' && opportunity.clientName !== selectedCustomer) {
-      return false;
-    }
-    
-    // Filter by opportunity type if selected
-    if (selectedOpportunityType && selectedOpportunityType !== 'all' && opportunity.type !== selectedOpportunityType) {
-      return false;
-    }
-    
-    return true;
-  });
+
 
   // Click outside handler to close dropdowns
   useEffect(() => {
@@ -1999,6 +2071,190 @@ export default function PartnerDetailBrokerPOV() {
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                           </svg>
                         </button>
+                      </div>
+
+                      {/* Filter dropdowns */}
+                      <div className="flex items-center gap-2">
+                        {/* Status Filter */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowOpportunityStatusDropdown(!showOpportunityStatusDropdown)}
+                            className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-all ${
+                              opportunityFilters.status !== 'All'
+                                ? 'border-[#5567E5] bg-[#F8F9FF] text-[#5567E5]'
+                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                            }`}
+                          >
+                            Status
+                            {opportunityFilters.status !== 'All' && (
+                              <span className="ml-1 px-1.5 py-0.5 text-xs bg-[#5567E5] text-white rounded">
+                                1
+                              </span>
+                            )}
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          
+                          {showOpportunityStatusDropdown && (
+                            <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+                              <div className="p-2 space-y-1">
+                                {['All', ...uniqueOpportunityStatuses].map((status) => (
+                                  <button
+                                    key={status}
+                                    onClick={() => {
+                                      setOpportunityFilters(prev => ({ ...prev, status }));
+                                      setShowOpportunityStatusDropdown(false);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                      opportunityFilters.status === status ? 'bg-[#F8F9FF] text-[#5567E5]' : 'text-gray-700'
+                                    }`}
+                                  >
+                                    {status}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Type Filter */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowOpportunityTypeDropdown(!showOpportunityTypeDropdown)}
+                            className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-all ${
+                              opportunityFilters.type !== 'All'
+                                ? 'border-[#5567E5] bg-[#F8F9FF] text-[#5567E5]'
+                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                            }`}
+                          >
+                            Type
+                            {opportunityFilters.type !== 'All' && (
+                              <span className="ml-1 px-1.5 py-0.5 text-xs bg-[#5567E5] text-white rounded">
+                                1
+                              </span>
+                            )}
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          
+                          {showOpportunityTypeDropdown && (
+                            <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+                              <div className="p-2 space-y-1">
+                                {['All', ...uniqueOpportunityTypes].map((type) => (
+                                  <button
+                                    key={type}
+                                    onClick={() => {
+                                      setOpportunityFilters(prev => ({ ...prev, type }));
+                                      setShowOpportunityTypeDropdown(false);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                      opportunityFilters.type === type ? 'bg-[#F8F9FF] text-[#5567E5]' : 'text-gray-700'
+                                    }`}
+                                  >
+                                    {type}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Size Filter */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowOpportunitySizeDropdown(!showOpportunitySizeDropdown)}
+                            className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-all ${
+                              opportunityFilters.size !== 'All'
+                                ? 'border-[#5567E5] bg-[#F8F9FF] text-[#5567E5]'
+                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                            }`}
+                          >
+                            Size
+                            {opportunityFilters.size !== 'All' && (
+                              <span className="ml-1 px-1.5 py-0.5 text-xs bg-[#5567E5] text-white rounded">
+                                1
+                              </span>
+                            )}
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          
+                          {showOpportunitySizeDropdown && (
+                            <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+                              <div className="p-2 space-y-1">
+                                {['All', ...uniqueOpportunitySizes].map((size) => (
+                                  <button
+                                    key={size}
+                                    onClick={() => {
+                                      setOpportunityFilters(prev => ({ ...prev, size }));
+                                      setShowOpportunitySizeDropdown(false);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                      opportunityFilters.size === size ? 'bg-[#F8F9FF] text-[#5567E5]' : 'text-gray-700'
+                                    }`}
+                                  >
+                                    {size}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Stage Filter */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowOpportunityStageDropdown(!showOpportunityStageDropdown)}
+                            className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-all ${
+                              opportunityFilters.stage !== 'All'
+                                ? 'border-[#5567E5] bg-[#F8F9FF] text-[#5567E5]'
+                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                            }`}
+                          >
+                            Stage
+                            {opportunityFilters.stage !== 'All' && (
+                              <span className="ml-1 px-1.5 py-0.5 text-xs bg-[#5567E5] text-white rounded">
+                                1
+                              </span>
+                            )}
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          
+                          {showOpportunityStageDropdown && (
+                            <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+                              <div className="p-2 space-y-1">
+                                {['All', ...uniqueOpportunityStatuses].map((stage) => (
+                                  <button
+                                    key={stage}
+                                    onClick={() => {
+                                      setOpportunityFilters(prev => ({ ...prev, stage }));
+                                      setShowOpportunityStageDropdown(false);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                      opportunityFilters.stage === stage ? 'bg-[#F8F9FF] text-[#5567E5]' : 'text-gray-700'
+                                    }`}
+                                  >
+                                    {stage}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Clear filters button - only show when filters are active */}
+                        {(opportunityFilters.status !== 'All' || opportunityFilters.type !== 'All' || opportunityFilters.size !== 'All' || opportunityFilters.stage !== 'All') && (
+                          <button
+                            onClick={() => {
+                              setOpportunityFilters({
+                                status: 'All',
+                                type: 'All',
+                                size: 'All',
+                                stage: 'All'
+                              });
+                            }}
+                            className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 underline"
+                          >
+                            Clear filters
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
