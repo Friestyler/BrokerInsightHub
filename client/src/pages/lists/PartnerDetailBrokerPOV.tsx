@@ -146,6 +146,14 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
   const [renderKey, setRenderKey] = useState(0);
+  
+  // Saved lists view mode state
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+  const [expandedListsDropdown, setExpandedListsDropdown] = useState(false);
+  
+  // Missing refs for dropdowns - note: stageDropdownRef already declared below
+  
+  // Note: uniqueStages already declared below in filtering section
 
   // Always use fresh environment value to ensure we get the latest
   const actualCurrentEnvironment = getCurrentEnvironment();
@@ -1743,33 +1751,60 @@ export default function PartnerDetailBrokerPOV() {
             </div>
           )}
 
-          {/* Smart Cross Sell tab is hidden in Partner POV */}
-
           {activeTab === "opportunities" && (
             <div className="space-y-4">
               {/* Enhanced unified toolbar - same as OpportunitiesPage */}
               <div className="bg-white p-4 rounded-lg shadow-sm">
                 <div className="flex flex-col gap-4">
-                  {/* Top row with saved lists and views */}
+                  {/* Top row with saved lists and actions */}
                   <div className="flex flex-wrap items-center justify-between">
-                    {/* Left side - Saved Lists with actions */}
+                    {/* Left side - Saved Lists section */}
                     <div className="flex items-center gap-3">
-                      {/* Lists heading */}
-                      <div className="flex flex-col mr-2">
-                        <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
-                      </div>
-                      {/* Saved Lists dropdown - functional implementation */}
-                      <div className="relative" ref={dropdownRef}>
-                        <button 
-                          className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
-                          onClick={() => setShowListsDropdown(!showListsDropdown)}
+                      {/* Lists heading with view toggle */}
+                      <div className="flex items-center gap-4">
+                        <span className="text-base font-semibold text-gray-800">Lists</span>
+                        
+                        {/* View mode toggle (Cards/List) */}
+                        <div className="flex items-center border border-gray-200 rounded-md p-1">
+                          <button
+                            onClick={() => setViewMode('cards')}
+                            className={`p-1.5 rounded text-xs transition-colors ${
+                              viewMode === 'cards' 
+                                ? 'bg-[#5567E5] text-white' 
+                                : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="14" width="7" height="7"></rect>
+                              <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-1.5 rounded text-xs transition-colors ${
+                              viewMode === 'list' 
+                                ? 'bg-[#5567E5] text-white' 
+                                : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="8" y1="6" x2="21" y2="6"></line>
+                              <line x1="8" y1="12" x2="21" y2="12"></line>
+                              <line x1="8" y1="18" x2="21" y2="18"></line>
+                              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        {/* Collapse/Expand toggle */}
+                        <button
+                          onClick={() => setExpandedListsDropdown(!expandedListsDropdown)}
+                          className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
                         >
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
-                            <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
-                          </svg>
-                          <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                            {activeOpportunitiesList ? activeOpportunitiesList.name : 'All opportunities'}
-                          </span>
                           <svg 
                             xmlns="http://www.w3.org/2000/svg" 
                             width="14" 
@@ -1780,87 +1815,19 @@ export default function PartnerDetailBrokerPOV() {
                             strokeWidth="2" 
                             strokeLinecap="round" 
                             strokeLinejoin="round" 
-                            className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
+                            className={`transition-transform ${expandedListsDropdown ? 'rotate-180' : ''}`}
                           >
                             <polyline points="6 9 12 15 18 9" />
                           </svg>
+                          <span className="font-medium text-[#282A3F]">
+                            {activeOpportunitiesList ? activeOpportunitiesList.name : 'All opportunities'}
+                          </span>
                         </button>
-                        
-                        {/* Dropdown menu */}
-                        {showListsDropdown && (
-                          <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                            <div className="p-2">
-                              {/* Default "All opportunities" option */}
-                              <button
-                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
-                                  !activeOpportunitiesList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
-                                }`}
-                                onClick={() => {
-                                  setActiveOpportunitiesList(null);
-                                  setShowListsDropdown(false);
-                                  // Remove list parameter from URL
-                                  const newUrl = new URL(window.location.href);
-                                  newUrl.searchParams.delete('list');
-                                  window.history.pushState({}, '', newUrl.toString());
-                                  // Force a re-render by updating the render key
-                                  setRenderKey(prev => prev + 1);
-                                }}
-                              >
-                                <div className="flex items-center space-x-2">
-                                  <span>All opportunities</span>
-                                </div>
-                              </button>
-                              
-                              {/* Partner-relevant saved lists */}
-                              {partnerRelevantLists.length > 0 && (
-                                <div className="border-t border-gray-100 my-2 pt-2">
-                                  {partnerRelevantLists.map((list: any) => (
-                                    <button
-                                      key={list.id}
-                                      className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
-                                        activeOpportunitiesList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
-                                      }`}
-                                      onClick={() => {
-                                        setActiveOpportunitiesList(list);
-                                        setShowListsDropdown(false);
-                                        // Update URL to reflect the selected list
-                                        const newUrl = new URL(window.location.href);
-                                        newUrl.searchParams.set('list', list.id.toString());
-                                        window.history.pushState({}, '', newUrl.toString());
-                                        // Force a re-render by updating the render key
-                                        setRenderKey(prev => prev + 1);
-                                      }}
-                                    >
-                                      <div className="flex flex-col space-y-1 w-full">
-                                        <span>{list.name}</span>
-                                        {/* Show share icon and environment name if list is shared */}
-                                        {list.is_shared && (
-                                          <div className="flex items-center space-x-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
-                                              <circle cx="18" cy="5" r="3"></circle>
-                                              <circle cx="6" cy="12" r="3"></circle>
-                                              <circle cx="18" cy="19" r="3"></circle>
-                                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                            </svg>
-                                            <span className="text-xs text-gray-500">Shared by {partner.name}</span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                     
                     {/* Right-side action buttons */}
                     <div className="flex items-center gap-2">
-                      {/* Edit list functionality HIDDEN IN BROKER VIEW for proper access control */}
-
                       <Button variant="outline" size="sm" className="hidden md:flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1883,6 +1850,139 @@ export default function PartnerDetailBrokerPOV() {
                       </Button>
                     </div>
                   </div>
+                  
+                  {/* Expandable cards/list section */}
+                  {expandedListsDropdown && (
+                    <div className="border-t pt-4">
+                      {viewMode === 'cards' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {/* All opportunities card */}
+                          <div 
+                            className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                              !activeOpportunitiesList 
+                                ? 'border-[#5567E5] bg-[#F8F9FF]' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => {
+                              setActiveOpportunitiesList(null);
+                              const newUrl = new URL(window.location.href);
+                              newUrl.searchParams.delete('list');
+                              window.history.pushState({}, '', newUrl.toString());
+                              setRenderKey(prev => prev + 1);
+                            }}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="font-medium text-gray-900">All opportunities</h3>
+                              <div className="text-sm text-gray-500">
+                                {allOpportunities.length} items
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600">View all opportunities</p>
+                          </div>
+                          
+                          {/* Shared lists cards */}
+                          {partnerRelevantLists.map((list: any) => (
+                            <div 
+                              key={list.id}
+                              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                                activeOpportunitiesList?.id === list.id 
+                                  ? 'border-[#5567E5] bg-[#F8F9FF]' 
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                              onClick={() => {
+                                setActiveOpportunitiesList(list);
+                                const newUrl = new URL(window.location.href);
+                                newUrl.searchParams.set('list', list.id.toString());
+                                window.history.pushState({}, '', newUrl.toString());
+                                setRenderKey(prev => prev + 1);
+                              }}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <h3 className="font-medium text-gray-900">{list.name}</h3>
+                                <div className="text-sm text-gray-500">
+                                  {list.members?.length || 0} items
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2 mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                  <circle cx="18" cy="5" r="3"></circle>
+                                  <circle cx="6" cy="12" r="3"></circle>
+                                  <circle cx="18" cy="19" r="3"></circle>
+                                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                </svg>
+                                <span className="text-xs text-gray-500">Shared by De Goudse</span>
+                              </div>
+                              {list.description && (
+                                <p className="text-sm text-gray-600">{list.description}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {/* All opportunities list item */}
+                          <div 
+                            className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${
+                              !activeOpportunitiesList 
+                                ? 'border-[#5567E5] bg-[#F8F9FF]' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => {
+                              setActiveOpportunitiesList(null);
+                              const newUrl = new URL(window.location.href);
+                              newUrl.searchParams.delete('list');
+                              window.history.pushState({}, '', newUrl.toString());
+                              setRenderKey(prev => prev + 1);
+                            }}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="font-medium text-gray-900">All opportunities</div>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {allOpportunities.length} items
+                            </div>
+                          </div>
+                          
+                          {/* Shared lists items */}
+                          {partnerRelevantLists.map((list: any) => (
+                            <div 
+                              key={list.id}
+                              className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${
+                                activeOpportunitiesList?.id === list.id 
+                                  ? 'border-[#5567E5] bg-[#F8F9FF]' 
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                              onClick={() => {
+                                setActiveOpportunitiesList(list);
+                                const newUrl = new URL(window.location.href);
+                                newUrl.searchParams.set('list', list.id.toString());
+                                window.history.pushState({}, '', newUrl.toString());
+                                setRenderKey(prev => prev + 1);
+                              }}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="font-medium text-gray-900">{list.name}</div>
+                                <div className="flex items-center space-x-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                    <circle cx="18" cy="5" r="3"></circle>
+                                    <circle cx="6" cy="12" r="3"></circle>
+                                    <circle cx="18" cy="19" r="3"></circle>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                  </svg>
+                                  <span className="text-xs text-gray-500">Shared by De Goudse</span>
+                                </div>
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {list.members?.length || 0} items
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   
                   {/* Bottom row with search, views, and filters */}
                   <div className="flex flex-wrap items-center justify-between gap-3">
