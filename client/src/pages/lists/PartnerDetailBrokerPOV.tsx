@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare, CheckCircle, XCircle, Eye, ChevronDown } from "lucide-react";
+import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare, CheckCircle, XCircle, Eye, ChevronDown, Mail, Settings } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
@@ -140,12 +140,15 @@ export default function PartnerDetailBrokerPOV() {
 
   // Bulk action state
   const [showBulkActionModal, setShowBulkActionModal] = useState(false);
-  const [bulkActionType, setBulkActionType] = useState<'stage' | 'assessment' | 'both'>('both');
+  const [bulkActionType, setBulkActionType] = useState<'stage' | 'assessment'>('stage');
   const [bulkStageValue, setBulkStageValue] = useState('');
   const [bulkAssessmentValue, setBulkAssessmentValue] = useState('');
   const [showWithholdReasonModal, setShowWithholdReasonModal] = useState(false);
   const [selectedWithholdReasons, setSelectedWithholdReasons] = useState<string[]>([]);
   const [withholdComment, setWithholdComment] = useState('');
+  
+  // Campaign modal state
+  const [showCampaignModal, setShowCampaignModal] = useState(false);
 
   // Opportunities toolbar state management
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -722,6 +725,12 @@ export default function PartnerDetailBrokerPOV() {
     }
   });
 
+  // Handler for campaign modal
+  const handleAddToCampaign = () => {
+    if (selectedOpportunities.length === 0) return;
+    setShowCampaignModal(true);
+  };
+
   // Save List Handler
   const handleSaveList = () => {
     if (selectedOpportunities.length === 0) {
@@ -1235,11 +1244,11 @@ export default function PartnerDetailBrokerPOV() {
       for (const oppId of selectedOpportunities) {
         const updateData: any = {};
         
-        if (bulkActionType === 'stage' || bulkActionType === 'both') {
+        if (bulkActionType === 'stage') {
           updateData.stage = bulkStageValue;
         }
         
-        if (bulkActionType === 'assessment' || bulkActionType === 'both') {
+        if (bulkActionType === 'assessment') {
           if (bulkAssessmentValue === 'Accepted') {
             updateData.assessmentStatus = 'accepted';
           }
@@ -1250,7 +1259,7 @@ export default function PartnerDetailBrokerPOV() {
 
       // Reset bulk action state
       setShowBulkActionModal(false);
-      setBulkActionType('both');
+      setBulkActionType('stage');
       setBulkStageValue('');
       setBulkAssessmentValue('');
       setSelectedOpportunities([]);
@@ -1286,7 +1295,7 @@ export default function PartnerDetailBrokerPOV() {
           assessedById: 1
         };
         
-        if (bulkActionType === 'stage' || bulkActionType === 'both') {
+        if (bulkActionType === 'stage') {
           updateData.stage = bulkStageValue;
         }
 
@@ -1296,7 +1305,7 @@ export default function PartnerDetailBrokerPOV() {
       // Reset all state
       setShowWithholdReasonModal(false);
       setShowBulkActionModal(false);
-      setBulkActionType('both');
+      setBulkActionType('stage');
       setBulkStageValue('');
       setBulkAssessmentValue('');
       setSelectedWithholdReasons([]);
@@ -2411,12 +2420,28 @@ export default function PartnerDetailBrokerPOV() {
                       variant="outline" 
                       size="sm"
                       className="text-indigo-600"
-                      onClick={() => setShowBulkActionModal(true)}
+                      onClick={() => { setBulkActionType('assessment'); setShowBulkActionModal(true); }}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M12 3a6.364 6.364 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-                      </svg>
-                      Action
+                      <CheckCircle className="mr-1 h-3 w-3" />
+                      Change assessment
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-indigo-600"
+                      onClick={() => { setBulkActionType('stage'); setShowBulkActionModal(true); }}
+                    >
+                      <Settings className="mr-1 h-3 w-3" />
+                      Change status
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-indigo-600"
+                      onClick={handleAddToCampaign}
+                    >
+                      <Mail className="mr-1 h-3 w-3" />
+                      Add to campaign
                     </Button>
                   </div>
                 </div>
@@ -2653,57 +2678,19 @@ export default function PartnerDetailBrokerPOV() {
               <Dialog open={showBulkActionModal} onOpenChange={setShowBulkActionModal}>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Bulk Action</DialogTitle>
+                    <DialogTitle>
+                      {bulkActionType === 'stage' ? 'Change Status' : 'Change Assessment'}
+                    </DialogTitle>
                     <div className="text-sm text-gray-600">
                       {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
                     </div>
                   </DialogHeader>
                   
                   <div className="space-y-4">
-                    {/* Action Type Selection */}
-                    <div className="space-y-3">
-                      <label className="text-sm font-medium text-gray-700">What would you like to change?</label>
-                      <div className="space-y-2">
-                        <label className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            name="bulkActionType"
-                            value="stage"
-                            checked={bulkActionType === 'stage'}
-                            onChange={(e) => setBulkActionType(e.target.value as 'stage' | 'assessment' | 'both')}
-                            className="w-4 h-4 text-indigo-600"
-                          />
-                          <span className="text-sm text-gray-700">Stage only</span>
-                        </label>
-                        <label className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            name="bulkActionType"
-                            value="assessment"
-                            checked={bulkActionType === 'assessment'}
-                            onChange={(e) => setBulkActionType(e.target.value as 'stage' | 'assessment' | 'both')}
-                            className="w-4 h-4 text-indigo-600"
-                          />
-                          <span className="text-sm text-gray-700">Assessment only</span>
-                        </label>
-                        <label className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            name="bulkActionType"
-                            value="both"
-                            checked={bulkActionType === 'both'}
-                            onChange={(e) => setBulkActionType(e.target.value as 'stage' | 'assessment' | 'both')}
-                            className="w-4 h-4 text-indigo-600"
-                          />
-                          <span className="text-sm text-gray-700">Both stage and assessment</span>
-                        </label>
-                      </div>
-                    </div>
-
                     {/* Stage Selection */}
-                    {(bulkActionType === 'stage' || bulkActionType === 'both') && (
+                    {bulkActionType === 'stage' && (
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Stage</label>
+                        <label className="text-sm font-medium text-gray-700">Select new stage</label>
                         <select
                           value={bulkStageValue}
                           onChange={(e) => setBulkStageValue(e.target.value)}
@@ -2718,17 +2705,18 @@ export default function PartnerDetailBrokerPOV() {
                     )}
 
                     {/* Assessment Selection */}
-                    {(bulkActionType === 'assessment' || bulkActionType === 'both') && (
+                    {bulkActionType === 'assessment' && (
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Assessment</label>
+                        <label className="text-sm font-medium text-gray-700">Select new assessment</label>
                         <select
                           value={bulkAssessmentValue}
                           onChange={(e) => setBulkAssessmentValue(e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         >
                           <option value="">Select assessment...</option>
-                          <option value="Accepted">Accepted</option>
-                          <option value="Withheld">Withheld</option>
+                          <option value="pending">Pending</option>
+                          <option value="accepted">Accepted</option>
+                          <option value="withheld">Withheld</option>
                         </select>
                       </div>
                     )}
@@ -2739,7 +2727,7 @@ export default function PartnerDetailBrokerPOV() {
                       variant="outline"
                       onClick={() => {
                         setShowBulkActionModal(false);
-                        setBulkActionType('both');
+                        setBulkActionType('stage');
                         setBulkStageValue('');
                         setBulkAssessmentValue('');
                       }}
@@ -2748,7 +2736,7 @@ export default function PartnerDetailBrokerPOV() {
                     </Button>
                     <Button
                       onClick={() => {
-                        if (bulkAssessmentValue === 'Withheld') {
+                        if (bulkActionType === 'assessment' && bulkAssessmentValue === 'withheld') {
                           setShowBulkActionModal(false);
                           setShowWithholdReasonModal(true);
                         } else {
@@ -2758,8 +2746,7 @@ export default function PartnerDetailBrokerPOV() {
                       }}
                       disabled={
                         (bulkActionType === 'stage' && !bulkStageValue) ||
-                        (bulkActionType === 'assessment' && !bulkAssessmentValue) ||
-                        (bulkActionType === 'both' && (!bulkStageValue || !bulkAssessmentValue))
+                        (bulkActionType === 'assessment' && !bulkAssessmentValue)
                       }
                     >
                       Apply Changes
@@ -4398,6 +4385,101 @@ export default function PartnerDetailBrokerPOV() {
               disabled={createListMutation.isPending || updateListMutation.isPending}
             >
               {createListMutation.isPending || updateListMutation.isPending ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add to Campaign Modal */}
+      <Dialog open={showCampaignModal} onOpenChange={setShowCampaignModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Add to Campaign</DialogTitle>
+            <DialogDescription>
+              Add {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} to a campaign
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Campaign Selection */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-gray-700">Select Campaign</label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a campaign..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {brokerCampaigns?.map((campaign: any) => (
+                    <SelectItem key={campaign.id} value={campaign.id.toString()}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{campaign.name}</span>
+                        <span className="text-xs text-gray-500">{campaign.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Campaign Template Selection */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-gray-700">Or Create from Template</label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a template..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cross-sell">Cross-sell Campaign</SelectItem>
+                  <SelectItem value="follow-up">Follow-up Campaign</SelectItem>
+                  <SelectItem value="renewal">Renewal Campaign</SelectItem>
+                  <SelectItem value="custom">Custom Campaign</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Preview Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Opportunities</h4>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {selectedOpportunities.slice(0, 5).map((oppId) => {
+                  const opportunity = filteredOpportunities.find((opp: any) => opp.id === oppId);
+                  return opportunity ? (
+                    <div key={oppId} className="flex items-center justify-between text-sm">
+                      <span className="truncate">{opportunity.title}</span>
+                      <span className="text-gray-500 ml-2">€{parseInt(opportunity.estimated_value || 0).toLocaleString()}</span>
+                    </div>
+                  ) : null;
+                })}
+                {selectedOpportunities.length > 5 && (
+                  <div className="text-sm text-gray-500">
+                    +{selectedOpportunities.length - 5} more opportunities
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCampaignModal(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Handle campaign creation/addition
+                setShowCampaignModal(false);
+                setSelectedOpportunities([]);
+                toast({
+                  title: "Added to campaign",
+                  description: `${selectedOpportunities.length} opportunities added to campaign.`,
+                });
+              }}
+            >
+              Add to Campaign
             </Button>
           </DialogFooter>
         </DialogContent>
