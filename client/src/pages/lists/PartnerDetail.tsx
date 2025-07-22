@@ -401,13 +401,13 @@ export default function PartnerDetail() {
 
   // Fetch related opportunities for this partner
   const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/partners/${id}/opportunities`],
+    queryKey: [`/api/degoudse/partners/${id}/opportunities`],
     enabled: !!id,
   });
 
   // Fetch filter options for opportunities
   const { data: filterOptions, isLoading: filterOptionsLoading } = useQuery({
-    queryKey: [`/api/partners/${id}/opportunities/filters`],
+    queryKey: [`/api/degoudse/partners/${id}/opportunities/filters`],
     enabled: !!id,
   });
 

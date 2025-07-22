@@ -1144,18 +1144,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                o.client_id, o.partner_id, o.product_id, o.type, o.created_at, o.updated_at,
                o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
                c.name as client_name,
-               COUNT(DISTINCT contacts.id) as contact_count,
+               COALESCE(contact_counts.contact_count, 0) as contact_count,
                am.name as account_manager_name
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customers c ON o.client_id = c.id
-        LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
         LEFT JOIN degoudse.users am ON o.owner_id = am.id
+        LEFT JOIN (
+          SELECT cr.entity_id, COUNT(DISTINCT cr.contact_id) as contact_count
+          FROM degoudse.contact_relationships cr
+          WHERE cr.entity_type = 'customer'
+          GROUP BY cr.entity_id
+        ) contact_counts ON contact_counts.entity_id = c.id
         WHERE o.partner_id = $1 AND o.id > 16
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
-                 o.expected_close_date, o.start_date, o.insurance_description, o.owner_id, 
-                 o.client_id, o.partner_id, o.product_id, o.type, 
-                 o.created_at, o.updated_at, o.assessment_status, o.assessment_date, o.assessed_by_id, 
-                 o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, am.name
         ORDER BY o.id
       `, [partnerId]);
       
@@ -3236,18 +3236,18 @@ Prioritize actions that:
                o.client_id, o.partner_id, o.product_id, o.type, o.created_at, o.updated_at,
                o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
                c.name as client_name,
-               COUNT(DISTINCT contacts.id) as contact_count,
+               COALESCE(contact_counts.contact_count, 0) as contact_count,
                am.name as account_manager_name
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customers c ON o.client_id = c.id
-        LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
         LEFT JOIN degoudse.users am ON o.owner_id = am.id
+        LEFT JOIN (
+          SELECT cr.entity_id, COUNT(DISTINCT cr.contact_id) as contact_count
+          FROM degoudse.contact_relationships cr
+          WHERE cr.entity_type = 'customer'
+          GROUP BY cr.entity_id
+        ) contact_counts ON contact_counts.entity_id = c.id
         WHERE o.partner_id = $1 AND o.id > 16
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
-                 o.expected_close_date, o.start_date, o.insurance_description, o.owner_id, 
-                 o.client_id, o.partner_id, o.product_id, o.type, 
-                 o.created_at, o.updated_at, c.name, am.name,
-                 o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes
         ORDER BY o.id
       `, [partnerId]);
       
