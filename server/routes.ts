@@ -1134,13 +1134,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/partners/:id/opportunities', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
-      const result = await db.execute(sql`
-        SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, c.name as client_name
+      const envPool = pool; // Use default pool for degoudse environment
+      
+      console.log(`Fetching opportunities for partner ${partnerId} from De Goudse database`);
+      
+      const result = await envPool.query(`
+        SELECT o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
+               o.expected_close_date, o.start_date, o.insurance_description, o.owner_id,
+               o.client_id, o.partner_id, o.product_id, o.type, o.created_at, o.updated_at,
+               o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+               c.name as client_name,
+               COUNT(DISTINCT contacts.id) as contact_count,
+               am.name as account_manager_name
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customers c ON o.client_id = c.id
-        WHERE o.partner_id = ${partnerId}
+        LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
+        LEFT JOIN degoudse.users am ON o.owner_id = am.id
+        WHERE o.partner_id = $1 AND o.id > 16
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
+                 o.expected_close_date, o.start_date, o.insurance_description, o.owner_id, 
+                 o.client_id, o.partner_id, o.product_id, o.type, 
+                 o.created_at, o.updated_at, o.assessment_status, o.assessment_date, o.assessed_by_id, 
+                 o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, am.name
         ORDER BY o.id
-      `);
+      `, [partnerId]);
+      
+      console.log(`Found ${result.rows.length} opportunities for partner ${partnerId}`);
       
       const opportunities = result.rows.map((opp: any) => ({
         id: opp.id,
@@ -1149,10 +1168,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: opp.status,
         stage: opp.stage,
         estimatedValue: opp.estimated_value,
+        probability: opp.probability,
         clientName: opp.client_name,
+        contactCount: opp.contact_count || 0,
+        accountManagerName: opp.account_manager_name,
+        insuranceDescription: opp.insurance_description,
+        startDate: opp.start_date,
+        expectedCloseDate: opp.expected_close_date,
+        assessmentStatus: opp.assessment_status,
+        assessmentDate: opp.assessment_date,
+        withholdReasons: opp.withhold_reasons,
+        withholdComments: opp.withhold_comments,
+        assessmentNotes: opp.assessment_notes,
         createdAt: opp.created_at,
-        updatedAt: opp.updated_at,
-        expectedCloseDate: opp.expected_close_date
+        updatedAt: opp.updated_at
       }));
       
       res.json(opportunities);
