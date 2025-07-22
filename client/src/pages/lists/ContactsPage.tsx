@@ -9,9 +9,11 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, Mail, Phone, BarChart3, MoreHorizontal, User, Star, Tag as TagIcon } from 'lucide-react';
+import { Search, Plus, Mail, Phone, BarChart3, MoreHorizontal, User, Star, Tag as TagIcon, Users, Edit } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TagCategoryManager from "@/components/contacts/TagCategoryManager";
+import ContactRelationshipManager from "@/components/contacts/ContactRelationshipManager";
+import ContactRelationshipsModal from "@/components/contacts/ContactRelationshipsModal";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { FieldsSelector } from "@/components/shared/FieldsSelector";
@@ -149,6 +151,8 @@ export default function ContactsPage() {
 
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showRelationshipsModal, setShowRelationshipsModal] = useState(false);
+  const [selectedContactForRelationships, setSelectedContactForRelationships] = useState<Contact | null>(null);
 
   const { toast } = useToast();
 
@@ -351,6 +355,11 @@ export default function ContactsPage() {
     setShowEditDialog(true);
   };
 
+  const handleViewRelationships = (contact: Contact) => {
+    setSelectedContactForRelationships(contact);
+    setShowRelationshipsModal(true);
+  };
+
   const handleUpdateContact = () => {
     if (!editingContact) return;
     if (!formData.firstName || !formData.lastName) {
@@ -487,9 +496,18 @@ export default function ContactsPage() {
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => handleEditContact(contact)}
+            onClick={() => handleViewRelationships(contact)}
+            title="View Relationships"
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <Users className="w-4 h-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => handleEditContact(contact)}
+            title="Edit Contact"
+          >
+            <Edit className="w-4 h-4" />
           </Button>
         </div>
       </td>
@@ -839,6 +857,19 @@ export default function ContactsPage() {
         )}
       </div>
 
+      {/* Contact Relationships Modal */}
+      {selectedContactForRelationships && (
+        <ContactRelationshipsModal
+          isOpen={showRelationshipsModal}
+          onClose={() => {
+            setShowRelationshipsModal(false);
+            setSelectedContactForRelationships(null);
+          }}
+          contactId={selectedContactForRelationships.id}
+          contactName={selectedContactForRelationships.fullName || (selectedContactForRelationships as any).full_name || 'Unknown Contact'}
+          envId="degoudse"
+        />
+      )}
     </div>
   );
 }

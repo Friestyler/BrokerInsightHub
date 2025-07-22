@@ -44,6 +44,20 @@ export const contacts = pgTable("contacts", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Contact Relationships - flexible system to connect contacts to any entity
+export const contactRelationships = pgTable("contact_relationships", {
+  id: serial("id").primaryKey(),
+  contactId: integer("contact_id").notNull().references(() => contacts.id),
+  entityType: text("entity_type").notNull(), // 'opportunity', 'project', 'customer', 'partner', 'contact'
+  entityId: integer("entity_id").notNull(),
+  relationshipType: text("relationship_type").notNull().default("associated"), // 'primary', 'secondary', 'associated', 'reports_to', 'collaborates_with'
+  role: text("role"), // Optional role description (e.g., "Project Manager", "Decision Maker", "Technical Contact")
+  isPrimary: boolean("is_primary").notNull().default(false),
+  notes: text("notes"), // Relationship-specific notes
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Activity Tasks model
 export const activityTasks = pgTable("activity_tasks", {
   id: serial("id").primaryKey(),
@@ -394,6 +408,16 @@ export const insertContactSchema = createInsertSchema(contacts).pick({
   tags: true,
   reportsTo: true,
   isActive: true,
+});
+
+export const insertContactRelationshipSchema = createInsertSchema(contactRelationships).pick({
+  contactId: true,
+  entityType: true,
+  entityId: true,
+  relationshipType: true,
+  role: true,
+  isPrimary: true,
+  notes: true,
 });
 
 export const insertNewsArticleSchema = createInsertSchema(newsArticles).pick({
@@ -816,6 +840,9 @@ export type User = typeof users.$inferSelect;
 
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type Contact = typeof contacts.$inferSelect;
+
+export type InsertContactRelationship = z.infer<typeof insertContactRelationshipSchema>;
+export type ContactRelationship = typeof contactRelationships.$inferSelect;
 
 export type InsertNewsArticle = z.infer<typeof insertNewsArticleSchema>;
 export type NewsArticle = typeof newsArticles.$inferSelect;

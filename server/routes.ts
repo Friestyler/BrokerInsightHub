@@ -2823,6 +2823,182 @@ Prioritize actions that:
     }
   });
 
+  // Contact Relationships API endpoints
+  
+  // Get all relationships for a specific contact
+  app.get('/api/:envId/contacts/:contactId/relationships', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const contactId = parseInt(req.params.contactId);
+      const envPool = pool;
+
+      const result = await envPool.query(`
+        SELECT 
+          cr.*,
+          CASE 
+            WHEN cr.entity_type = 'opportunity' THEN o.title
+            WHEN cr.entity_type = 'customer' THEN c.name
+            WHEN cr.entity_type = 'partner' THEN p.name
+            WHEN cr.entity_type = 'contact' THEN cont.full_name
+            ELSE NULL
+          END as entity_name,
+          CASE 
+            WHEN cr.entity_type = 'opportunity' THEN o.status
+            WHEN cr.entity_type = 'customer' THEN 'active'
+            WHEN cr.entity_type = 'partner' THEN p.status
+            WHEN cr.entity_type = 'contact' THEN CASE WHEN cont.is_active THEN 'active' ELSE 'inactive' END
+            ELSE NULL
+          END as entity_status
+        FROM ${envId}.contact_relationships cr
+        LEFT JOIN ${envId}.opportunities o ON cr.entity_type = 'opportunity' AND cr.entity_id = o.id
+        LEFT JOIN ${envId}.customers c ON cr.entity_type = 'customer' AND cr.entity_id = c.id  
+        LEFT JOIN ${envId}.partners p ON cr.entity_type = 'partner' AND cr.entity_id = p.id
+        LEFT JOIN ${envId}.contacts cont ON cr.entity_type = 'contact' AND cr.entity_id = cont.id
+        WHERE cr.contact_id = $1
+        ORDER BY cr.created_at DESC
+      `, [contactId]);
+
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching contact relationships:', error);
+      res.status(500).json({ error: 'Failed to fetch relationships' });
+    }
+  });
+
+  // Create a new contact relationship
+  app.post('/api/:envId/contacts/:contactId/relationships', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const contactId = parseInt(req.params.contactId);
+      const { entityType, entityId, relationshipType, role, isPrimary, notes } = req.body;
+      const envPool = pool;
+
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.contact_relationships 
+        (contact_id, entity_type, entity_id, relationship_type, role, is_primary, notes, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        RETURNING *
+      `, [contactId, entityType, entityId, relationshipType || 'associated', role, isPrimary || false, notes]);
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating contact relationship:', error);
+      res.status(500).json({ error: 'Failed to create relationship' });
+    }
+  });
+
+  // Update a contact relationship
+  app.put('/api/:envId/contacts/relationships/:relationshipId', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const relationshipId = parseInt(req.params.relationshipId);
+      const { relationshipType, role, isPrimary, notes } = req.body;
+      const envPool = pool;
+
+      const result = await envPool.query(`
+        UPDATE ${envId}.contact_relationships 
+        SET relationship_type = $1, role = $2, is_primary = $3, notes = $4, updated_at = NOW()
+        WHERE id = $5
+        RETURNING *
+      `, [relationshipType, role, isPrimary, notes, relationshipId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Relationship not found' });
+      }
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating contact relationship:', error);
+      res.status(500).json({ error: 'Failed to update relationship' });
+    }
+  });
+
+  // Delete a contact relationship
+  app.delete('/api/:envId/contacts/relationships/:relationshipId', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const relationshipId = parseInt(req.params.relationshipId);
+      const envPool = pool;
+
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.contact_relationships 
+        WHERE id = $1
+        RETURNING *
+      `, [relationshipId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Relationship not found' });
+      }
+
+      res.json({ success: true, message: 'Relationship deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting contact relationship:', error);
+      res.status(500).json({ error: 'Failed to delete relationship' });
+    }
+  });
+
+  // Get available entities for relationship creation
+  app.get('/api/:envId/contacts/relationship-entities', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const { type, search } = req.query;
+      const envPool = pool;
+      let result;
+
+      const searchFilter = search ? `%${search}%` : '%';
+
+      switch (type) {
+        case 'opportunity':
+          result = await envPool.query(`
+            SELECT id, title as name, status 
+            FROM ${envId}.opportunities 
+            WHERE title ILIKE $1
+            ORDER BY title 
+            LIMIT 20
+          `, [searchFilter]);
+          break;
+        
+        case 'customer':
+          result = await envPool.query(`
+            SELECT id, name, 'active' as status 
+            FROM ${envId}.customers 
+            WHERE name ILIKE $1
+            ORDER BY name 
+            LIMIT 20
+          `, [searchFilter]);
+          break;
+        
+        case 'partner':
+          result = await envPool.query(`
+            SELECT id, name, status 
+            FROM ${envId}.partners 
+            WHERE name ILIKE $1
+            ORDER BY name 
+            LIMIT 20
+          `, [searchFilter]);
+          break;
+        
+        case 'contact':
+          result = await envPool.query(`
+            SELECT id, full_name as name, CASE WHEN is_active THEN 'active' ELSE 'inactive' END as status 
+            FROM ${envId}.contacts 
+            WHERE full_name ILIKE $1
+            ORDER BY full_name 
+            LIMIT 20
+          `, [searchFilter]);
+          break;
+        
+        default:
+          return res.status(400).json({ error: 'Invalid entity type' });
+      }
+
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching relationship entities:', error);
+      res.status(500).json({ error: 'Failed to fetch entities' });
+    }
+  });
+
   // Get distinct filter values for customers related to a specific partner
   app.get('/api/degoudse/partners/:id/customers/filter-options', async (req, res) => {
     try {
