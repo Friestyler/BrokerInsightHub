@@ -126,15 +126,22 @@ export default function ContactRelationshipsModal({
           </p>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 flex flex-col">
           {/* Statistics Overview */}
           <div className="grid grid-cols-6 gap-3 p-4 bg-gray-50 rounded-lg mb-6">
             {relationshipStats.map((stat) => {
               const Icon = stat.icon;
+              const isSelected = selectedEntityType === stat.value;
               return (
-                <div key={stat.value} className="text-center">
+                <div 
+                  key={stat.value} 
+                  className={`text-center cursor-pointer transition-all duration-200 p-2 rounded-lg hover:bg-white hover:shadow-sm ${
+                    isSelected ? 'bg-white shadow-sm ring-2 ring-[#5567E5] ring-opacity-20' : ''
+                  }`}
+                  onClick={() => setSelectedEntityType(selectedEntityType === stat.value ? 'all' : stat.value)}
+                >
                   <div className="flex items-center justify-center mb-2">
-                    <div className={`p-2 rounded-lg ${stat.color}`}>
+                    <div className={`p-2 rounded-lg ${stat.color} ${isSelected ? 'ring-2 ring-[#5567E5] ring-opacity-30' : ''}`}>
                       <Icon className="h-4 w-4" />
                     </div>
                   </div>
@@ -185,7 +192,7 @@ export default function ContactRelationshipsModal({
 
 
           {/* Relationships Content */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto pr-2">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
