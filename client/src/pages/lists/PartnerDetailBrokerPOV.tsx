@@ -2770,21 +2770,21 @@ export default function PartnerDetailBrokerPOV() {
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">Reason (select one)</label>
                       <div className="space-y-2 max-h-32 overflow-y-auto">
-                        {withholdReasonsData?.map((reason: string) => (
-                          <label key={reason} className="flex items-center space-x-2">
+                        {withholdReasonsData?.map((reason: any) => (
+                          <label key={reason.id || reason.name || reason} className="flex items-center space-x-2">
                             <input
                               type="radio"
                               name="withholdReason"
-                              value={reason}
-                              checked={selectedWithholdReasons.includes(reason)}
+                              value={reason.name || reason}
+                              checked={selectedWithholdReasons.includes(reason.name || reason)}
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setSelectedWithholdReasons([reason]);
+                                  setSelectedWithholdReasons([reason.name || reason]);
                                 }
                               }}
                               className="w-4 h-4 text-indigo-600"
                             />
-                            <span className="text-sm text-gray-700">{reason}</span>
+                            <span className="text-sm text-gray-700">{reason.name || reason}</span>
                           </label>
                         ))}
                       </div>
