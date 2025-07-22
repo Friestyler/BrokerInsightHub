@@ -488,56 +488,7 @@ export default function PartnerDetailBrokerPOV() {
   const [showCustomerStatusDropdown, setShowCustomerStatusDropdown] = useState(false);
   const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
 
-  // Filter opportunities based on search and filters - using baseOpportunities for proper list integration
-  const filteredOpportunities = baseOpportunities.filter((opportunity: any) => {
-    // Filter by search text
-    if (filterText) {
-      const searchLower = filterText.toLowerCase();
-      const matchesSearch = 
-        opportunity.title?.toLowerCase().includes(searchLower) ||
-        opportunity.clientName?.toLowerCase().includes(searchLower) ||
-        opportunity.stage?.toLowerCase().includes(searchLower) ||
-        opportunity.account_manager_name?.toLowerCase().includes(searchLower) ||
-        opportunity.insurance_description?.toLowerCase().includes(searchLower);
-      if (!matchesSearch) return false;
-    }
-    
-    // Apply opportunity filters
-    if (opportunityFilters.status !== 'All' && opportunity.stage !== opportunityFilters.status) {
-      return false;
-    }
-    
-    if (opportunityFilters.stage !== 'All' && opportunity.stage !== opportunityFilters.stage) {
-      return false;
-    }
-    
-    if (opportunityFilters.type !== 'All' && opportunity.insurance_description !== opportunityFilters.type) {
-      return false;
-    }
-    
-    if (opportunityFilters.size !== 'All') {
-      const estimatedValue = parseFloat(opportunity.estimated_value) || 0;
-      let matchesSize = false;
-      
-      switch (opportunityFilters.size) {
-        case 'Small (<€50k)':
-          matchesSize = estimatedValue < 50000;
-          break;
-        case 'Medium (€50k-€200k)':
-          matchesSize = estimatedValue >= 50000 && estimatedValue <= 200000;
-          break;
-        case 'Large (>€200k)':
-          matchesSize = estimatedValue > 200000;
-          break;
-        default:
-          matchesSize = true;
-      }
-      
-      if (!matchesSize) return false;
-    }
-    
-    return true;
-  });
+
 
   // Create unique values for filter dropdowns
   const uniqueOpportunityStatuses = [...new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean))];
@@ -966,7 +917,56 @@ export default function PartnerDetailBrokerPOV() {
     return true;
   });
 
-
+  // Filter opportunities based on search and filters - using baseOpportunities for proper list integration
+  const filteredOpportunities = baseOpportunities.filter((opportunity: any) => {
+    // Filter by search text
+    if (filterText) {
+      const searchLower = filterText.toLowerCase();
+      const matchesSearch = 
+        opportunity.title?.toLowerCase().includes(searchLower) ||
+        opportunity.clientName?.toLowerCase().includes(searchLower) ||
+        opportunity.stage?.toLowerCase().includes(searchLower) ||
+        opportunity.account_manager_name?.toLowerCase().includes(searchLower) ||
+        opportunity.insurance_description?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+    
+    // Apply opportunity filters
+    if (opportunityFilters.status !== 'All' && opportunity.stage !== opportunityFilters.status) {
+      return false;
+    }
+    
+    if (opportunityFilters.stage !== 'All' && opportunity.stage !== opportunityFilters.stage) {
+      return false;
+    }
+    
+    if (opportunityFilters.type !== 'All' && opportunity.insurance_description !== opportunityFilters.type) {
+      return false;
+    }
+    
+    if (opportunityFilters.size !== 'All') {
+      const estimatedValue = parseFloat(opportunity.estimated_value) || 0;
+      let matchesSize = false;
+      
+      switch (opportunityFilters.size) {
+        case 'Small (<€50k)':
+          matchesSize = estimatedValue < 50000;
+          break;
+        case 'Medium (€50k-€200k)':
+          matchesSize = estimatedValue >= 50000 && estimatedValue <= 200000;
+          break;
+        case 'Large (>€200k)':
+          matchesSize = estimatedValue > 200000;
+          break;
+        default:
+          matchesSize = true;
+      }
+      
+      if (!matchesSize) return false;
+    }
+    
+    return true;
+  });
 
   // Click outside handler to close dropdowns
   useEffect(() => {
