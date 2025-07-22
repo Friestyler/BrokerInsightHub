@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Building2, Target, UserCheck, ExternalLink, Search, Filter } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, Building2, Target, UserCheck, ExternalLink, Search, Filter, Plus, Eye } from 'lucide-react';
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import ContactRelationshipManager from './ContactRelationshipManager';
 
@@ -60,7 +61,7 @@ export default function ContactRelationshipsModal({
 }: ContactRelationshipsModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEntityType, setSelectedEntityType] = useState<string>('all');
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('view');
 
   // Fetch relationships
   const { data: relationships = [], isLoading } = useQuery({
@@ -115,101 +116,80 @@ export default function ContactRelationshipsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="pb-4 border-b border-[#E6E7F1]">
           <DialogTitle className="flex items-center text-xl">
             <Users className="h-6 w-6 mr-3 text-[#5567E5]" />
             Relationship Network: {contactName}
           </DialogTitle>
           <p className="text-sm text-gray-600 mt-1">
-            View all connections and relationships for this contact across your organization
+            View existing connections or search for new entities to connect
           </p>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col">
-          {/* Statistics Overview */}
-          <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg mb-6">
-            {relationshipStats.map((stat) => {
-              const Icon = stat.icon;
-              return (
-                <div key={stat.value} className="text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <div className={`p-2 rounded-lg ${stat.color}`}>
-                      <Icon className="h-5 w-5" />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="view" className="flex items-center space-x-2">
+                <Eye className="h-4 w-4" />
+                <span>View Relationships ({totalRelationships})</span>
+              </TabsTrigger>
+              <TabsTrigger value="add" className="flex items-center space-x-2">
+                <Plus className="h-4 w-4" />
+                <span>Add New Relationship</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="view" className="flex-1 flex flex-col overflow-hidden">
+              {/* Statistics Overview */}
+              <div className="grid grid-cols-6 gap-3 p-4 bg-gray-50 rounded-lg mb-6">
+                {relationshipStats.map((stat) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div key={stat.value} className="text-center">
+                      <div className="flex items-center justify-center mb-2">
+                        <div className={`p-2 rounded-lg ${stat.color}`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                      </div>
+                      <div className="text-lg font-bold text-gray-900">{stat.count}</div>
+                      <div className="text-xs text-gray-600">{stat.label}</div>
                     </div>
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900">{stat.count}</div>
-                  <div className="text-xs text-gray-600">{stat.label}</div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Search and Filter Controls + Add New Button */}
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search relationships, roles, or notes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-gray-400" />
-              <select
-                value={selectedEntityType}
-                onChange={(e) => setSelectedEntityType(e.target.value)}
-                className="border border-[#E6E7F1] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5567E5] focus:border-transparent"
-              >
-                <option value="all">All Types</option>
-                {ENTITY_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <Button 
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="bg-[#5567E5] hover:bg-[#4556D4] flex items-center"
-            >
-              <Search className="h-4 w-4 mr-2" />
-              {showAddForm ? 'Hide Search' : 'Add Relationship'}
-            </Button>
-          </div>
-
-          {/* Add Relationship Form */}
-          {showAddForm && (
-            <div className="mb-6 p-4 border border-[#E6E7F1] rounded-lg bg-gray-50">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                <Search className="h-5 w-5 mr-2 text-[#5567E5]" />
-                Search & Connect Entities
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Search for opportunities, projects, customers, partners, vendors, or contacts to connect with {contactName}
-              </p>
-              
-              {/* ContactRelationshipManager component will be embedded here */}
-              <div className="bg-white rounded-lg border border-[#E6E7F1] p-4">
-                <ContactRelationshipManager 
-                  contactId={contactId} 
-                  envId={envId}
-                  onRelationshipAdded={() => {
-                    // Refresh the relationships query
-                    queryClient.invalidateQueries([`/api/${envId}/contacts/${contactId}/relationships`]);
-                    setShowAddForm(false);
-                  }}
-                />
+                  );
+                })}
               </div>
-            </div>
-          )}
 
-          {/* Relationships Content */}
-          <div className="flex-1 overflow-y-auto">
+              {/* Search and Filter Controls */}
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search relationships, roles, or notes..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Filter className="h-4 w-4 text-gray-400" />
+                  <select
+                    value={selectedEntityType}
+                    onChange={(e) => setSelectedEntityType(e.target.value)}
+                    className="border border-[#E6E7F1] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5567E5] focus:border-transparent"
+                  >
+                    <option value="all">All Types</option>
+                    {ENTITY_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Relationships Content */}
+              <div className="flex-1 overflow-y-auto">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
@@ -224,8 +204,8 @@ export default function ContactRelationshipsModal({
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                   This contact hasn't been connected to any opportunities, customers, partners, or other contacts yet.
                 </p>
-                <Button onClick={() => setShowAddForm(true)} className="bg-[#5567E5] hover:bg-[#4556D4]">
-                  Add Relationships
+                <Button onClick={() => setActiveTab('add')} className="bg-[#5567E5] hover:bg-[#4556D4]">
+                  Add First Relationship
                 </Button>
               </div>
             ) : filteredRelationships.length === 0 ? (
@@ -311,7 +291,32 @@ export default function ContactRelationshipsModal({
                 })}
               </div>
             )}
-          </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="add" className="flex-1 flex flex-col overflow-hidden">
+              <div className="p-4 border border-[#E6E7F1] rounded-lg bg-gray-50">
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <Search className="h-5 w-5 mr-2 text-[#5567E5]" />
+                  Search & Connect Entities
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Search for opportunities, projects, customers, partners, vendors, or contacts to connect with {contactName}
+                </p>
+                
+                <div className="bg-white rounded-lg border border-[#E6E7F1] p-4">
+                  <ContactRelationshipManager 
+                    contactId={contactId} 
+                    envId={envId}
+                    onRelationshipAdded={() => {
+                      queryClient.invalidateQueries([`/api/${envId}/contacts/${contactId}/relationships`]);
+                      setActiveTab('view');
+                    }}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Footer */}
