@@ -1752,10 +1752,10 @@ export default function PartnerDetailBrokerPOV() {
           )}
 
           {activeTab === "opportunities" && (
-            <div className="space-y-0">
+            <div className="space-y-0 -mt-2">
               {/* Enhanced unified toolbar - same as OpportunitiesPage */}
               <div className="bg-white p-2 rounded-lg shadow-sm">
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-4">
                   {/* Saved Lists header with optional selected list indicator */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
