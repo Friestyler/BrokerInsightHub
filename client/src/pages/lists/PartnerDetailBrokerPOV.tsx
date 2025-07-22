@@ -1758,72 +1758,29 @@ export default function PartnerDetailBrokerPOV() {
                 <div className="flex flex-col gap-4">
                   {/* Top row with saved lists and actions */}
                   <div className="flex flex-wrap items-center justify-between">
-                    {/* Left side - Saved Lists section */}
+                    {/* Left side - Saved Lists collapsible section */}
                     <div className="flex items-center gap-3">
-                      {/* Lists heading with view toggle */}
-                      <div className="flex items-center gap-4">
-                        <span className="text-base font-semibold text-gray-800">Lists</span>
-                        
-                        {/* View mode toggle (Cards/List) */}
-                        <div className="flex items-center border border-gray-200 rounded-md p-1">
-                          <button
-                            onClick={() => setViewMode('cards')}
-                            className={`p-1.5 rounded text-xs transition-colors ${
-                              viewMode === 'cards' 
-                                ? 'bg-[#5567E5] text-white' 
-                                : 'text-gray-600 hover:text-gray-800'
-                            }`}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="3" y="3" width="7" height="7"></rect>
-                              <rect x="14" y="3" width="7" height="7"></rect>
-                              <rect x="14" y="14" width="7" height="7"></rect>
-                              <rect x="3" y="14" width="7" height="7"></rect>
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-1.5 rounded text-xs transition-colors ${
-                              viewMode === 'list' 
-                                ? 'bg-[#5567E5] text-white' 
-                                : 'text-gray-600 hover:text-gray-800'
-                            }`}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <line x1="8" y1="6" x2="21" y2="6"></line>
-                              <line x1="8" y1="12" x2="21" y2="12"></line>
-                              <line x1="8" y1="18" x2="21" y2="18"></line>
-                              <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                              <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                              <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                            </svg>
-                          </button>
-                        </div>
-                        
-                        {/* Collapse/Expand toggle */}
-                        <button
-                          onClick={() => setExpandedListsDropdown(!expandedListsDropdown)}
-                          className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                      {/* Saved Lists chevron header */}
+                      <button
+                        onClick={() => setExpandedListsDropdown(!expandedListsDropdown)}
+                        className="flex items-center space-x-2 text-base font-semibold text-gray-800 hover:text-gray-900"
+                      >
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="16" 
+                          height="16" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          className={`transition-transform ${expandedListsDropdown ? 'rotate-90' : ''}`}
                         >
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="14" 
-                            height="14" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            className={`transition-transform ${expandedListsDropdown ? 'rotate-180' : ''}`}
-                          >
-                            <polyline points="6 9 12 15 18 9" />
-                          </svg>
-                          <span className="font-medium text-[#282A3F]">
-                            {activeOpportunitiesList ? activeOpportunitiesList.name : 'All opportunities'}
-                          </span>
-                        </button>
-                      </div>
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                        <span>Saved Lists ({1 + partnerRelevantLists.length})</span>
+                      </button>
                     </div>
                     
                     {/* Right-side action buttons */}
@@ -1854,6 +1811,47 @@ export default function PartnerDetailBrokerPOV() {
                   {/* Expandable cards/list section */}
                   {expandedListsDropdown && (
                     <div className="border-t pt-4">
+                      {/* View mode toggle (Cards/List) inside the expandable section */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center border border-gray-200 rounded-md p-1">
+                          <button
+                            onClick={() => setViewMode('cards')}
+                            className={`flex items-center space-x-1 px-3 py-1.5 rounded text-xs transition-colors ${
+                              viewMode === 'cards' 
+                                ? 'bg-[#5567E5] text-white' 
+                                : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="14" width="7" height="7"></rect>
+                              <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span>Cards</span>
+                          </button>
+                          <button
+                            onClick={() => setViewMode('list')}
+                            className={`flex items-center space-x-1 px-3 py-1.5 rounded text-xs transition-colors ${
+                              viewMode === 'list' 
+                                ? 'bg-[#5567E5] text-white' 
+                                : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="8" y1="6" x2="21" y2="6"></line>
+                              <line x1="8" y1="12" x2="21" y2="12"></line>
+                              <line x1="8" y1="18" x2="21" y2="18"></line>
+                              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                            <span>List</span>
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Cards or List view content */}
                       {viewMode === 'cards' ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {/* All opportunities card */}
