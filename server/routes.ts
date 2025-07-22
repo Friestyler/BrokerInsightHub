@@ -26,10 +26,13 @@ import {
   productCategories,
   products,
   productTemplates,
+  projects,
   vendors,
   insertProductCategorySchema,
   insertProductSchema,
   insertProductTemplateSchema,
+  insertProjectSchema,
+  insertVendorSchema,
   activityReactions,
   insertActivityReactionSchema,
   opportunityWithholdReasons,
@@ -46,7 +49,10 @@ import {
   type Product,
   type ProductTemplate,
   type InsertProductTemplate,
+  type Project,
+  type InsertProject,
   type Vendor,
+  type InsertVendor,
   type ActivityReaction,
   type InsertActivityReaction,
   type TagGroup,
@@ -184,6 +190,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
   app.get('/api/vendors', (req, res) => res.redirect('/api/degoudse/vendors'));
   app.post('/api/vendors', (req, res) => res.redirect(307, '/api/degoudse/vendors'));
+  app.get('/api/projects', (req, res) => res.redirect('/api/degoudse/projects'));
+  app.post('/api/projects', (req, res) => res.redirect(307, '/api/degoudse/projects'));
   app.get('/api/partners', (req, res) => res.redirect('/api/degoudse/partners'));
   app.get('/api/customers', (req, res) => res.redirect('/api/degoudse/customers'));
   app.get('/api/products', (req, res) => res.redirect('/api/degoudse/products'));
@@ -6940,6 +6948,96 @@ Return as JSON in this exact format:
     } catch (error) {
       console.error('Error fetching De Goudse vendors:', error);
       res.status(500).json({ error: 'Failed to fetch vendors' });
+    }
+  });
+
+  // De Goudse Projects endpoints
+  app.get('/api/degoudse/projects', async (req, res) => {
+    const cacheKey = 'degoudse_projects';
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
+    try {
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT p.id, p.name, p.description, p.status, p.priority, 
+               p.start_date, p.end_date, p.estimated_value, p.actual_value,
+               p.customer_id, p.partner_id, p.project_manager_id, p.created_by_id,
+               p.created_at, p.updated_at,
+               c.name as customer_name,
+               pt.name as partner_name,
+               u.username as project_manager_name
+        FROM degoudse.projects p
+        LEFT JOIN degoudse.customers c ON p.customer_id = c.id
+        LEFT JOIN degoudse.partners pt ON p.partner_id = pt.id
+        LEFT JOIN degoudse.users u ON p.project_manager_id = u.id
+        ORDER BY p.name ASC
+      `);
+      
+      const projects = result.rows.map((project: any) => ({
+        ...project,
+        estimatedValue: project.estimated_value,
+        actualValue: project.actual_value,
+        customerId: project.customer_id,
+        partnerId: project.partner_id,
+        projectManagerId: project.project_manager_id,
+        createdById: project.created_by_id,
+        customerName: project.customer_name,
+        partnerName: project.partner_name,
+        projectManagerName: project.project_manager_name
+      }));
+      
+      console.log(`Returning ${projects.length} projects from De Goudse database`);
+      setCache(cacheKey, projects);
+      res.json(projects);
+    } catch (error) {
+      console.error('Error fetching De Goudse projects:', error);
+      res.status(500).json({ error: 'Failed to fetch projects' });
+    }
+  });
+
+  app.post('/api/degoudse/projects', async (req, res) => {
+    try {
+      const envPool = pool;
+      const { 
+        name, 
+        description, 
+        status = 'active',
+        priority = 'medium',
+        startDate,
+        endDate,
+        estimatedValue,
+        actualValue,
+        customerId,
+        partnerId,
+        projectManagerId,
+        createdById
+      } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ error: 'Project name is required' });
+      }
+
+      const result = await envPool.query(`
+        INSERT INTO degoudse.projects 
+        (name, description, status, priority, start_date, end_date, estimated_value, actual_value, customer_id, partner_id, project_manager_id, created_by_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+        RETURNING *
+      `, [name, description, status, priority, startDate, endDate, estimatedValue, actualValue, customerId, partnerId, projectManagerId, createdById]);
+
+      const project = result.rows[0];
+      
+      // Clear projects cache
+      clearCache('degoudse_projects');
+      
+      console.log('Created new project in De Goudse database:', project.name);
+      res.status(201).json(project);
+    } catch (error) {
+      console.error('Error creating De Goudse project:', error);
+      res.status(500).json({ error: 'Failed to create project' });
     }
   });
 

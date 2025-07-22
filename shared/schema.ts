@@ -912,6 +912,25 @@ export const partners = pgTable("partners", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Projects model - for project management and tracking
+export const projects = pgTable("projects", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("active"), // active, completed, cancelled, on_hold
+  priority: text("priority").notNull().default("medium"), // low, medium, high, urgent
+  startDate: date("start_date"),
+  endDate: date("end_date"),
+  estimatedValue: numeric("estimated_value", { precision: 12, scale: 2 }),
+  actualValue: numeric("actual_value", { precision: 12, scale: 2 }),
+  customerId: integer("customer_id").references(() => customers.id),
+  partnerId: integer("partner_id").references(() => partners.id),
+  projectManagerId: integer("project_manager_id").references(() => users.id),
+  createdById: integer("created_by_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Vendor model - aligned with customers schema
 export const vendors = pgTable("vendors", {
   id: serial("id").primaryKey(),
@@ -1022,6 +1041,27 @@ export const productTemplates = pgTable("product_templates", {
 });
 
 // Define relationships
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  customer: one(customers, {
+    fields: [projects.customerId],
+    references: [customers.id],
+  }),
+  partner: one(partners, {
+    fields: [projects.partnerId],
+    references: [partners.id],
+  }),
+  projectManager: one(users, {
+    fields: [projects.projectManagerId],
+    references: [users.id],
+    relationName: "projectManager",
+  }),
+  createdBy: one(users, {
+    fields: [projects.createdById],
+    references: [users.id],
+    relationName: "projectCreator",
+  }),
+}));
+
 export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   owner: one(users, {
     fields: [vendors.ownerId],
@@ -1080,6 +1120,21 @@ export const categoriesRelations = relations(categories, ({ one, many }) => ({
 }));
 
 // Insert schemas
+export const insertProjectSchema = createInsertSchema(projects).pick({
+  name: true,
+  description: true,
+  status: true,
+  priority: true,
+  startDate: true,
+  endDate: true,
+  estimatedValue: true,
+  actualValue: true,
+  customerId: true,
+  partnerId: true,
+  projectManagerId: true,
+  createdById: true,
+});
+
 export const insertVendorSchema = createInsertSchema(vendors).pick({
   name: true,
   description: true,
@@ -1089,6 +1144,12 @@ export const insertVendorSchema = createInsertSchema(vendors).pick({
   contactPhone: true,
   ownerId: true,
 });
+
+// Type exports for Projects and Vendors
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type Vendor = typeof vendors.$inferSelect;
+export type InsertVendor = z.infer<typeof insertVendorSchema>;
 
 export const insertProductCategorySchema = createInsertSchema(productCategories).pick({
   name: true,
@@ -1251,9 +1312,7 @@ export const insertPartnerSchema = createInsertSchema(partners).pick({
   linkedOpportunityIds: true,
 });
 
-export { opportunities as projects };
-export type Project = Opportunity;
-export type InsertProject = InsertOpportunity;
+// Projects are already defined above as separate entity
 
 // Contact types already defined above
 

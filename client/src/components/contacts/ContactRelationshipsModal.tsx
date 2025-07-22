@@ -11,7 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 interface ContactRelationship {
   id: number;
   contact_id: number;
-  entity_type: 'opportunity' | 'project' | 'customer' | 'partner' | 'contact';
+  entity_type: 'opportunity' | 'project' | 'customer' | 'partner' | 'contact' | 'vendor';
   entity_id: number;
   relationship_type: string;
   role?: string;
@@ -32,8 +32,10 @@ interface ContactRelationshipsModalProps {
 
 const ENTITY_TYPES = [
   { value: 'opportunity', label: 'Opportunities', icon: Target, color: 'bg-green-100 text-green-800 border-green-200' },
+  { value: 'project', label: 'Projects', icon: Building2, color: 'bg-orange-100 text-orange-800 border-orange-200' },
   { value: 'customer', label: 'Customers', icon: Building2, color: 'bg-blue-100 text-blue-800 border-blue-200' },
   { value: 'partner', label: 'Partners', icon: Users, color: 'bg-purple-100 text-purple-800 border-purple-200' },
+  { value: 'vendor', label: 'Vendors', icon: Building2, color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
   { value: 'contact', label: 'Contacts', icon: UserCheck, color: 'bg-gray-100 text-gray-800 border-gray-200' }
 ];
 
@@ -61,7 +63,7 @@ export default function ContactRelationshipsModal({
   // Fetch relationships
   const { data: relationships = [], isLoading } = useQuery({
     queryKey: [`/api/${envId}/contacts/${contactId}/relationships`],
-    queryFn: () => apiRequest('GET', `/api/${envId}/contacts/${contactId}/relationships`),
+    queryFn: () => apiRequest('GET', `/api/${envId}/contacts/${contactId}/relationships`) as Promise<ContactRelationship[]>,
     enabled: isOpen && !!contactId,
     staleTime: 5 * 60 * 1000
   });
