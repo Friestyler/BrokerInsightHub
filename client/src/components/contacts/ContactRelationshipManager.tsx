@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Target, Users, Building2, UserCheck } from 'lucide-react';
+import { Target, Users, Building2, UserCheck, Mail } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -31,7 +31,8 @@ const ENTITY_TYPES = [
   { value: 'customer', label: 'Customers', icon: Building2, color: 'bg-blue-100 text-blue-800' },
   { value: 'partner', label: 'Partners', icon: Users, color: 'bg-purple-100 text-purple-800' },
   { value: 'vendor', label: 'Vendors', icon: Building2, color: 'bg-indigo-100 text-indigo-800' },
-  { value: 'contact', label: 'Contacts', icon: UserCheck, color: 'bg-gray-100 text-gray-800' }
+  { value: 'contact', label: 'Contacts', icon: UserCheck, color: 'bg-gray-100 text-gray-800' },
+  { value: 'campaign', label: 'Campaigns', icon: Mail, color: 'bg-pink-100 text-pink-800' }
 ];
 
 const RELATIONSHIP_TYPES = [

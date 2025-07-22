@@ -2877,6 +2877,7 @@ Prioritize actions that:
             WHEN cr.entity_type = 'customer' THEN c.name
             WHEN cr.entity_type = 'partner' THEN p.name
             WHEN cr.entity_type = 'contact' THEN cont.full_name
+            WHEN cr.entity_type = 'campaign' THEN camp.name
             ELSE NULL
           END as entity_name,
           CASE 
@@ -2884,6 +2885,7 @@ Prioritize actions that:
             WHEN cr.entity_type = 'customer' THEN 'active'
             WHEN cr.entity_type = 'partner' THEN p.status
             WHEN cr.entity_type = 'contact' THEN CASE WHEN cont.is_active THEN 'active' ELSE 'inactive' END
+            WHEN cr.entity_type = 'campaign' THEN camp.status
             ELSE NULL
           END as entity_status
         FROM ${envId}.contact_relationships cr
@@ -2891,6 +2893,7 @@ Prioritize actions that:
         LEFT JOIN ${envId}.customers c ON cr.entity_type = 'customer' AND cr.entity_id = c.id  
         LEFT JOIN ${envId}.partners p ON cr.entity_type = 'partner' AND cr.entity_id = p.id
         LEFT JOIN ${envId}.contacts cont ON cr.entity_type = 'contact' AND cr.entity_id = cont.id
+        LEFT JOIN ${envId}.campaigns camp ON cr.entity_type = 'campaign' AND cr.entity_id = camp.id
         WHERE cr.contact_id = $1
         ORDER BY cr.created_at DESC
       `, [contactId]);
@@ -3021,6 +3024,16 @@ Prioritize actions that:
             FROM ${envId}.contacts 
             WHERE full_name ILIKE $1
             ORDER BY full_name 
+            LIMIT 20
+          `, [searchFilter]);
+          break;
+        
+        case 'campaign':
+          result = await envPool.query(`
+            SELECT id, name, status 
+            FROM ${envId}.campaigns 
+            WHERE name ILIKE $1
+            ORDER BY name 
             LIMIT 20
           `, [searchFilter]);
           break;

@@ -5,14 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Building2, Target, UserCheck, ExternalLink, Search, Filter, Plus } from 'lucide-react';
+import { Users, Building2, Target, UserCheck, ExternalLink, Search, Filter, Plus, Mail } from 'lucide-react';
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import ContactRelationshipManager from './ContactRelationshipManager';
 
 interface ContactRelationship {
   id: number;
   contact_id: number;
-  entity_type: 'opportunity' | 'project' | 'customer' | 'partner' | 'contact' | 'vendor';
+  entity_type: 'opportunity' | 'project' | 'customer' | 'partner' | 'contact' | 'vendor' | 'campaign';
   entity_id: number;
   relationship_type: string;
   role?: string;
@@ -37,7 +37,8 @@ const ENTITY_TYPES = [
   { value: 'customer', label: 'Customers', icon: Building2, color: 'bg-blue-100 text-blue-800 border-blue-200' },
   { value: 'partner', label: 'Partners', icon: Users, color: 'bg-purple-100 text-purple-800 border-purple-200' },
   { value: 'vendor', label: 'Vendors', icon: Building2, color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-  { value: 'contact', label: 'Contacts', icon: UserCheck, color: 'bg-gray-100 text-gray-800 border-gray-200' }
+  { value: 'contact', label: 'Contacts', icon: UserCheck, color: 'bg-gray-100 text-gray-800 border-gray-200' },
+  { value: 'campaign', label: 'Campaigns', icon: Mail, color: 'bg-pink-100 text-pink-800 border-pink-200' }
 ];
 
 const RELATIONSHIP_TYPES: Record<string, string> = {
@@ -129,7 +130,7 @@ export default function ContactRelationshipsModal({
 
         <div className="flex-1 min-h-0 flex flex-col px-6">
           {/* Statistics Overview */}
-          <div className="grid grid-cols-6 gap-3 p-4 bg-gray-50 rounded-lg mb-6 flex-shrink-0">
+          <div className="grid grid-cols-7 gap-3 p-4 bg-gray-50 rounded-lg mb-6 flex-shrink-0">
             {relationshipStats.map((stat) => {
               const Icon = stat.icon;
               const isSelected = selectedEntityType === stat.value;
