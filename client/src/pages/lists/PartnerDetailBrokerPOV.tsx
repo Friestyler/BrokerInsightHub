@@ -1209,10 +1209,10 @@ export default function PartnerDetailBrokerPOV() {
     }
   });
 
-  // Fetch withhold reasons on component mount
+  // Fetch withhold reasons on component mount - environment-specific
   const { data: withholdReasonsData } = useQuery({
-    queryKey: ['/api/withhold-reasons'],
-    queryFn: () => apiRequest('GET', '/api/withhold-reasons'),
+    queryKey: [`/api/${actualCurrentEnvironment}/opportunity-withhold-reasons`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/opportunity-withhold-reasons`),
   });
 
   // Comments history query - CRITICAL FIX: Use environment-specific API path for broker view

@@ -6612,7 +6612,7 @@ Return as JSON in this exact format:
         clientId,
         productId,
         estimatedValue || 0,
-        probability,
+        probability || 0,
         status,
         type,
         expectedCloseDate || null,
