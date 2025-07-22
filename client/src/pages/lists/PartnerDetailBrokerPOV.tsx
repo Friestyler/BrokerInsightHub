@@ -501,7 +501,6 @@ export default function PartnerDetailBrokerPOV() {
 
   // Create unique values for filter dropdowns
   const uniqueOpportunityStages = [...new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean))];
-  const uniqueOpportunityAssessments = ['Pending', 'Accepted', 'Withheld'];
 
   // Filter customers based on search and filters
   const filteredCustomers = partnerCustomers.filter((customer: any) => {
@@ -945,8 +944,13 @@ export default function PartnerDetailBrokerPOV() {
     }
     
     if (opportunityFilters.assessment !== 'All') {
-      const assessmentStatus = opportunity.assessment_status || opportunity.assessmentStatus || 'Pending';
-      if (assessmentStatus !== opportunityFilters.assessment) {
+      const assessmentStatus = opportunity.assessment_status || opportunity.assessmentStatus;
+      let normalizedStatus = 'Pending'; // Default value
+      
+      if (assessmentStatus === 'accepted') normalizedStatus = 'Accepted';
+      else if (assessmentStatus === 'withheld') normalizedStatus = 'Withheld';
+      
+      if (normalizedStatus !== opportunityFilters.assessment) {
         return false;
       }
     }
@@ -983,6 +987,16 @@ export default function PartnerDetailBrokerPOV() {
   // Extract unique values for dropdowns
   const uniqueStages = Array.from(new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean))) as string[];
   const uniqueCustomers = Array.from(new Set(allOpportunities.map((opp: any) => opp.clientName).filter(Boolean))) as string[];
+  
+  // Extract unique assessment values from actual opportunity data
+  const uniqueOpportunityAssessments = Array.from(new Set(
+    allOpportunities.map((opp: any) => {
+      const assessmentStatus = opp.assessment_status || opp.assessmentStatus;
+      if (assessmentStatus === 'accepted') return 'Accepted';
+      if (assessmentStatus === 'withheld') return 'Withheld';
+      return 'Pending';
+    }).filter(Boolean)
+  )) as string[];
 
   // Fetch template assignments for Mevas BV (partner_id 12)
   const { data: templateAssignments } = useQuery({
