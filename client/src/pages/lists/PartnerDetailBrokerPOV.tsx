@@ -1886,19 +1886,22 @@ export default function PartnerDetailBrokerPOV() {
                       )}
                       
                       {/* Show selected list when collapsed */}
-                      {!expandedListsDropdown && activeOpportunitiesList && (
-                        <div className="flex items-center space-x-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                      {!expandedListsDropdown && activeOpportunitiesList && (() => {
+                        const activeListIndex = partnerRelevantLists.findIndex(list => list.id === activeOpportunitiesList.id);
+                        const listColor = getListColor(activeListIndex);
+                        return (
+                        <div className={`flex items-center space-x-2 px-3 py-1.5 ${listColor.bg} border ${listColor.border} rounded-md`}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={listColor.text}>
                             <polyline points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polyline>
                           </svg>
-                          <span className="text-sm text-blue-700 font-medium">{activeOpportunitiesList.name}</span>
+                          <span className={`text-sm font-medium ${listColor.text}`}>{activeOpportunitiesList.name}</span>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveOpportunitiesList(null);
                               window.history.replaceState({}, '', window.location.pathname + window.location.search.replace(/[?&]list=\d+/, ''));
                             }}
-                            className="text-blue-600 hover:text-blue-800"
+                            className={`${listColor.text} hover:opacity-80`}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M18 6 6 18"></path>
@@ -1906,7 +1909,8 @@ export default function PartnerDetailBrokerPOV() {
                             </svg>
                           </button>
                         </div>
-                      )}
+                        );
+                      })()}
                     </div>
                   </div>
                   
@@ -2081,24 +2085,36 @@ export default function PartnerDetailBrokerPOV() {
 
                       {/* Filter dropdowns */}
                       <div className="flex items-center gap-2">
-                        {/* Stage Filter */}
-                        <div className="relative" ref={opportunityStageDropdownRef}>
-                          <button
-                            onClick={() => setShowOpportunityStageDropdown(!showOpportunityStageDropdown)}
-                            className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-all ${
-                              opportunityFilters.stage !== 'All'
-                                ? 'border-[#5567E5] bg-[#F8F9FF] text-[#5567E5]'
-                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                            }`}
-                          >
-                            Stage
-                            {opportunityFilters.stage !== 'All' && (
-                              <span className="ml-1 px-1.5 py-0.5 text-xs bg-[#5567E5] text-white rounded">
-                                1
-                              </span>
-                            )}
-                            <ChevronDown className="w-4 h-4" />
-                          </button>
+                        {(() => {
+                          // Get the active list colors for filter tags
+                          const activeListIndex = activeOpportunitiesList ? partnerRelevantLists.findIndex(list => list.id === activeOpportunitiesList.id) : -1;
+                          const listColor = activeListIndex >= 0 ? getListColor(activeListIndex) : { 
+                            border: 'border-[#5567E5]', 
+                            bg: 'bg-[#F8F9FF]', 
+                            text: 'text-[#5567E5]',
+                            accent: 'bg-[#5567E5]'
+                          };
+                          
+                          return (
+                            <>
+                              {/* Stage Filter */}
+                              <div className="relative" ref={opportunityStageDropdownRef}>
+                                <button
+                                  onClick={() => setShowOpportunityStageDropdown(!showOpportunityStageDropdown)}
+                                  className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-all ${
+                                    opportunityFilters.stage !== 'All'
+                                      ? `${listColor.border} ${listColor.bg} ${listColor.text}`
+                                      : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                                  }`}
+                                >
+                                  Stage
+                                  {opportunityFilters.stage !== 'All' && (
+                                    <span className={`ml-1 px-1.5 py-0.5 text-xs ${listColor.accent.replace('bg-', 'bg-')} text-white rounded`}>
+                                      1
+                                    </span>
+                                  )}
+                                  <ChevronDown className="w-4 h-4" />
+                                </button>
                           
                           {showOpportunityStageDropdown && (
                             <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
@@ -2122,56 +2138,59 @@ export default function PartnerDetailBrokerPOV() {
                           )}
                         </div>
 
-                        {/* Assessment Filter */}
-                        <div className="relative" ref={opportunityAssessmentDropdownRef}>
-                          <button
-                            onClick={() => setShowOpportunityAssessmentDropdown(!showOpportunityAssessmentDropdown)}
-                            className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-all ${
-                              opportunityFilters.assessment !== 'All'
-                                ? 'border-[#5567E5] bg-[#F8F9FF] text-[#5567E5]'
-                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                            }`}
-                          >
-                            Assessment
-                            {opportunityFilters.assessment !== 'All' && (
-                              <span className="ml-1 px-1.5 py-0.5 text-xs bg-[#5567E5] text-white rounded">
-                                1
-                              </span>
-                            )}
-                            <ChevronDown className="w-4 h-4" />
-                          </button>
-                          
-                          {showOpportunityAssessmentDropdown && (
-                            <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
-                              <div className="p-2 space-y-1">
-                                {['All', ...uniqueOpportunityAssessments].map((assessment) => (
-                                  <button
-                                    key={assessment}
-                                    onClick={() => {
-                                      setOpportunityFilters(prev => ({ ...prev, assessment }));
-                                      setShowOpportunityAssessmentDropdown(false);
-                                    }}
-                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
-                                      opportunityFilters.assessment === assessment ? 'bg-[#F8F9FF] text-[#5567E5]' : 'text-gray-700'
-                                    }`}
-                                  >
-                                    {assessment}
-                                  </button>
-                                ))}
+                              {/* Assessment Filter */}
+                              <div className="relative" ref={opportunityAssessmentDropdownRef}>
+                                <button
+                                  onClick={() => setShowOpportunityAssessmentDropdown(!showOpportunityAssessmentDropdown)}
+                                  className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-all ${
+                                    opportunityFilters.assessment !== 'All'
+                                      ? `${listColor.border} ${listColor.bg} ${listColor.text}`
+                                      : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                                  }`}
+                                >
+                                  Assessment
+                                  {opportunityFilters.assessment !== 'All' && (
+                                    <span className={`ml-1 px-1.5 py-0.5 text-xs ${listColor.accent.replace('bg-', 'bg-')} text-white rounded`}>
+                                      1
+                                    </span>
+                                  )}
+                                  <ChevronDown className="w-4 h-4" />
+                                </button>
+                                
+                                {showOpportunityAssessmentDropdown && (
+                                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+                                    <div className="p-2 space-y-1">
+                                      {['All', ...uniqueOpportunityAssessments].map((assessment) => (
+                                        <button
+                                          key={assessment}
+                                          onClick={() => {
+                                            setOpportunityFilters(prev => ({ ...prev, assessment }));
+                                            setShowOpportunityAssessmentDropdown(false);
+                                          }}
+                                          className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                            opportunityFilters.assessment === assessment ? `${listColor.bg} ${listColor.text}` : 'text-gray-700'
+                                          }`}
+                                        >
+                                          {assessment}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          )}
-                        </div>
 
-                        {/* Clear filters button - only show when filters are active */}
-                        {(opportunityFilters.stage !== 'All' || opportunityFilters.assessment !== 'All') && (
-                          <button
-                            onClick={clearOpportunityFilters}
-                            className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 underline"
-                          >
-                            Clear filters
-                          </button>
-                        )}
+                              {/* Clear filters button - only show when filters are active */}
+                              {(opportunityFilters.stage !== 'All' || opportunityFilters.assessment !== 'All') && (
+                                <button
+                                  onClick={clearOpportunityFilters}
+                                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 underline"
+                                >
+                                  Clear filters
+                                </button>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
