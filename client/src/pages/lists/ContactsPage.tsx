@@ -491,39 +491,37 @@ export default function ContactsPage() {
         })()}
       </td>
       
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center justify-center space-x-2">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => handleViewRelationships(contact)}
-            title="View Relationships"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="2"/>
-              <circle cx="6" cy="6" r="2"/>
-              <circle cx="18" cy="6" r="2"/>
-              <circle cx="6" cy="18" r="2"/>
-              <circle cx="18" cy="18" r="2"/>
-              <circle cx="3" cy="12" r="2"/>
-              <circle cx="21" cy="12" r="2"/>
-              <line x1="12" y1="14" x2="6" y2="16"/>
-              <line x1="12" y1="14" x2="18" y2="16"/>
-              <line x1="12" y1="10" x2="6" y2="8"/>
-              <line x1="12" y1="10" x2="18" y2="8"/>
-              <line x1="10" y1="12" x2="5" y2="12"/>
-              <line x1="14" y1="12" x2="19" y2="12"/>
-            </svg>
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => handleEditContact(contact)}
-            title="Edit Contact"
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
-        </div>
+      <td className="px-6 py-4 whitespace-nowrap text-center">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => handleViewRelationships(contact)}
+          title="View Relationships"
+          className="mx-auto"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <circle cx="6" cy="6" r="2"/>
+            <circle cx="18" cy="6" r="2"/>
+            <circle cx="6" cy="18" r="2"/>
+            <circle cx="18" cy="18" r="2"/>
+            <line x1="9" y1="9" x2="8" y2="8"/>
+            <line x1="15" y1="9" x2="16" y2="8"/>
+            <line x1="9" y1="15" x2="8" y2="16"/>
+            <line x1="15" y1="15" x2="16" y2="16"/>
+          </svg>
+        </Button>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-center">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => handleEditContact(contact)}
+          title="Edit Contact"
+          className="mx-auto"
+        >
+          <Edit className="w-4 h-4" />
+        </Button>
       </td>
     </tr>
   );
@@ -857,10 +855,10 @@ export default function ContactsPage() {
                         Enrichment
                       </th>
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <div className="flex flex-col items-center space-y-1">
-                          <span>Ecosystem</span>
-                          <span>Actions</span>
-                        </div>
+                        Ecosystem
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
                       </th>
                     </tr>
                   </thead>
