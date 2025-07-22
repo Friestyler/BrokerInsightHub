@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -173,38 +173,39 @@ export default function ContactRelationshipsModal({
               </select>
             </div>
             
-            <Button 
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="bg-[#5567E5] hover:bg-[#4556D4] flex items-center"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {showAddForm ? 'Cancel' : 'Add Relationship'}
-            </Button>
+            <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+              <DialogTrigger asChild>
+                <Button className="bg-[#5567E5] hover:bg-[#4556D4] flex items-center">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Relationship
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center text-xl">
+                    <Search className="h-5 w-5 mr-2 text-[#5567E5]" />
+                    Connect {contactName} to Entities
+                  </DialogTitle>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Search for opportunities, projects, customers, partners, vendors, or contacts to connect with {contactName}
+                  </p>
+                </DialogHeader>
+                
+                <div className="mt-4">
+                  <ContactRelationshipManager 
+                    contactId={contactId} 
+                    envId={envId}
+                    onRelationshipAdded={() => {
+                      queryClient.invalidateQueries({ queryKey: [`/api/${envId}/contacts/${contactId}/relationships`] });
+                      setShowAddForm(false);
+                    }}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
-          {/* Add Relationship Form */}
-          {showAddForm && (
-            <div className="mb-6 p-4 border border-[#E6E7F1] rounded-lg bg-gray-50">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                <Search className="h-5 w-5 mr-2 text-[#5567E5]" />
-                Search & Connect Entities
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Search for opportunities, projects, customers, partners, vendors, or contacts to connect with {contactName}
-              </p>
-              
-              <div className="bg-white rounded-lg border border-[#E6E7F1] p-4">
-                <ContactRelationshipManager 
-                  contactId={contactId} 
-                  envId={envId}
-                  onRelationshipAdded={() => {
-                    queryClient.invalidateQueries({ queryKey: [`/api/${envId}/contacts/${contactId}/relationships`] });
-                    setShowAddForm(false);
-                  }}
-                />
-              </div>
-            </div>
-          )}
+
 
           {/* Relationships Content */}
           <div className="flex-1 overflow-y-auto">
