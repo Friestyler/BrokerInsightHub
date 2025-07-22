@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Building2, Target, UserCheck, ExternalLink, Search, Filter } from 'lucide-react';
+import { Users, Building2, Target, UserCheck, ExternalLink, Search, Filter, Plus } from 'lucide-react';
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import ContactRelationshipManager from './ContactRelationshipManager';
 
@@ -60,6 +60,7 @@ export default function ContactRelationshipsModal({
 }: ContactRelationshipsModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEntityType, setSelectedEntityType] = useState<string>('all');
+  const [showAddRelationshipModal, setShowAddRelationshipModal] = useState(false);
 
 
   // Fetch relationships
@@ -180,13 +181,13 @@ export default function ContactRelationshipsModal({
               </select>
             </div>
             
-            <ContactRelationshipManager 
-              contactId={contactId} 
-              envId={envId}
-              onRelationshipAdded={() => {
-                queryClient.invalidateQueries({ queryKey: [`/api/${envId}/contacts/${contactId}/relationships`] });
-              }}
-            />
+            <Button 
+              onClick={() => setShowAddRelationshipModal(true)}
+              className="bg-[#5567E5] hover:bg-[#4556D4] flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Relationship
+            </Button>
           </div>
 
 
@@ -207,13 +208,12 @@ export default function ContactRelationshipsModal({
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                   This contact hasn't been connected to any opportunities, customers, partners, or other contacts yet.
                 </p>
-                <ContactRelationshipManager 
-                  contactId={contactId} 
-                  envId={envId}
-                  onRelationshipAdded={() => {
-                    queryClient.invalidateQueries({ queryKey: [`/api/${envId}/contacts/${contactId}/relationships`] });
-                  }}
-                />
+                <Button 
+                  onClick={() => setShowAddRelationshipModal(true)}
+                  className="bg-[#5567E5] hover:bg-[#4556D4]"
+                >
+                  Add First Relationship
+                </Button>
               </div>
             ) : filteredRelationships.length === 0 ? (
               <div className="text-center py-12">
@@ -315,6 +315,19 @@ export default function ContactRelationshipsModal({
           </Button>
         </div>
       </DialogContent>
+
+      {/* Add Relationship Modal */}
+      {showAddRelationshipModal && (
+        <ContactRelationshipManager 
+          contactId={contactId} 
+          envId={envId}
+          onRelationshipAdded={() => {
+            queryClient.invalidateQueries({ queryKey: [`/api/${envId}/contacts/${contactId}/relationships`] });
+            setShowAddRelationshipModal(false);
+          }}
+          onClose={() => setShowAddRelationshipModal(false)}
+        />
+      )}
     </Dialog>
   );
 }
