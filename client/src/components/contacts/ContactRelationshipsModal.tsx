@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Building2, Target, UserCheck, ExternalLink, Search, Filter, Plus } from 'lucide-react';
+import { Users, Building2, Target, UserCheck, ExternalLink, Search, Filter } from 'lucide-react';
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import ContactRelationshipManager from './ContactRelationshipManager';
 
@@ -60,7 +60,7 @@ export default function ContactRelationshipsModal({
 }: ContactRelationshipsModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEntityType, setSelectedEntityType] = useState<string>('all');
-  const [showAddForm, setShowAddForm] = useState(false);
+
 
   // Fetch relationships
   const { data: relationships = [], isLoading } = useQuery({
@@ -173,36 +173,13 @@ export default function ContactRelationshipsModal({
               </select>
             </div>
             
-            <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-              <DialogTrigger asChild>
-                <Button className="bg-[#5567E5] hover:bg-[#4556D4] flex items-center">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Relationship
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center text-xl">
-                    <Search className="h-5 w-5 mr-2 text-[#5567E5]" />
-                    Connect {contactName} to Entities
-                  </DialogTitle>
-                  <p className="text-sm text-gray-600 mt-2">
-                    Search for opportunities, projects, customers, partners, vendors, or contacts to connect with {contactName}
-                  </p>
-                </DialogHeader>
-                
-                <div className="mt-4">
-                  <ContactRelationshipManager 
-                    contactId={contactId} 
-                    envId={envId}
-                    onRelationshipAdded={() => {
-                      queryClient.invalidateQueries({ queryKey: [`/api/${envId}/contacts/${contactId}/relationships`] });
-                      setShowAddForm(false);
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </Dialog>
+            <ContactRelationshipManager 
+              contactId={contactId} 
+              envId={envId}
+              onRelationshipAdded={() => {
+                queryClient.invalidateQueries({ queryKey: [`/api/${envId}/contacts/${contactId}/relationships`] });
+              }}
+            />
           </div>
 
 
@@ -223,9 +200,13 @@ export default function ContactRelationshipsModal({
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                   This contact hasn't been connected to any opportunities, customers, partners, or other contacts yet.
                 </p>
-                <Button onClick={() => setShowAddForm(true)} className="bg-[#5567E5] hover:bg-[#4556D4]">
-                  Add First Relationship
-                </Button>
+                <ContactRelationshipManager 
+                  contactId={contactId} 
+                  envId={envId}
+                  onRelationshipAdded={() => {
+                    queryClient.invalidateQueries({ queryKey: [`/api/${envId}/contacts/${contactId}/relationships`] });
+                  }}
+                />
               </div>
             ) : filteredRelationships.length === 0 ? (
               <div className="text-center py-12">
