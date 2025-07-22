@@ -35,6 +35,7 @@ interface Entity {
 interface ContactRelationshipManagerProps {
   contactId: number;
   envId?: string;
+  onRelationshipAdded?: () => void;
 }
 
 const ENTITY_TYPES = [
@@ -57,7 +58,7 @@ const RELATIONSHIP_TYPES = [
   { value: 'financial_contact', label: 'Financial Contact' }
 ];
 
-export default function ContactRelationshipManager({ contactId, envId = 'degoudse' }: ContactRelationshipManagerProps) {
+export default function ContactRelationshipManager({ contactId, envId = 'degoudse', onRelationshipAdded }: ContactRelationshipManagerProps) {
   const { toast } = useToast();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedEntityType, setSelectedEntityType] = useState<string>('');
@@ -72,9 +73,9 @@ export default function ContactRelationshipManager({ contactId, envId = 'degouds
   });
 
   // Fetch existing relationships
-  const { data: relationships = [], isLoading: relationshipsLoading } = useQuery({
+  const { data: relationships = [], isLoading: relationshipsLoading } = useQuery<ContactRelationship[]>({
     queryKey: [`/api/${envId}/contacts/${contactId}/relationships`],
-    queryFn: () => apiRequest('GET', `/api/${envId}/contacts/${contactId}/relationships`),
+    queryFn: () => apiRequest('GET', `/api/${envId}/contacts/${contactId}/relationships`) as Promise<ContactRelationship[]>,
     staleTime: 5 * 60 * 1000
   });
 
@@ -95,6 +96,7 @@ export default function ContactRelationshipManager({ contactId, envId = 'degouds
       resetForm();
       queryClient.invalidateQueries({ queryKey: [`/api/${envId}/contacts/${contactId}/relationships`] });
       toast({ title: 'Relationship created successfully' });
+      onRelationshipAdded?.();
     },
     onError: (error) => {
       console.error('Create relationship error:', error);
@@ -373,7 +375,7 @@ export default function ContactRelationshipManager({ contactId, envId = 'degouds
         </Card>
       ) : (
         <div className="space-y-6">
-          {Object.entries(groupedRelationships).map(([entityType, relationships]) => {
+          {Object.entries(groupedRelationships).map(([entityType, relationships]: [string, ContactRelationship[]]) => {
             const Icon = getEntityIcon(entityType);
             const entityConfig = ENTITY_TYPES.find(et => et.value === entityType);
             
@@ -386,7 +388,7 @@ export default function ContactRelationshipManager({ contactId, envId = 'degouds
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {relationships.map((relationship) => (
+                  {relationships.map((relationship: ContactRelationship) => (
                     <div 
                       key={relationship.id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
