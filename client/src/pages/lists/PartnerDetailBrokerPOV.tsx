@@ -1752,9 +1752,9 @@ export default function PartnerDetailBrokerPOV() {
           )}
 
           {activeTab === "opportunities" && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               {/* Enhanced unified toolbar - same as OpportunitiesPage */}
-              <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="bg-white p-3 rounded-lg shadow-sm">
                 <div className="flex flex-col gap-4">
                   {/* Top row with saved lists and actions */}
                   <div className="flex flex-wrap items-center justify-between">
@@ -1783,29 +1783,7 @@ export default function PartnerDetailBrokerPOV() {
                       </button>
                     </div>
                     
-                    {/* Right-side action buttons */}
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" className="hidden md:flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <polyline points="7 10 12 15 17 10"></polyline>
-                          <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        Export
-                      </Button>
-                      
-                      <Button 
-                        size="sm" 
-                        className="flex items-center bg-indigo-600 hover:bg-indigo-700"
-                        onClick={() => {/* Handle new opportunity creation */}}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                          <line x1="12" y1="5" x2="12" y2="19"></line>
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        New
-                      </Button>
-                    </div>
+
                   </div>
                   
                   {/* Expandable cards/list section */}
