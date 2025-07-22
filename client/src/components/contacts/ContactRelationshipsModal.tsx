@@ -115,8 +115,8 @@ export default function ContactRelationshipsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="pb-4 border-b border-[#E6E7F1]">
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="pb-4 border-b border-[#E6E7F1] px-6 pt-6 flex-shrink-0">
           <DialogTitle className="flex items-center text-xl">
             <Users className="h-6 w-6 mr-3 text-[#5567E5]" />
             Relationship Network: {contactName}
@@ -126,9 +126,9 @@ export default function ContactRelationshipsModal({
           </p>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 flex flex-col px-6">
           {/* Statistics Overview */}
-          <div className="grid grid-cols-6 gap-3 p-4 bg-gray-50 rounded-lg mb-6">
+          <div className="grid grid-cols-6 gap-3 p-4 bg-gray-50 rounded-lg mb-6 flex-shrink-0">
             {relationshipStats.map((stat) => {
               const Icon = stat.icon;
               const isSelected = selectedEntityType === stat.value;
@@ -153,7 +153,7 @@ export default function ContactRelationshipsModal({
           </div>
 
           {/* Search and Filter Controls + Add Button */}
-          <div className="flex items-center space-x-4 mb-6">
+          <div className="flex items-center space-x-4 mb-6 flex-shrink-0">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -192,7 +192,7 @@ export default function ContactRelationshipsModal({
 
 
           {/* Relationships Content */}
-          <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+          <div className="flex-1 min-h-0 overflow-y-auto">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
@@ -302,7 +302,7 @@ export default function ContactRelationshipsModal({
         </div>
 
         {/* Footer */}
-        <div className="pt-4 border-t border-[#E6E7F1] flex justify-between items-center">
+        <div className="pt-4 border-t border-[#E6E7F1] flex justify-between items-center px-6 pb-6 flex-shrink-0">
           <div className="text-sm text-gray-600">
             {totalRelationships > 0 && (
               <span>
