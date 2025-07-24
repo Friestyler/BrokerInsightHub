@@ -1405,6 +1405,9 @@ function OpportunitiesTable() {
         {/* Lists Cards Display */}
         {showListsDropdown && (
           <div className="px-4 pb-4">
+            <div className="mb-2 text-xs text-red-500">
+              🔍 DEBUG: Dropdown showing, lists count: {opportunitySavedListsData.length}
+            </div>
             <div className={`grid ${
               viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
             } gap-3`}>
