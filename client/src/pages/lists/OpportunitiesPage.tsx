@@ -854,46 +854,35 @@ function OpportunitiesTable() {
     );
   }
 
-  // Enhanced filtering logic - FIXED version matching PartnersPage
-  let displayedOpportunities = opportunities;
-  
-  // Apply active list filter first (before other filters) - FIXED FOR OPPORTUNITIES
-  if (activeList && activeList.members) {
-    console.log('FILTERING: Current activeList:', activeList);
-    console.log('FILTERING: Raw members data:', activeList.members);
-    
-    // Handle PostgreSQL array format - members can be string like "{152,153,156}" or actual array
-    let memberIds: number[] = [];
-    
+  // Apply active list filter - EXACT COPY FROM WORKING PARTNERSPAGE
+  if (activeList) {
+    // CRITICAL FIX: Parse PostgreSQL string format to array like PartnersPage expects
+    let parsedMembers = [];
     if (typeof activeList.members === 'string') {
-      // Parse PostgreSQL array format like "{152,153,156,157}"
+      // Handle PostgreSQL format "{152,153,156,157}"
       const cleanString = activeList.members.replace(/[{}]/g, '');
       if (cleanString.trim()) {
-        memberIds = cleanString.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+        parsedMembers = cleanString.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
       }
     } else if (Array.isArray(activeList.members)) {
-      // Handle array format
-      memberIds = activeList.members.map((member: any) => {
-        let id;
-        if (typeof member === 'object' && member !== null) {
-          id = member.id || member.opportunity_id || member.opportunityId || member.member_id;
-        } else {
-          id = member;
-        }
-        return parseInt(id);
-      }).filter(id => !isNaN(id));
+      parsedMembers = activeList.members;
     }
     
-    console.log('FILTERING: Parsed member IDs:', memberIds);
+    // Set the parsed array back to activeList for compatibility with PartnersPage logic
+    activeList.members = parsedMembers;
     
-    // Filter opportunities to only show those in the active list
-    displayedOpportunities = opportunities.filter(opp => {
-      const isIncluded = memberIds.includes(opp.id);
-      console.log('FILTERING: Checking opportunity', opp.id, opp.title, '- included:', isIncluded);
-      return isIncluded;
+    // Handle both array of IDs and array of objects with id property - EXACT PARTNERSPAGE LOGIC
+    const listMemberIds = Array.isArray(activeList.members) 
+      ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
+      : [];
+    console.log('Opportunities filtering debug:', {
+      activeList: activeList.name,
+      membersRaw: activeList.members,
+      listMemberIds,
+      totalOpportunities: displayedOpportunities.length
     });
-    
-    console.log('FILTERING: Filtered opportunities result count:', displayedOpportunities.length);
+    displayedOpportunities = displayedOpportunities.filter((opportunity: any) => listMemberIds.includes(opportunity.id));
+    console.log('Filtered opportunities:', displayedOpportunities.length);
   }
 
   // Apply text and dropdown filters to the displayed opportunities
