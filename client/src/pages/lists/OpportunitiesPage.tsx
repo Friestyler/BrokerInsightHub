@@ -456,14 +456,7 @@ function OpportunitiesTable() {
   // Extract customers array from paginated response
   const customers = customersResponse?.data || [];
 
-  // Filter saved lists to only show opportunity-related lists (client-side filtering)
-  const opportunitySavedListsData = savedListsData.filter((list: any) => 
-    list.entity_type === 'opportunities'
-  );
-
-  // Debug saved lists data
-  console.log('Raw saved lists data:', savedListsData);
-  console.log('Filtered opportunity lists:', opportunitySavedListsData);
+  // Saved lists data is now properly fetched by entity type
   
   // Filter saved views to only show opportunity-related views (client-side filtering)
   const opportunitySavedViewsData = savedViewsData.filter((view: any) => 
@@ -1121,10 +1114,7 @@ function OpportunitiesTable() {
           <div className="flex items-center gap-4">
             <button 
               className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
-              onClick={() => {
-                console.log('🔘 SAVED LISTS BUTTON CLICKED! Current state:', showListsDropdown, '→ Setting to:', !showListsDropdown);
-                setShowListsDropdown(!showListsDropdown);
-              }}
+              onClick={() => setShowListsDropdown(!showListsDropdown)}
             >
               {showListsDropdown ? (
                 <ChevronDown width="16" height="16" className="transition-transform" />
@@ -1144,7 +1134,7 @@ function OpportunitiesTable() {
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               )}
-              <span>Saved Lists ({opportunitySavedListsData.length})</span>
+              <span>Saved Lists ({savedListsData.length})</span>
             </button>
 
             {/* Cards/List View Toggle */}
@@ -1406,18 +1396,12 @@ function OpportunitiesTable() {
         </div>
 
         {/* Lists Cards Display */}
-        <div className="mb-2 text-xs text-blue-500 px-4">
-          📊 DEBUG STATE: showListsDropdown={String(showListsDropdown)}, lists={opportunitySavedListsData.length}
-        </div>
         {showListsDropdown && (
-          <div className="px-4 pb-4 border-2 border-red-500">
-            <div className="mb-2 text-xs text-red-500">
-              🔍 DEBUG: Dropdown showing, lists count: {opportunitySavedListsData.length}
-            </div>
+          <div className="px-4 pb-4">
             <div className={`grid ${
               viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
             } gap-3`}>
-              {opportunitySavedListsData.map((list: SavedList) => {
+              {savedListsData.map((list: SavedList) => {
                 const isSelected = activeList?.id === list.id;
                 return (
                   <div

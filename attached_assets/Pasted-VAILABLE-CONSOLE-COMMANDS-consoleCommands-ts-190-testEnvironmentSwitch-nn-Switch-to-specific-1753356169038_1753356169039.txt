@@ -1,0 +1,167 @@
+VAILABLE CONSOLE COMMANDS:
+consoleCommands.ts:190 - testEnvironmentSwitch("nn") - Switch to specific environment
+consoleCommands.ts:191 - clearAllCaches() - Clear all browser caches
+consoleCommands.ts:192 - forceEnvironmentUpdate("concordia") - Force update to environment
+consoleCommands.ts:193 - testAllEnvironments() - Test all environment assets
+consoleCommands.ts:194 - monitorDOMChanges() - Monitor DOM changes
+consoleCommands.ts:195 - checkCurrentState() - Check current environment state
+consoleCommands.ts:196 - window.environmentDiagnostics.runComprehensiveDiagnostic() - Run full diagnostic
+stableStartupSequence.ts:10 🚀 STABLE STARTUP SEQUENCE INITIATED
+stableStartupSequence.ts:13 🔑 STEP 1: AUTOMATIC LOGIN
+stableStartupSequence.ts:18 ✅ AUTOMATIC LOGIN COMPLETE
+stableStartupSequence.ts:21 🎯 STEP 2: STABLE ENVIRONMENT INITIALIZATION
+stableEnvironmentSwitch.ts:89 🎯 INITIALIZING STABLE ENVIRONMENT: degoudse
+stableEnvironmentSwitch.ts:37 🔄 STABLE ENVIRONMENT SWITCH TO: degoudse
+stableEnvironmentSwitch.ts:80 🎯 STABLE ENVIRONMENT SWITCH - Dispatched stableEnvironmentChanged event for: degoudse
+stableEnvironmentSwitch.ts:82 ✅ STABLE ENVIRONMENT SWITCH TO degoudse COMPLETE
+stableEnvironmentSwitch.ts:95 ✅ STABLE ENVIRONMENT INITIALIZED
+stableStartupSequence.ts:24 ✅ STABLE ENVIRONMENT INITIALIZED
+stableStartupSequence.ts:27 ⏳ STEP 3: DOM STABILIZATION
+stableStartupSequence.ts:32 ✅ STABLE STARTUP SEQUENCE COMPLETE
+stableStartupSequence.ts:33 🎯 USER SELECTED ENVIRONMENT: degoudse
+OpportunitiesPage.tsx:465 Raw saved lists data: []
+OpportunitiesPage.tsx:466 Filtered opportunity lists: []
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/degoudse/opportunities'}
+queryClient.ts:36 URL already has environment prefix, returning as-is
+queryClient.ts:91 apiRequest - Fetching from URL: /api/degoudse/opportunities
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-lists?entity_type=opportunities'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/saved-lists?entity_type=opportunities', to: '/api/degoudse/saved-lists?entity_type=opportunities'}
+queryClient.ts:91 apiRequest - Fetching from URL: /api/degoudse/saved-lists?entity_type=opportunities
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-views?entity_type=opportunities'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/saved-views?entity_type=opportunities', to: '/api/degoudse/saved-views?entity_type=opportunities'}
+queryClient.ts:91 apiRequest - Fetching from URL: /api/degoudse/saved-views?entity_type=opportunities
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/customers'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/customers', to: '/api/degoudse/customers'}
+queryClient.ts:91 apiRequest - Fetching from URL: /api/degoudse/customers
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/products'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/products', to: '/api/degoudse/products'}
+queryClient.ts:91 apiRequest - Fetching from URL: /api/degoudse/products
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'degoudse'}
+OpportunitiesPage.tsx:465 Raw saved lists data: []
+OpportunitiesPage.tsx:466 Filtered opportunity lists: []
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/partners'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/partners', to: '/api/degoudse/partners'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/partners
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/opportunities'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/opportunities', to: '/api/degoudse/opportunities'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/opportunities
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-lists?entity_type=partners'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/saved-lists?entity_type=partners', to: '/api/degoudse/saved-lists?entity_type=partners'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-lists?entity_type=partners
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-lists?entity_type=customers'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/saved-lists?entity_type=customers', to: '/api/degoudse/saved-lists?entity_type=customers'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-lists?entity_type=customers
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-lists?entity_type=opportunities'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/saved-lists?entity_type=opportunities', to: '/api/degoudse/saved-lists?entity_type=opportunities'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-lists?entity_type=opportunities
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-views?entity_type=partners'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/saved-views?entity_type=partners', to: '/api/degoudse/saved-views?entity_type=partners'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-views?entity_type=partners
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-views?entity_type=customers'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/saved-views?entity_type=customers', to: '/api/degoudse/saved-views?entity_type=customers'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-views?entity_type=customers
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-views?entity_type=opportunities'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/saved-views?entity_type=opportunities', to: '/api/degoudse/saved-views?entity_type=opportunities'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-views?entity_type=opportunities
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/okr-metrics'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/okr-metrics', to: '/api/degoudse/okr-metrics'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/okr-metrics
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/okr-tags'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/okr-tags', to: '/api/degoudse/okr-tags'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/okr-tags
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/template-assignments/partner'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/template-assignments/partner', to: '/api/degoudse/template-assignments/partner'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/template-assignments/partner
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/template-assignments/customer'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/template-assignments/customer', to: '/api/degoudse/template-assignments/customer'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/template-assignments/customer
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+queryClient.ts:26 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/template-assignments/opportunity'}
+queryClient.ts:45 Environment URL transformed: {from: '/api/template-assignments/opportunity', to: '/api/degoudse/template-assignments/opportunity'}
+queryClient.ts:144 Fetching from URL: /api/degoudse/template-assignments/opportunity
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'degoudse'}
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+stableStartupSequence.ts:29 ✅ DOM STABILIZATION COMPLETE
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+injected.js:5 [USO] Button detection aborting due to timeout.
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:1125 🔘 SAVED LISTS BUTTON CLICKED! Current state: false → Setting to: true
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+injected.js:5 [USO] Button detection aborting due to timeout.
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:1125 🔘 SAVED LISTS BUTTON CLICKED! Current state: false → Setting to: true
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:1125 🔘 SAVED LISTS BUTTON CLICKED! Current state: false → Setting to: true
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+injected.js:5 [USO] Button detection aborting due to timeout.
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+injected.js:5 [USO] Button detection aborting due to timeout.
