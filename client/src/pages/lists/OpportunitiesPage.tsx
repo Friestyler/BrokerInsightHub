@@ -84,10 +84,12 @@ interface SavedView {
 }
 
 export default function OpportunitiesPage() {
-  const { currentEnvironment } = useEnvironment();
+  const { environment } = useEnvironment();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [location] = useLocation();
+  
+  const currentEnvironment = environment?.id || 'degoudse';
 
   // Filtering state for opportunities - EXACT COPY from PartnerDetail.tsx
   const [opportunityFilters, setOpportunityFilters] = useState({
@@ -158,7 +160,7 @@ export default function OpportunitiesPage() {
   // Fetch withhold reasons
   const { data: withholdReasonsData } = useQuery({
     queryKey: ['/api/opportunity-withhold-reasons'],
-    queryFn: () => apiRequest('GET', '/api/opportunity-withhold-reasons')
+    queryFn: () => apiRequest('GET', '/api/opportunity-withhold-reasons'),
   });
 
   const opportunities = Array.isArray(allOpportunities) ? allOpportunities : [];
