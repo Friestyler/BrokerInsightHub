@@ -1406,8 +1406,11 @@ function OpportunitiesTable() {
         </div>
 
         {/* Lists Cards Display */}
+        <div className="mb-2 text-xs text-blue-500 px-4">
+          📊 DEBUG STATE: showListsDropdown={String(showListsDropdown)}, lists={opportunitySavedListsData.length}
+        </div>
         {showListsDropdown && (
-          <div className="px-4 pb-4">
+          <div className="px-4 pb-4 border-2 border-red-500">
             <div className="mb-2 text-xs text-red-500">
               🔍 DEBUG: Dropdown showing, lists count: {opportunitySavedListsData.length}
             </div>

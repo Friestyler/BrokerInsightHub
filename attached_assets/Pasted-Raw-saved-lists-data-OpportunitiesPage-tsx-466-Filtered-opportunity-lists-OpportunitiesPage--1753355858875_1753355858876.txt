@@ -1,0 +1,21 @@
+Raw saved lists data: []
+OpportunitiesPage.tsx:466 Filtered opportunity lists: []
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+2injected.js:5 [USO] Button detection aborting due to timeout.
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+OpportunitiesPage.tsx:1125 🔘 SAVED LISTS BUTTON CLICKED! Current state: false → Setting to: true
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
+injected.js:5 [USO] Button detection aborting due to timeout.
+OpportunitiesPage.tsx:465 Raw saved lists data: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:466 Filtered opportunity lists: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+OpportunitiesPage.tsx:922 ❌ FILTERING NOT RUNNING: {hasActiveList: false, hasMembers: false, hasOpportunities: true}
