@@ -854,6 +854,9 @@ function OpportunitiesTable() {
     );
   }
 
+  // Initialize displayedOpportunities first - COPIED FROM WORKING PARTNERSPAGE
+  let displayedOpportunities = opportunities;
+  
   // Apply active list filter - COPIED EXACTLY FROM WORKING PARTNERSPAGE  
   if (activeList) {
     // Handle both array of IDs and array of objects with id property
