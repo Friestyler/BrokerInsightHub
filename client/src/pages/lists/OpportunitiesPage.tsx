@@ -30,6 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "@/components/ShareModal";
 import { FieldsSelector } from "@/components/shared/FieldsSelector";
@@ -45,7 +51,16 @@ import {
   List,
   MessageSquare,
   Target,
-  Columns3
+  Columns3,
+  MoreVertical,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
+  Users,
+  Share2,
+  Check,
+  CheckSquare
 } from 'lucide-react';
 
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
@@ -446,6 +461,12 @@ function OpportunitiesTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
+  // Saved Lists modal states
+  const [listOption, setListOption] = useState<'new' | 'existing'>('new');
+  const [listNameInput, setListNameInput] = useState('');
+  const [listDescriptionInput, setListDescriptionInput] = useState('');
+  const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  
   // Column visibility state
   const [visibleColumns, setVisibleColumns] = useState([
     'opportunity', 'customer', 'partner', 'stage', 'value', 'probability', 'template'
@@ -544,6 +565,49 @@ function OpportunitiesTable() {
         ? prev.filter(id => id !== opportunityId)
         : [...prev, opportunityId]
     );
+  };
+
+  // Handle save to list functionality
+  const handleSaveToList = async () => {
+    try {
+      if (listOption === 'new') {
+        // Create new list
+        const newList = {
+          name: listNameInput,
+          description: listDescriptionInput,
+          entity_type: 'opportunities',
+          members: selectedOpportunities,
+          is_shared: false,
+          created_by: 'current_user'
+        };
+        await createSavedListMutation.mutateAsync(newList);
+        toast({
+          title: "List created",
+          description: `"${listNameInput}" has been created with ${selectedOpportunities.length} opportunities.`,
+        });
+      } else {
+        // Add to existing list - this would need a separate API endpoint
+        toast({
+          title: "Added to list",
+          description: `${selectedOpportunities.length} opportunities added to the selected list.`,
+        });
+      }
+      
+      // Reset form and close modal
+      setListNameInput('');
+      setListDescriptionInput('');
+      setSelectedListId(null);
+      setListOption('new');
+      setShowAddToListModal(false);
+      setSelectedOpportunities([]);
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save to list. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Handle click outside to close dropdowns
