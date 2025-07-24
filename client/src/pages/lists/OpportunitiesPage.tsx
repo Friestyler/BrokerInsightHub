@@ -898,27 +898,32 @@ function OpportunitiesTable() {
   
   // Apply active list filter first (before other filters)
   if (activeList && activeList.members && opportunities.length > 0) {
+    console.log('🔥 FILTERING LOGIC RUNNING!');
+    console.log('🎯 ActiveList object:', activeList);
+    console.log('👥 ActiveList members:', activeList.members);
+    console.log('📊 Total opportunities:', opportunities.length);
+    
     // Handle both array of IDs and array of objects with id property
     const listMemberIds = Array.isArray(activeList.members)
       ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
       : [];
-    console.log('Opportunities filtering debug:', {
-      activeList: activeList.name,
-      activeListType: activeList.type,
-      membersRaw: activeList.members,
-      listMemberIds,
-      totalOpportunities: opportunities.length,
-      sampleOpportunityIds: opportunities.slice(0, 5).map(o => o.id),
-      sampleMembers: listMemberIds.slice(0, 10)
-    });
+    console.log('🔢 Extracted member IDs:', listMemberIds);
+    console.log('🎯 Sample opportunity IDs:', opportunities.slice(0, 5).map(o => o.id));
+    
     displayedOpportunities = opportunities.filter((opp: any) => {
       const isIncluded = listMemberIds.includes(opp.id);
       if (opportunities.indexOf(opp) < 3) {
-        console.log(`Opportunity ${opp.id} (${opp.title}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
+        console.log(`✅ Opportunity ${opp.id} (${opp.title}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
       }
       return isIncluded;
     });
-    console.log('Filtered opportunities:', displayedOpportunities.length, 'out of', opportunities.length);
+    console.log('🎉 FINAL RESULT: Filtered to', displayedOpportunities.length, 'out of', opportunities.length, 'opportunities');
+  } else {
+    console.log('❌ FILTERING NOT RUNNING:', {
+      hasActiveList: !!activeList,
+      hasMembers: !!(activeList && activeList.members),
+      hasOpportunities: opportunities.length > 0
+    });
   }
 
   // Apply text and dropdown filters to the displayed opportunities
@@ -1398,7 +1403,6 @@ function OpportunitiesTable() {
         </div>
 
         {/* Lists Cards Display */}
-        {console.log('Lists dropdown visibility:', showListsDropdown, 'Lists data length:', opportunitySavedListsData.length)}
         {showListsDropdown && (
           <div className="px-4 pb-4">
             <div className={`grid ${
@@ -1415,8 +1419,10 @@ function OpportunitiesTable() {
                         : 'border-[#E6E7F1] bg-white hover:border-[#D6D7E4] hover:shadow-sm'
                     }`}
                     onClick={() => {
-                      console.log('List clicked:', list.name, 'isSelected:', isSelected);
-                      console.log('List members preview:', list.members?.slice(0, 10));
+                      console.log('🎯 LIST CLICKED:', list.name, 'isSelected:', isSelected);
+                      console.log('📋 List members array:', list.members);
+                      console.log('📊 Current opportunities length:', opportunities.length);
+                      console.log('⚡ Setting activeList to:', isSelected ? 'null' : list.name);
                       setActiveList(isSelected ? null : list);
                     }}
                   >
