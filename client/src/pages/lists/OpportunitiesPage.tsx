@@ -908,10 +908,18 @@ function OpportunitiesTable() {
         activeListType: activeList.type,
         membersRaw: activeList.members,
         listMemberIds,
-        totalOpportunities: opportunities.length
+        totalOpportunities: opportunities.length,
+        sampleOpportunityIds: opportunities.slice(0, 5).map(o => o.id),
+        sampleMembers: listMemberIds.slice(0, 10)
       });
-      opportunitiesData = opportunities.filter((opp: any) => listMemberIds.includes(opp.id));
-      console.log('Filtered opportunities:', opportunitiesData.length);
+      opportunitiesData = opportunities.filter((opp: any) => {
+        const isIncluded = listMemberIds.includes(opp.id);
+        if (opportunities.indexOf(opp) < 3) {
+          console.log(`Opportunity ${opp.id} (${opp.title}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
+        }
+        return isIncluded;
+      });
+      console.log('Filtered opportunities:', opportunitiesData.length, 'out of', opportunities.length);
     }
     
     // Apply current filters (from UI or active list/view)
