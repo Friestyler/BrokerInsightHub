@@ -347,9 +347,26 @@ export default function OpportunitiesPage() {
 
             {/* Fields Selector */}
             <FieldsSelector
-              entityType="opportunities"
-              visibleFields={opportunityVisibleFields}
-              onFieldsChange={setOpportunityVisibleFields}
+              fields={[
+                { key: 'title', label: 'Opportunity', required: true },
+                { key: 'customer', label: 'Customer', required: false },
+                { key: 'stage', label: 'Stage', required: false },
+                { key: 'value', label: 'Value', required: false },
+                { key: 'lastActivity', label: 'Close Date', required: false },
+                { key: 'type', label: 'Type', required: false }
+              ]}
+              visibleFields={Object.keys(opportunityVisibleFields).filter(key => opportunityVisibleFields[key as keyof typeof opportunityVisibleFields])}
+              onFieldsChange={(fields) => {
+                const newVisibleFields = {
+                  title: fields.includes('title'),
+                  customer: fields.includes('customer'),
+                  stage: fields.includes('stage'),
+                  value: fields.includes('value'),
+                  lastActivity: fields.includes('lastActivity'),
+                  type: fields.includes('type')
+                };
+                setOpportunityVisibleFields(newVisibleFields);
+              }}
             />
 
             {/* Export Button */}
