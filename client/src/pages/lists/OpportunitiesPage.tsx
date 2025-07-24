@@ -136,9 +136,15 @@ export default function OpportunitiesPage() {
   const [withholdReasons, setWithholdReasons] = useState<string[]>([]);
   const [withholdComment, setWithholdComment] = useState("");
 
-  // Fetch all opportunities
+  // Fetch all opportunities (with optional list filtering)
   const { data: allOpportunities, isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/opportunities`],
+    queryKey: [`/api/${currentEnvironment}/opportunities`, activeList?.id],
+    queryFn: () => {
+      const url = activeList?.id 
+        ? `/api/${currentEnvironment}/opportunities?listId=${activeList.id}`
+        : `/api/${currentEnvironment}/opportunities`;
+      return apiRequest('GET', url);
+    },
     staleTime: 0,
     gcTime: 0,
   });
@@ -168,24 +174,18 @@ export default function OpportunitiesPage() {
   const savedViews = Array.isArray(savedViewsData) ? savedViewsData : [];
   const availableWithholdReasons = Array.isArray(withholdReasonsData) ? withholdReasonsData : [];
 
-  // Filter opportunities based on active list and filters
+  // Filter opportunities based on search and filters (list filtering is now handled in the query)
   const filteredOpportunities = opportunities.filter((opportunity: any) => {
-    // First filter by active list
-    if (activeList && activeList.id !== 'all') {
-      const listOpportunityIds = activeList.members?.map((m: any) => m.id) || [];
-      if (!listOpportunityIds.includes(opportunity.id)) {
-        return false;
-      }
-    }
-
-    // Then apply text search
+    // Apply text search
     if (filterText) {
       const searchText = filterText.toLowerCase();
-      return (
+      if (!(
         opportunity.title?.toLowerCase().includes(searchText) ||
         opportunity.clientName?.toLowerCase().includes(searchText) ||
         opportunity.stage?.toLowerCase().includes(searchText)
-      );
+      )) {
+        return false;
+      }
     }
 
     // Apply other filters
