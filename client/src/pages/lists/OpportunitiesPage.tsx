@@ -895,7 +895,11 @@ function OpportunitiesTable() {
     
     // If we have an active list that's selection-based, use its members
     if (activeList && activeList.type === 'selection' && activeList.members) {
-      opportunitiesData = opportunities.filter((opp: any) => activeList.members!.includes(opp.id));
+      // Handle both array of IDs and array of objects with id property
+      const listMemberIds = Array.isArray(activeList.members)
+        ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
+        : [];
+      opportunitiesData = opportunities.filter((opp: any) => listMemberIds.includes(opp.id));
     }
     
     // Apply current filters (from UI or active list/view)

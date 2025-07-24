@@ -383,7 +383,10 @@ function PartnersPage() {
   
   // Apply active list filter
   if (activeList) {
-    const listMemberIds = activeList.members?.map((m: any) => m.id) || [];
+    // Handle both array of IDs and array of objects with id property
+    const listMemberIds = Array.isArray(activeList.members) 
+      ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
+      : [];
     displayedPartners = displayedPartners.filter((partner: any) => listMemberIds.includes(partner.id));
   }
   
