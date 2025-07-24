@@ -893,31 +893,13 @@ function OpportunitiesTable() {
   
   // Apply active list filter first (before other filters)
   if (activeList && activeList.members && opportunities.length > 0) {
-    console.log('🔥 FILTERING LOGIC RUNNING!');
-    console.log('🎯 ActiveList object:', activeList);
-    console.log('👥 ActiveList members:', activeList.members);
-    console.log('📊 Total opportunities:', opportunities.length);
-    
     // Handle both array of IDs and array of objects with id property
     const listMemberIds = Array.isArray(activeList.members)
       ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
       : [];
-    console.log('🔢 Extracted member IDs:', listMemberIds);
-    console.log('🎯 Sample opportunity IDs:', opportunities.slice(0, 5).map(o => o.id));
     
     displayedOpportunities = opportunities.filter((opp: any) => {
-      const isIncluded = listMemberIds.includes(opp.id);
-      if (opportunities.indexOf(opp) < 3) {
-        console.log(`✅ Opportunity ${opp.id} (${opp.title}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
-      }
-      return isIncluded;
-    });
-    console.log('🎉 FINAL RESULT: Filtered to', displayedOpportunities.length, 'out of', opportunities.length, 'opportunities');
-  } else {
-    console.log('❌ FILTERING NOT RUNNING:', {
-      hasActiveList: !!activeList,
-      hasMembers: !!(activeList && activeList.members),
-      hasOpportunities: opportunities.length > 0
+      return listMemberIds.includes(opp.id);
     });
   }
 
