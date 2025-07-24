@@ -460,6 +460,10 @@ function OpportunitiesTable() {
   const opportunitySavedListsData = savedListsData.filter((list: any) => 
     list.entity_type === 'opportunities'
   );
+
+  // Debug saved lists data
+  console.log('Raw saved lists data:', savedListsData);
+  console.log('Filtered opportunity lists:', opportunitySavedListsData);
   
   // Filter saved views to only show opportunity-related views (client-side filtering)
   const opportunitySavedViewsData = savedViewsData.filter((view: any) => 
@@ -893,13 +897,21 @@ function OpportunitiesTable() {
   const filteredOpportunities = (() => {
     let opportunitiesData = opportunities;
     
-    // If we have an active list that's selection-based, use its members
-    if (activeList && activeList.type === 'selection' && activeList.members) {
+    // If we have an active list with members, use its members for filtering
+    if (activeList && activeList.members) {
       // Handle both array of IDs and array of objects with id property
       const listMemberIds = Array.isArray(activeList.members)
         ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
         : [];
+      console.log('Opportunities filtering debug:', {
+        activeList: activeList.name,
+        activeListType: activeList.type,
+        membersRaw: activeList.members,
+        listMemberIds,
+        totalOpportunities: opportunities.length
+      });
       opportunitiesData = opportunities.filter((opp: any) => listMemberIds.includes(opp.id));
+      console.log('Filtered opportunities:', opportunitiesData.length);
     }
     
     // Apply current filters (from UI or active list/view)

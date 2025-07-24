@@ -387,7 +387,14 @@ function PartnersPage() {
     const listMemberIds = Array.isArray(activeList.members) 
       ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
       : [];
+    console.log('Partners filtering debug:', {
+      activeList: activeList.name,
+      membersRaw: activeList.members,
+      listMemberIds,
+      totalPartners: displayedPartners.length
+    });
     displayedPartners = displayedPartners.filter((partner: any) => listMemberIds.includes(partner.id));
+    console.log('Filtered partners:', displayedPartners.length);
   }
   
   // Apply text search filter
