@@ -858,15 +858,35 @@ function OpportunitiesTable() {
   let displayedOpportunities = opportunities;
   
   // Apply active list filter first (before other filters)
-  if (activeList && activeList.members && opportunities.length > 0) {
-    // Handle both array of IDs and array of objects with id property
-    const listMemberIds = Array.isArray(activeList.members)
-      ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
-      : [];
+  if (activeList) {
+    console.log('FILTERING: Current activeList:', activeList);
+    console.log('FILTERING: Checking members array:', activeList.members);
     
-    displayedOpportunities = opportunities.filter((opp: any) => {
-      return listMemberIds.includes(opp.id);
+    // Extract member IDs, handling both individual IDs and objects with id properties
+    const memberIds = activeList.members.map((member: any) => {
+      // Handle different member formats from the database
+      let id;
+      if (typeof member === 'object' && member !== null) {
+        id = member.id || member.opportunity_id || member.opportunityId || member.member_id;
+      } else {
+        id = member;
+      }
+      
+      const numericId = parseInt(id);
+      console.log('FILTERING: Extracted ID:', numericId, 'from member:', member);
+      return numericId;
+    }).filter(id => !isNaN(id));
+    
+    console.log('FILTERING: Final member IDs to filter by:', memberIds);
+    
+    // Filter opportunities to only show those in the active list
+    displayedOpportunities = opportunities.filter(opp => {
+      const isIncluded = memberIds.includes(opp.id);
+      console.log('FILTERING: Checking opportunity', opp.id, opp.title, '- included:', isIncluded);
+      return isIncluded;
     });
+    
+    console.log('FILTERING: Filtered opportunities result count:', displayedOpportunities.length);
   }
 
   // Apply text and dropdown filters to the displayed opportunities
@@ -1379,7 +1399,7 @@ function OpportunitiesTable() {
                   <div className="flex items-center space-x-3">
                     <div>
                       <h3 className="font-medium text-gray-900">All Opportunities</h3>
-                      <p className="text-sm text-gray-500">{opportunities.length} opportunities</p>
+                      <p className="text-sm text-gray-500">{displayedOpportunities.length} opportunities</p>
                       {!activeList && (
                         <div className="text-xs text-gray-400 mt-1">Live data</div>
                       )}
@@ -1405,7 +1425,7 @@ function OpportunitiesTable() {
                     className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
                       isSelected ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:border-gray-300'
                     }`}
-                    onClick={() => setActiveList(isSelected ? null : list)}
+                    onClick={() => setActiveList(list)}
                   >
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
