@@ -6237,7 +6237,14 @@ Return as JSON in this exact format:
         return res.json(result.rows);
       } else if (entityType === 'opportunities') {
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', ['opportunities']);
-        return res.json(result.rows);
+        // Parse PostgreSQL array strings to JavaScript arrays
+        const parsedRows = result.rows.map(row => ({
+          ...row,
+          members: row.members && typeof row.members === 'string' 
+            ? row.members.replace(/[{}]/g, '').split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+            : row.members
+        }));
+        return res.json(parsedRows);
       } else if (entityType === 'products') {
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', ['products']);
         return res.json(result.rows);
@@ -6277,6 +6284,16 @@ Return as JSON in this exact format:
       } else if (entityType) {
         // Filter by entity type only, include general lists (partner_id IS NULL) but exclude partner-specific lists
         result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', [entityType]);
+        
+        // Parse PostgreSQL array strings for opportunities
+        if (entityType === 'opportunities') {
+          result.rows = result.rows.map(row => ({
+            ...row,
+            members: row.members && typeof row.members === 'string' 
+              ? row.members.replace(/[{}]/g, '').split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+              : row.members
+          }));
+        }
       } else {
         // Return all lists
         result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');

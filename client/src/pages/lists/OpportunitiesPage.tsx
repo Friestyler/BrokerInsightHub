@@ -854,24 +854,9 @@ function OpportunitiesTable() {
     );
   }
 
-  // Apply active list filter - EXACT COPY FROM WORKING PARTNERSPAGE
+  // Apply active list filter - COPIED EXACTLY FROM WORKING PARTNERSPAGE  
   if (activeList) {
-    // CRITICAL FIX: Parse PostgreSQL string format to array like PartnersPage expects
-    let parsedMembers = [];
-    if (typeof activeList.members === 'string') {
-      // Handle PostgreSQL format "{152,153,156,157}"
-      const cleanString = activeList.members.replace(/[{}]/g, '');
-      if (cleanString.trim()) {
-        parsedMembers = cleanString.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-      }
-    } else if (Array.isArray(activeList.members)) {
-      parsedMembers = activeList.members;
-    }
-    
-    // Set the parsed array back to activeList for compatibility with PartnersPage logic
-    activeList.members = parsedMembers;
-    
-    // Handle both array of IDs and array of objects with id property - EXACT PARTNERSPAGE LOGIC
+    // Handle both array of IDs and array of objects with id property
     const listMemberIds = Array.isArray(activeList.members) 
       ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
       : [];
