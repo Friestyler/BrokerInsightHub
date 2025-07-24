@@ -6469,24 +6469,67 @@ Return as JSON in this exact format:
           result = { rows: [] };
         }
       } else {
-        // Regular access - show opportunities excluding original seed data (IDs 1-16, missing ID 6) but preserve partner 4 opportunities for broker access
-        result = await envPool.query(`
-          SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
-                 c.name as customer_name,
-                 p.name as partner_name,
-                 pr.name as product_name,
-                 am.name as account_manager_name,
-                 COUNT(DISTINCT op.product_id) as product_count
-          FROM degoudse.opportunities o
-          LEFT JOIN degoudse.customers c ON o.client_id = c.id
-          LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-          LEFT JOIN degoudse.products pr ON o.product_id = pr.id
-          LEFT JOIN degoudse.users am ON o.owner_id = am.id
-          LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
-          WHERE o.id > 16
-          GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, c.name, p.name, pr.name, am.name
-          ORDER BY o.id
-        `);
+        // Regular access - check if list filtering is requested
+        if (listId) {
+          console.log(`Regular user requesting specific list ${listId} - applying list member filtering`);
+          
+          // Get list members for regular users
+          const listResult = await envPool.query(`
+            SELECT members FROM degoudse.saved_lists 
+            WHERE id = $1 AND entity_type = 'opportunities'
+          `, [listId]);
+          
+          if (listResult.rows.length > 0 && listResult.rows[0].members) {
+            const members = listResult.rows[0].members;
+            if (members.length > 0) {
+              console.log(`Filtering to ${members.length} specific opportunities from list ${listId}`);
+              result = await envPool.query(`
+                SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date,
+                       o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+                       c.name as customer_name,
+                       p.name as partner_name,
+                       pr.name as product_name,
+                       am.name as account_manager_name,
+                       COUNT(DISTINCT op.product_id) as product_count
+                FROM degoudse.opportunities o
+                LEFT JOIN degoudse.customers c ON o.client_id = c.id
+                LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+                LEFT JOIN degoudse.products pr ON o.product_id = pr.id
+                LEFT JOIN degoudse.users am ON o.owner_id = am.id
+                LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+                WHERE o.id = ANY($1) AND o.id > 16
+                GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
+                ORDER BY o.id
+              `, [members]);
+            } else {
+              // Empty list - return no opportunities
+              result = { rows: [] };
+            }
+          } else {
+            // List not found or no members - return no opportunities
+            result = { rows: [] };
+          }
+        } else {
+          // No list filtering - show all opportunities excluding original seed data
+          result = await envPool.query(`
+            SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
+                   o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+                   c.name as customer_name,
+                   p.name as partner_name,
+                   pr.name as product_name,
+                   am.name as account_manager_name,
+                   COUNT(DISTINCT op.product_id) as product_count
+            FROM degoudse.opportunities o
+            LEFT JOIN degoudse.customers c ON o.client_id = c.id
+            LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+            LEFT JOIN degoudse.products pr ON o.product_id = pr.id
+            LEFT JOIN degoudse.users am ON o.owner_id = am.id
+            LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+            WHERE o.id > 16
+            GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
+            ORDER BY o.id
+          `);
+        }
       }
       
       const opportunities = result.rows.map((opp: any) => ({
