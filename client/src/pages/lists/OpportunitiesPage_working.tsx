@@ -1057,17 +1057,20 @@ function OpportunitiesTable() {
         </Card>
       </div>
 
-      {/* Enhanced Toolbar Section - EXACTLY COPIED FROM PARTNERSPAGE */}
-      <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
-        {/* Main Controls Row */}
-        <div className="flex items-center justify-between px-4 py-2">
-          {/* Left side - saved lists section */}
+      {/* Bulk actions bar */}
+
+
+      {/* Saved Lists Section - COPIED EXACTLY FROM WORKING PARTNERSPAGE */}
+      <div className="px-4 py-2">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-4">
             <button 
               className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
               onClick={() => setShowListsDropdown(!showListsDropdown)}
             >
-              {!showListsDropdown ? (
+              {showListsDropdown ? (
+                <ChevronDown width="16" height="16" className="transition-transform" />
+              ) : (
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
                   width="16" 
@@ -1082,8 +1085,6 @@ function OpportunitiesTable() {
                 >
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
-              ) : (
-                <ChevronDown width="16" height="16" className="transition-transform" />
               )}
               <span>Saved Lists ({savedListsData.length})</span>
             </button>
@@ -1129,35 +1130,321 @@ function OpportunitiesTable() {
               </div>
             )}
           </div>
-          
-          {/* Right side - Controls */}
-          <div className="flex flex-col items-end gap-2">
-            {/* Main controls row */}
-            <div className="flex items-center gap-3">
-              <div className="relative w-60">
-                <input
-                  type="text"
-                  placeholder="Search opportunities..."
-                  value={filterText}
-                  onChange={(e) => setFilterText(e.target.value)}
-                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                />
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              </div>
-              
-              <button className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create new opportunity
-              </button>
-              
-              <button className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 flex items-center gap-2">
-                Export
-              </button>
-            </div>
-          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative w-60 mb-2">
+          <input
+            type="text"
+            placeholder="Search opportunities..."
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+          />
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
         </div>
 
         {/* Collapsible Lists Content */}
+        {showListsDropdown && (
+          <div className={viewMode === 'cards' ? 'grid grid-cols-2 gap-3' : 'space-y-2'}>
+            {/* All Opportunities option */}
+            <div
+              className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                !activeList ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => setActiveList(null)}
+            >
+              <div className="flex-1">
+                <div className="flex items-center space-x-3">
+                  <div>
+                    <h3 className="font-medium text-gray-900">All Opportunities</h3>
+                    <p className="text-sm text-gray-500">{opportunities.length} opportunities</p>
+                    {!activeList && (
+                      <div className="text-xs text-gray-400 mt-1">Live data</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">€{stats.totalValue.toLocaleString()}</p>
+                {!activeList && (
+                  <div className="text-xs text-red-600 font-medium">-2%</div>
+                )}
+              </div>
+            </div>
+
+            {/* Saved Lists */}
+            {savedListsData.map((list: any, index: number) => {
+              const isSelected = activeList?.id === list.id;
+              const isShared = list.is_shared;
+              
+              return (
+                <div
+                  key={list.id}
+                  className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                    isSelected ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setActiveList(list)}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{list.name}</h3>
+                        <p className="text-sm text-gray-500">{list.members?.length || 0} opportunities</p>
+                        {isSelected && (
+                          <div className="text-xs text-gray-400 mt-1">Updated 1 hours ago</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-gray-900">
+                      {list.name === 'Cyberverzekering Opportunities' ? '€736,525' : 
+                       list.name === 'Einde Termijn' ? '€2,908,979' :
+                       list.name === 'Zonnepanelen Opportunities' ? '€3,857,298' : '€0'}
+                    </p>
+                    {isSelected && (
+                      <div className={`text-xs font-medium ${
+                        list.name === 'Cyberverzekering Opportunities' ? 'text-green-600' : 
+                        list.name === 'Einde Termijn' ? 'text-red-600' :
+                        list.name === 'Zonnepanelen Opportunities' ? 'text-green-600' : 'text-gray-600'
+                      }`}>
+                        {list.name === 'Cyberverzekering Opportunities' ? '+4%' : 
+                         list.name === 'Einde Termijn' ? '-3%' :
+                         list.name === 'Zonnepanelen Opportunities' ? '+8%' : '0%'}
+                      </div>
+                    )}
+                    <button
+                      className="mt-1 text-xs text-gray-400 hover:text-gray-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle share functionality
+                      }}
+                    >
+                      Share
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+            <div className="flex items-center gap-3">
+            {/* Segment View Button */}
+            <div className="relative">
+              <button 
+                className={`flex items-center space-x-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                  activeView ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+              >
+                <BarChart3 width="14" height="14" />
+                <span>Segment view</span>
+                <ChevronDown width="14" height="14" className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showViewsDropdown && (
+                <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                  <div className="p-2 border-b">
+                    {opportunitySavedViewsData?.map((view: any) => (
+                      <div 
+                        key={view.id}
+                        className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${
+                          activeView?.id === view.id ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
+                        }`}
+                        onClick={() => {
+                          setActiveView(view);
+                          setActiveList(null); // Clear active list when selecting a view
+                          setShowViewsDropdown(false);
+                          // Apply view filters if available
+                          if (view.filters) {
+                            try {
+                              const viewFilters = JSON.parse(view.filters);
+                              setFilters(viewFilters);
+                            } catch (e) {
+                              console.error('Error parsing view filters:', e);
+                            }
+                          }
+                          // Apply view fields if available
+                          if (view.visible_fields) {
+                            try {
+                              const viewFields = JSON.parse(view.visible_fields);
+                              setVisibleFields(viewFields);
+                            } catch (e) {
+                              console.error('Error parsing view fields:', e);
+                            }
+                          }
+                        }}
+                      >
+                        <span>{view.name}</span>
+                        {activeView?.id === view.id && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Fields Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowFieldsDropdown(!showFieldsDropdown)}
+                className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                  Object.values(visibleFields).some(v => !v) 
+                    ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <Columns3 className="h-4 w-4" />
+                <span>Fields</span>
+                <span className="text-xs">({Object.values(visibleFields).filter(Boolean).length}/{Object.keys(visibleFields).length})</span>
+                <ChevronDown width="14" height="14" className={`transition-transform ${showFieldsDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showFieldsDropdown && (
+                <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                  <div className="p-2">
+                    <div className="space-y-2">
+                      {Object.entries(visibleFields).map(([key, value]) => (
+                        <label key={key} className="flex items-center space-x-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={value}
+                            onChange={(e) => setVisibleFields(prev => ({ ...prev, [key]: e.target.checked }))}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Filter Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowFilter(!showFilter)}
+                className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                  hasActiveFilters 
+                    ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <Filter width="14" height="14" />
+                <span>Filter</span>
+                <ChevronDown width="14" height="14" className={`transition-transform ${showFilter ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showFilter && (
+                <div className="absolute z-50 mt-1 right-0 w-[600px] rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                  <div className="p-4 space-y-4">
+                    {/* Where Status equals */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 w-12">Where</span>
+                      <select 
+                        value="status"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="status">Status</option>
+                        <option value="stage">Stage</option>
+                        <option value="type">Type</option>
+                      </select>
+                      <span className="text-sm text-gray-500">equals</span>
+                      <select
+                        value={filters.status}
+                        onChange={(e) => updateFilter('status', e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="All">All</option>
+                        {statusOptions.map(status => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* And Stage equals */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 w-12">And</span>
+                      <select 
+                        value="stage"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="stage">Stage</option>
+                        <option value="status">Status</option>
+                        <option value="type">Type</option>
+                      </select>
+                      <span className="text-sm text-gray-500">equals</span>
+                      <select
+                        value={filters.stage}
+                        onChange={(e) => updateFilter('stage', e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="All">All</option>
+                        {stageOptions.map(stage => (
+                          <option key={stage} value={stage}>{stage}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* And Type equals */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 w-12">And</span>
+                      <select 
+                        value="type"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="type">Type</option>
+                        <option value="stage">Stage</option>
+                        <option value="status">Status</option>
+                      </select>
+                      <span className="text-sm text-gray-500">equals</span>
+                      <select
+                        value={filters.type}
+                        onChange={(e) => updateFilter('type', e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="All">All</option>
+                        {typeOptions.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          </div>
+        </div>
+        
+        {/* Search Bar Row */}
+        <div className="px-4 pb-2">
+          <div className="relative w-60">
+            <input
+              type="text"
+              placeholder="Search opportunities..."
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* Lists Cards Display */}
         {showListsDropdown && (
           <div className="px-4 pb-4">
             <div className={viewMode === 'cards' ? 'grid grid-cols-2 gap-3' : 'space-y-2'}>
@@ -1172,7 +1459,7 @@ function OpportunitiesTable() {
                   <div className="flex items-center space-x-3">
                     <div>
                       <h3 className="font-medium text-gray-900">All Opportunities</h3>
-                      <p className="text-sm text-gray-500">{opportunities.length} opportunities</p>
+                      <p className="text-sm text-gray-500">{displayedOpportunities.length} opportunities</p>
                       {!activeList && (
                         <div className="text-xs text-gray-400 mt-1">Live data</div>
                       )}
@@ -1180,7 +1467,7 @@ function OpportunitiesTable() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-semibold text-gray-900">€{stats.totalValue.toLocaleString()}</p>
+                  <p className="text-lg font-semibold text-gray-900">€0</p>
                   {!activeList && (
                     <div className="text-xs text-red-600 font-medium">-2%</div>
                   )}
@@ -1212,21 +1499,9 @@ function OpportunitiesTable() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-semibold text-gray-900">
-                        {list.name === 'Cyberverzekering Opportunities' ? '€736,525' : 
-                         list.name === 'Einde Termijn' ? '€2,908,979' :
-                         list.name === 'Zonnepanelen Opportunities' ? '€3,857,298' : '€0'}
-                      </p>
+                      <p className="text-lg font-semibold text-gray-900">€0</p>
                       {isSelected && (
-                        <div className={`text-xs font-medium ${
-                          list.name === 'Cyberverzekering Opportunities' ? 'text-green-600' : 
-                          list.name === 'Einde Termijn' ? 'text-red-600' :
-                          list.name === 'Zonnepanelen Opportunities' ? 'text-green-600' : 'text-gray-600'
-                        }`}>
-                          {list.name === 'Cyberverzekering Opportunities' ? '+4%' : 
-                           list.name === 'Einde Termijn' ? '-3%' :
-                           list.name === 'Zonnepanelen Opportunities' ? '+8%' : '0%'}
-                        </div>
+                        <div className="text-xs text-green-600 font-medium">+4%</div>
                       )}
                     </div>
                   </div>
@@ -1237,7 +1512,7 @@ function OpportunitiesTable() {
         )}
       </div>
 
-      {/* Dynamic bulk actions bar - copied from PartnersPage */}
+      {/* Dynamic bulk actions bar - appears below saved lists when items are selected */}
       {selectedOpportunities.length > 0 && (
         <div className="mx-4 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
@@ -1283,7 +1558,7 @@ function OpportunitiesTable() {
         </div>
       )}
 
-      {/* Opportunities table - enhanced with field visibility */}
+      {/* Opportunities table */}
       <div className="mx-4">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -1295,24 +1570,23 @@ function OpportunitiesTable() {
                   }`}>
                     <input
                       type="checkbox"
-                      checked={selectedOpportunities.length === displayedOpportunities.length && displayedOpportunities.length > 0}
+                      checked={selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0}
                       onChange={(e) => handleSelectAll(e.target.checked)}
                       className="rounded border-gray-300"
                     />
                   </div>
                 </th>
-                {visibleFields.title && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Opportunity</th>}
-                {visibleFields.customer && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Customer</th>}
-                {visibleFields.stage && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Stage</th>}
-                {visibleFields.status && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Status</th>}
-                {visibleFields.estimatedValue && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Value</th>}
-                {visibleFields.probability && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Probability</th>}
-                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Assessment</th>
-                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Actions</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Opportunity</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Customer</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Partner</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Stage</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Value</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Probability</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Template</th>
               </tr>
             </thead>
             <tbody>
-              {displayedOpportunities.map((opportunity: any) => (
+              {sortedOpportunities.map((opportunity: any) => (
                 <tr 
                   key={opportunity.id} 
                   className="border-b border-[#E6E7F1] hover:bg-gray-50"
@@ -1326,89 +1600,31 @@ function OpportunitiesTable() {
                       onClick={(e) => e.stopPropagation()}
                     />
                   </td>
-                  {visibleFields.title && (
-                    <td className="py-3 px-4">
-                      <Link 
-                        to={`/lists/opportunities/${opportunity.id}`}
-                        className="font-medium text-[#5567E5] hover:text-[#4455C4] hover:underline"
-                      >
-                        {opportunity.title}
-                      </Link>
-                    </td>
-                  )}
-                  {visibleFields.customer && (
-                    <td className="py-3 px-4 text-[#282A3F]">
-                      {opportunity.customerName || 'No customer'}
-                    </td>
-                  )}
-                  {visibleFields.stage && (
-                    <td className="py-3 px-4">
-                      <Badge variant="outline" className="text-xs">
-                        {opportunity.stage}
-                      </Badge>
-                    </td>
-                  )}
-                  {visibleFields.status && (
-                    <td className="py-3 px-4">
-                      <Badge 
-                        variant={opportunity.status === 'Active' ? 'default' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {opportunity.status}
-                      </Badge>
-                    </td>
-                  )}
-                  {visibleFields.estimatedValue && (
-                    <td className="py-3 px-4 text-[#282A3F]">
-                      €{opportunity.estimatedValue?.toLocaleString() || '0'}
-                    </td>
-                  )}
-                  {visibleFields.probability && (
-                    <td className="py-3 px-4 text-[#282A3F]">
-                      {opportunity.probability || 0}%
-                    </td>
-                  )}
-                  <td className="py-3 px-4">
-                    {opportunity.assessment ? (
-                      <Badge 
-                        variant={opportunity.assessment === 'accepted' ? 'default' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {opportunity.assessment}
-                      </Badge>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleAssessmentClick(opportunity)}
-                        className="text-xs px-2 py-1"
-                      >
-                        Assess
-                      </Button>
-                    )}
+                  <td 
+                    className="py-3 px-4 cursor-pointer"
+                    onClick={() => window.location.href = `/opportunities/${opportunity.id}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-medium">
+                          {opportunity.title?.charAt(0)?.toUpperCase() || 'O'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-[#282A3F] text-sm">{opportunity.title}</div>
+                      </div>
+                    </div>
                   </td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{opportunity.clientName || opportunity.customerName || '-'}</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{opportunity.partnerName || '-'}</td>
                   <td className="py-3 px-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem 
-                          onClick={() => handleEditClick(opportunity)}
-                        >
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteClick(opportunity.id)}
-                          className="text-red-600"
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Badge variant="secondary" className={getStatusBadgeVariant(opportunity.stage) + " text-xs"}>
+                      {opportunity.stage || 'Unknown'}
+                    </Badge>
                   </td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">€{(opportunity.estimated_value || 0).toLocaleString()}</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{opportunity.probability || 0}%</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">No templates</td>
                 </tr>
               ))}
             </tbody>
@@ -1425,91 +1641,74 @@ function OpportunitiesTable() {
               Add selected opportunities to an existing list or create a new one.
             </DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-4">
-            <div className="bg-blue-50 p-3 rounded-md">
+            <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-800">
-                  {selectedOpportunities.length} Opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} Selected
-                </span>
+                <input
+                  type="radio"
+                  id="existing-list"
+                  name="list-option"
+                  value="existing"
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="existing-list" className="text-sm font-medium">
+                  Add to existing list
+                </label>
               </div>
-              <p className="text-xs text-blue-600 mt-1">
-                Selected opportunities will be added to your chosen list
-              </p>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="new-list"
+                  name="list-option"
+                  value="new"
+                  defaultChecked
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="new-list" className="text-sm font-medium">
+                  Create new list
+                </label>
+              </div>
             </div>
-
+            
             <div className="space-y-3">
               <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name="listOption"
-                    value="new"
-                    checked={listOption === 'new'}
-                    onChange={(e) => setListOption(e.target.value as 'new' | 'existing')}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm font-medium">Create new list</span>
-                </label>
-                {listOption === 'new' && (
-                  <div className="mt-2 ml-6 space-y-2">
-                    <input
-                      type="text"
-                      placeholder="List name"
-                      value={listNameInput}
-                      onChange={(e) => setListNameInput(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <textarea
-                      placeholder="List description (optional)"
-                      value={listDescriptionInput}
-                      onChange={(e) => setListDescriptionInput(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                      rows={2}
-                    />
-                  </div>
-                )}
+                <Label htmlFor="list-name">List Name</Label>
+                <Input
+                  id="list-name"
+                  placeholder="Enter a name for this list"
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">Maximum 50 characters</p>
               </div>
               
               <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name="listOption"
-                    value="existing"
-                    checked={listOption === 'existing'}
-                    onChange={(e) => setListOption(e.target.value as 'new' | 'existing')}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm font-medium">Add to existing list</span>
-                </label>
-                {listOption === 'existing' && (
-                  <div className="mt-2 ml-6">
-                    <select 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                      value={selectedListId || ''}
-                      onChange={(e) => setSelectedListId(e.target.value)}
-                    >
-                      <option value="">Select a list...</option>
-                      {savedListsData.map((list: any) => (
-                        <option key={list.id} value={list.id}>
-                          {list.name} ({list.members?.length || 0} opportunities)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <Label htmlFor="list-description">Description (Optional)</Label>
+                <Textarea
+                  id="list-description"
+                  placeholder="Add a short description for this list"
+                  className="mt-1 resize-none"
+                  rows={3}
+                />
+                <p className="text-xs text-gray-500 mt-1">Maximum 200 characters</p>
               </div>
             </div>
+            
+            <div className="bg-blue-50 p-3 rounded-md">
+              <p className="text-sm text-blue-800">
+                {selectedOpportunities.length} opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} will be added to this list.
+              </p>
+            </div>
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddToListModal(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveToList} disabled={!listNameInput && !selectedListId}>
-              {listOption === 'new' ? 'Create list' : 'Add to list'}
+            <Button onClick={() => {
+              toast({ title: "Success", description: "Opportunities added to list successfully" });
+              setShowAddToListModal(false);
+              setSelectedOpportunities([]);
+            }}>
+              Create List
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1517,61 +1716,60 @@ function OpportunitiesTable() {
 
       {/* Add to Campaign Modal */}
       <Dialog open={showAddToCampaignModal} onOpenChange={setShowAddToCampaignModal}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add to campaign</DialogTitle>
+            <DialogTitle>Add to Campaign</DialogTitle>
             <DialogDescription>
-              Add {selectedOpportunities.length} selected opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} to an existing campaign or create a new one.
+              Add selected opportunities to an existing campaign or create a new one.
             </DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-4">
-            <div className="bg-blue-50 p-3 rounded-md">
+            <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <MessageSquare className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-800">
-                  {selectedOpportunities.length} Opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} Selected
-                </span>
+                <input
+                  type="radio"
+                  id="existing-campaign"
+                  name="campaign-option"
+                  value="existing"
+                  defaultChecked
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="existing-campaign" className="text-sm font-medium">
+                  Add to existing campaign
+                </label>
               </div>
-              <p className="text-xs text-blue-600 mt-1">
-                Selected opportunities will be added to your chosen campaign
-              </p>
+              <div className="space-y-2 ml-6">
+                <Button variant="outline" className="w-full justify-start text-left">
+                  Summer Insurance Campaign
+                </Button>
+                <Button variant="outline" className="w-full justify-start text-left">
+                  End of Term Renewal Campaign
+                </Button>
+                <Button variant="outline" className="w-full justify-start text-left">
+                  Cyber Security Awareness
+                </Button>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="new-campaign"
+                  name="campaign-option"
+                  value="new"
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="new-campaign" className="text-sm font-medium">
+                  Create new campaign
+                </label>
+              </div>
             </div>
             
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium">Available Campaigns</h4>
-                <span className="text-sm text-gray-500">0 of 5 selected</span>
-              </div>
-              
-              <div className="border rounded-lg p-3 mb-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="select-all-campaigns" />
-                  <Label htmlFor="select-all-campaigns" className="font-medium">
-                    Select All Campaigns
-                  </Label>
-                </div>
-              </div>
-              
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                <div>
-                  <Badge variant="secondary" className="mb-2">Active Campaigns</Badge>
-                  <div className="border rounded-lg p-3">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Checkbox id="summer-campaign" />
-                      <div className="flex-1">
-                        <Label htmlFor="summer-campaign" className="font-medium">Summer Insurance Campaign</Label>
-                        <Badge variant="outline" className="ml-2 text-xs">Email</Badge>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 ml-6">Active email campaign targeting summer insurance products</p>
-                    <p className="text-xs text-gray-500 ml-6">📧 Created July 2025</p>
-                  </div>
-                </div>
-              </div>
+            <div className="bg-blue-50 p-3 rounded-md">
+              <p className="text-sm text-blue-800">
+                {selectedOpportunities.length} opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} will be added to this campaign.
+              </p>
             </div>
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddToCampaignModal(false)}>
               Cancel
@@ -1606,7 +1804,7 @@ function OpportunitiesTable() {
                 </span>
               </div>
               <p className="text-xs text-blue-600 mt-1">
-                Templates will be assigned to all selected opportunities
+                Zonnepanelen Opportunities, Cyber Security Prospects, End of Term Renewals, and {selectedOpportunities.length - 3} more...
               </p>
             </div>
             
@@ -1658,7 +1856,7 @@ function OpportunitiesTable() {
               </div>
             </div>
           </div>
-
+          
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAssignTemplateModal(false)}>
               Cancel

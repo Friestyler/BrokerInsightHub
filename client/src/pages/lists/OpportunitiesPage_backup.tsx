@@ -1417,6 +1417,180 @@ function OpportunitiesTable() {
       </div>
 
       {/* Add to List Modal */}
+                      <p className="text-sm text-gray-500">{displayedOpportunities.length} opportunities</p>
+                      {!activeList && (
+                        <div className="text-xs text-gray-400 mt-1">Live data</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-semibold text-gray-900">€0</p>
+                  {!activeList && (
+                    <div className="text-xs text-red-600 font-medium">-2%</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Saved Lists */}
+              {savedListsData.map((list: any, index: number) => {
+                const isSelected = activeList?.id === list.id;
+                const isShared = list.is_shared;
+                
+                return (
+                  <div
+                    key={list.id}
+                    className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                      isSelected ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => setActiveList(list)}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{list.name}</h3>
+                          <p className="text-sm text-gray-500">{list.members?.length || 0} opportunities</p>
+                          {isSelected && (
+                            <div className="text-xs text-gray-400 mt-1">Updated 1 hours ago</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-gray-900">€0</p>
+                      {isSelected && (
+                        <div className="text-xs text-green-600 font-medium">+4%</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Dynamic bulk actions bar - appears below saved lists when items are selected */}
+      {selectedOpportunities.length > 0 && (
+        <div className="mx-4 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-blue-900">
+              {selectedOpportunities.length} opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} selected
+            </span>
+            <button
+              onClick={() => setSelectedOpportunities([])}
+              className="text-blue-600 hover:text-blue-800 text-sm"
+            >
+              Clear selection
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddToListModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add to list
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddToCampaignModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <MessageSquare className="w-4 h-4 mr-1" />
+              Add to campaign
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAssignTemplateModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <Target className="w-4 h-4 mr-1" />
+              Assign template
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Opportunities table */}
+      <div className="mx-4">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-[#E6E7F1] text-left">
+                <th className="w-12 py-3 px-4 font-medium text-[#282A3F] text-sm">
+                  <div className={`transition-opacity ${
+                    selectedOpportunities.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                  </div>
+                </th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Opportunity</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Customer</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Partner</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Stage</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Value</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Probability</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Template</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedOpportunities.map((opportunity: any) => (
+                <tr 
+                  key={opportunity.id} 
+                  className="border-b border-[#E6E7F1] hover:bg-gray-50"
+                >
+                  <td className="py-3 px-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedOpportunities.includes(opportunity.id)}
+                      onChange={() => handleSelectOpportunity(opportunity.id)}
+                      className="rounded border-gray-300"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </td>
+                  <td 
+                    className="py-3 px-4 cursor-pointer"
+                    onClick={() => window.location.href = `/opportunities/${opportunity.id}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-medium">
+                          {opportunity.title?.charAt(0)?.toUpperCase() || 'O'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-[#282A3F] text-sm">{opportunity.title}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{opportunity.clientName || opportunity.customerName || '-'}</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{opportunity.partnerName || '-'}</td>
+                  <td className="py-3 px-4">
+                    <Badge variant="secondary" className={getStatusBadgeVariant(opportunity.stage) + " text-xs"}>
+                      {opportunity.stage || 'Unknown'}
+                    </Badge>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">€{(opportunity.estimated_value || 0).toLocaleString()}</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{opportunity.probability || 0}%</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">No templates</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Add to List Modal */}
       <Dialog open={showAddToListModal} onOpenChange={setShowAddToListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1425,91 +1599,74 @@ function OpportunitiesTable() {
               Add selected opportunities to an existing list or create a new one.
             </DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-4">
-            <div className="bg-blue-50 p-3 rounded-md">
+            <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-800">
-                  {selectedOpportunities.length} Opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} Selected
-                </span>
+                <input
+                  type="radio"
+                  id="existing-list"
+                  name="list-option"
+                  value="existing"
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="existing-list" className="text-sm font-medium">
+                  Add to existing list
+                </label>
               </div>
-              <p className="text-xs text-blue-600 mt-1">
-                Selected opportunities will be added to your chosen list
-              </p>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="new-list"
+                  name="list-option"
+                  value="new"
+                  defaultChecked
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="new-list" className="text-sm font-medium">
+                  Create new list
+                </label>
+              </div>
             </div>
-
+            
             <div className="space-y-3">
               <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name="listOption"
-                    value="new"
-                    checked={listOption === 'new'}
-                    onChange={(e) => setListOption(e.target.value as 'new' | 'existing')}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm font-medium">Create new list</span>
-                </label>
-                {listOption === 'new' && (
-                  <div className="mt-2 ml-6 space-y-2">
-                    <input
-                      type="text"
-                      placeholder="List name"
-                      value={listNameInput}
-                      onChange={(e) => setListNameInput(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <textarea
-                      placeholder="List description (optional)"
-                      value={listDescriptionInput}
-                      onChange={(e) => setListDescriptionInput(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                      rows={2}
-                    />
-                  </div>
-                )}
+                <Label htmlFor="list-name">List Name</Label>
+                <Input
+                  id="list-name"
+                  placeholder="Enter a name for this list"
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">Maximum 50 characters</p>
               </div>
               
               <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name="listOption"
-                    value="existing"
-                    checked={listOption === 'existing'}
-                    onChange={(e) => setListOption(e.target.value as 'new' | 'existing')}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm font-medium">Add to existing list</span>
-                </label>
-                {listOption === 'existing' && (
-                  <div className="mt-2 ml-6">
-                    <select 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                      value={selectedListId || ''}
-                      onChange={(e) => setSelectedListId(e.target.value)}
-                    >
-                      <option value="">Select a list...</option>
-                      {savedListsData.map((list: any) => (
-                        <option key={list.id} value={list.id}>
-                          {list.name} ({list.members?.length || 0} opportunities)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <Label htmlFor="list-description">Description (Optional)</Label>
+                <Textarea
+                  id="list-description"
+                  placeholder="Add a short description for this list"
+                  className="mt-1 resize-none"
+                  rows={3}
+                />
+                <p className="text-xs text-gray-500 mt-1">Maximum 200 characters</p>
               </div>
             </div>
+            
+            <div className="bg-blue-50 p-3 rounded-md">
+              <p className="text-sm text-blue-800">
+                {selectedOpportunities.length} opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} will be added to this list.
+              </p>
+            </div>
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddToListModal(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveToList} disabled={!listNameInput && !selectedListId}>
-              {listOption === 'new' ? 'Create list' : 'Add to list'}
+            <Button onClick={() => {
+              toast({ title: "Success", description: "Opportunities added to list successfully" });
+              setShowAddToListModal(false);
+              setSelectedOpportunities([]);
+            }}>
+              Create List
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1517,61 +1674,60 @@ function OpportunitiesTable() {
 
       {/* Add to Campaign Modal */}
       <Dialog open={showAddToCampaignModal} onOpenChange={setShowAddToCampaignModal}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add to campaign</DialogTitle>
+            <DialogTitle>Add to Campaign</DialogTitle>
             <DialogDescription>
-              Add {selectedOpportunities.length} selected opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} to an existing campaign or create a new one.
+              Add selected opportunities to an existing campaign or create a new one.
             </DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-4">
-            <div className="bg-blue-50 p-3 rounded-md">
+            <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <MessageSquare className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-800">
-                  {selectedOpportunities.length} Opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} Selected
-                </span>
+                <input
+                  type="radio"
+                  id="existing-campaign"
+                  name="campaign-option"
+                  value="existing"
+                  defaultChecked
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="existing-campaign" className="text-sm font-medium">
+                  Add to existing campaign
+                </label>
               </div>
-              <p className="text-xs text-blue-600 mt-1">
-                Selected opportunities will be added to your chosen campaign
-              </p>
+              <div className="space-y-2 ml-6">
+                <Button variant="outline" className="w-full justify-start text-left">
+                  Summer Insurance Campaign
+                </Button>
+                <Button variant="outline" className="w-full justify-start text-left">
+                  End of Term Renewal Campaign
+                </Button>
+                <Button variant="outline" className="w-full justify-start text-left">
+                  Cyber Security Awareness
+                </Button>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="new-campaign"
+                  name="campaign-option"
+                  value="new"
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="new-campaign" className="text-sm font-medium">
+                  Create new campaign
+                </label>
+              </div>
             </div>
             
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium">Available Campaigns</h4>
-                <span className="text-sm text-gray-500">0 of 5 selected</span>
-              </div>
-              
-              <div className="border rounded-lg p-3 mb-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="select-all-campaigns" />
-                  <Label htmlFor="select-all-campaigns" className="font-medium">
-                    Select All Campaigns
-                  </Label>
-                </div>
-              </div>
-              
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                <div>
-                  <Badge variant="secondary" className="mb-2">Active Campaigns</Badge>
-                  <div className="border rounded-lg p-3">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Checkbox id="summer-campaign" />
-                      <div className="flex-1">
-                        <Label htmlFor="summer-campaign" className="font-medium">Summer Insurance Campaign</Label>
-                        <Badge variant="outline" className="ml-2 text-xs">Email</Badge>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 ml-6">Active email campaign targeting summer insurance products</p>
-                    <p className="text-xs text-gray-500 ml-6">📧 Created July 2025</p>
-                  </div>
-                </div>
-              </div>
+            <div className="bg-blue-50 p-3 rounded-md">
+              <p className="text-sm text-blue-800">
+                {selectedOpportunities.length} opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} will be added to this campaign.
+              </p>
             </div>
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddToCampaignModal(false)}>
               Cancel
@@ -1606,7 +1762,7 @@ function OpportunitiesTable() {
                 </span>
               </div>
               <p className="text-xs text-blue-600 mt-1">
-                Templates will be assigned to all selected opportunities
+                Zonnepanelen Opportunities, Cyber Security Prospects, End of Term Renewals, and {selectedOpportunities.length - 3} more...
               </p>
             </div>
             
@@ -1658,7 +1814,7 @@ function OpportunitiesTable() {
               </div>
             </div>
           </div>
-
+          
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAssignTemplateModal(false)}>
               Cancel
