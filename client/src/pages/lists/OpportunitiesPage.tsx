@@ -857,27 +857,34 @@ function OpportunitiesTable() {
   // Enhanced filtering logic - FIXED version matching PartnersPage
   let displayedOpportunities = opportunities;
   
-  // Apply active list filter first (before other filters)
-  if (activeList) {
+  // Apply active list filter first (before other filters) - FIXED FOR OPPORTUNITIES
+  if (activeList && activeList.members) {
     console.log('FILTERING: Current activeList:', activeList);
-    console.log('FILTERING: Checking members array:', activeList.members);
+    console.log('FILTERING: Raw members data:', activeList.members);
     
-    // Extract member IDs, handling both individual IDs and objects with id properties
-    const memberIds = activeList.members.map((member: any) => {
-      // Handle different member formats from the database
-      let id;
-      if (typeof member === 'object' && member !== null) {
-        id = member.id || member.opportunity_id || member.opportunityId || member.member_id;
-      } else {
-        id = member;
+    // Handle PostgreSQL array format - members can be string like "{152,153,156}" or actual array
+    let memberIds: number[] = [];
+    
+    if (typeof activeList.members === 'string') {
+      // Parse PostgreSQL array format like "{152,153,156,157}"
+      const cleanString = activeList.members.replace(/[{}]/g, '');
+      if (cleanString.trim()) {
+        memberIds = cleanString.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
       }
-      
-      const numericId = parseInt(id);
-      console.log('FILTERING: Extracted ID:', numericId, 'from member:', member);
-      return numericId;
-    }).filter(id => !isNaN(id));
+    } else if (Array.isArray(activeList.members)) {
+      // Handle array format
+      memberIds = activeList.members.map((member: any) => {
+        let id;
+        if (typeof member === 'object' && member !== null) {
+          id = member.id || member.opportunity_id || member.opportunityId || member.member_id;
+        } else {
+          id = member;
+        }
+        return parseInt(id);
+      }).filter(id => !isNaN(id));
+    }
     
-    console.log('FILTERING: Final member IDs to filter by:', memberIds);
+    console.log('FILTERING: Parsed member IDs:', memberIds);
     
     // Filter opportunities to only show those in the active list
     displayedOpportunities = opportunities.filter(opp => {
@@ -957,8 +964,8 @@ function OpportunitiesTable() {
     }
   });
   
-  // Calculate stats based on filtered opportunities
-  const stats = calculateOpportunityStats(sortedOpportunities);
+  // Calculate stats based on displayedOpportunities (active list filtering) not filteredOpportunities
+  const stats = calculateOpportunityStats(displayedOpportunities);
   
   // Function to toggle opportunity selection
   const toggleSelectOpportunity = (id: number) => {
