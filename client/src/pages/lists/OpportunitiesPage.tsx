@@ -553,6 +553,8 @@ function OpportunitiesTable() {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
+
+
   // Database-driven filter options extracted from opportunities data
   const statusOptions = Array.from(new Set(opportunities.map((opp: any) => opp.status || '').filter(Boolean))).sort();
   const stageOptions = Array.from(new Set(opportunities.map((opp: any) => opp.stage || '').filter(Boolean))).sort();
@@ -564,7 +566,7 @@ function OpportunitiesTable() {
   // Bulk selection handlers
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedOpportunities(filteredOpportunities.map((opp: any) => opp.id));
+      setSelectedOpportunities(displayedOpportunities.map((opp: any) => opp.id));
     } else {
       setSelectedOpportunities([]);
     }
@@ -887,7 +889,7 @@ function OpportunitiesTable() {
   }
 
   // Enhanced filtering logic - FIXED version matching PartnersPage
-  let displayedOpportunities = opportunities;
+  // displayedOpportunities already declared above, just reuse it
   
   // Apply active list filter first (before other filters)
   if (activeList && activeList.members && opportunities.length > 0) {
@@ -1137,7 +1139,7 @@ function OpportunitiesTable() {
               <span>Saved Lists ({savedListsData.length})</span>
             </button>
 
-            {/* Cards/List View Toggle */}
+            {/* Cards/List View Toggle - show when lists are expanded */}
             {showListsDropdown && (
               <div className="flex items-center space-x-2">
                 <button
@@ -1145,16 +1147,35 @@ function OpportunitiesTable() {
                   className={`p-1 rounded transition-colors ${
                     viewMode === 'cards' ? 'bg-gray-200' : 'hover:bg-gray-100'
                   }`}
+                  title="Cards view"
                 >
-                  <LayoutGrid width="16" height="16" />
+                  <LayoutGrid width="16" height="16" className="text-gray-600" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
                   className={`p-1 rounded transition-colors ${
                     viewMode === 'list' ? 'bg-gray-200' : 'hover:bg-gray-100'
                   }`}
+                  title="List view"
                 >
-                  <List width="16" height="16" />
+                  <List width="16" height="16" className="text-gray-600" />
+                </button>
+              </div>
+            )}
+            
+            {/* Show selected list when collapsed */}
+            {!showListsDropdown && activeList && (
+              <div className="bg-green-100 px-3 py-1 rounded-full flex items-center space-x-2">
+                <Filter width="14" height="14" className="text-green-600" />
+                <span className="text-sm text-green-700">{activeList.name}</span>
+                <button 
+                  className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveList(null);
+                  }}
+                >
+                  <X width="12" height="12" className="text-green-500" />
                 </button>
               </div>
             )}
@@ -1398,36 +1419,63 @@ function OpportunitiesTable() {
         {/* Lists Cards Display */}
         {showListsDropdown && (
           <div className="px-4 pb-4">
-            <div className={`grid ${
-              viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-            } gap-3`}>
-              {savedListsData.map((list: SavedList) => {
+            <div className={viewMode === 'cards' ? 'grid grid-cols-2 gap-3' : 'space-y-2'}>
+              {/* All Opportunities option */}
+              <div
+                className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                  !activeList ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveList(null)}
+              >
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3">
+                    <div>
+                      <h3 className="font-medium text-gray-900">All Opportunities</h3>
+                      <p className="text-sm text-gray-500">{opportunities.length} opportunities</p>
+                      {!activeList && (
+                        <div className="text-xs text-gray-400 mt-1">Live data</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-semibold text-gray-900">€0</p>
+                  {!activeList && (
+                    <div className="text-xs text-red-600 font-medium">-2%</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Saved Lists */}
+              {savedListsData.map((list: any, index: number) => {
                 const isSelected = activeList?.id === list.id;
+                const isShared = list.is_shared;
+                
                 return (
                   <div
                     key={list.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                      isSelected 
-                        ? 'border-[#5567E5] bg-[#F8F9FF] shadow-sm' 
-                        : 'border-[#E6E7F1] bg-white hover:border-[#D6D7E4] hover:shadow-sm'
+                    className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                      isSelected ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:border-gray-300'
                     }`}
-                    onClick={() => {
-                      console.log('🎯 LIST CLICKED:', list.name, 'isSelected:', isSelected);
-                      console.log('📋 List members array:', list.members);
-                      console.log('📊 Current opportunities length:', opportunities.length);
-                      console.log('⚡ Setting activeList to:', isSelected ? 'null' : list.name);
-                      setActiveList(isSelected ? null : list);
-                    }}
+                    onClick={() => setActiveList(isSelected ? null : list)}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-gray-900">{list.name}</h3>
-                      <Badge variant="secondary" className="text-xs">
-                        {list.members?.length || 0} items
-                      </Badge>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{list.name}</h3>
+                          <p className="text-sm text-gray-500">{list.members?.length || 0} opportunities</p>
+                          {isSelected && (
+                            <div className="text-xs text-gray-400 mt-1">Updated 1 hours ago</div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    {list.description && (
-                      <p className="text-sm text-gray-500 mb-3">{list.description}</p>
-                    )}
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-gray-900">€0</p>
+                      {isSelected && (
+                        <div className="text-xs text-green-600 font-medium">+4%</div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
