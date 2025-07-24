@@ -854,10 +854,10 @@ function OpportunitiesTable() {
     );
   }
 
-  // Initialize displayedOpportunities first - COPIED FROM WORKING PARTNERSPAGE
+  // Apply basic filtering with saved lists - COPIED EXACTLY FROM WORKING PARTNERSPAGE
   let displayedOpportunities = opportunities;
   
-  // Apply active list filter - COPIED EXACTLY FROM WORKING PARTNERSPAGE  
+  // Apply active list filter - COPIED EXACTLY FROM WORKING PARTNERSPAGE
   if (activeList) {
     // Handle both array of IDs and array of objects with id property
     const listMemberIds = Array.isArray(activeList.members) 
