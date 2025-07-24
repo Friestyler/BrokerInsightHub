@@ -50,7 +50,7 @@ import {
 
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
-// Type definitions (matching CustomersPage pattern)
+// Type definitions (matching PartnersPage pattern)
 interface SavedList {
   id: number;
   name: string;
@@ -297,41 +297,7 @@ function TemplateBadges({ opportunityId }: { opportunityId: number }) {
   );
 }
 
-// Define interfaces for saved lists and views
-interface SavedList {
-  id: string;
-  name: string;
-  description?: string;
-  type: 'filter' | 'selection';
-  members?: number[]; // For selection-based lists
-  filters: {
-    searchText?: string;
-    status?: string;
-    type?: string;
-    customerId?: string;
-    partnerId?: string;
-  };
-  isShared: boolean;
-  sharedWith?: string[];
-  createdBy: string;
-  createdAt: Date;
-  isDefault?: boolean;
-}
-
-interface SavedView {
-  id: string;
-  name: string;
-  description?: string;
-  filters: {
-    searchText?: string;
-    status?: string;
-    type?: string;
-    customerId?: string;
-    partnerId?: string;
-  };
-  createdBy: string;
-  createdAt: Date;
-}
+// Remove duplicate interfaces - using the ones declared above
 
 // Opportunity Details Modal Component
 function OpportunityDetailsModal({ opportunityId, onClose }: { opportunityId: number, onClose: () => void }) {
@@ -799,7 +765,7 @@ function OpportunitiesTable() {
       console.error('Create opportunity error:', error);
       toast({
         title: "Error",
-        description: `Failed to create opportunity: ${error?.message || 'Please try again.'}`,
+        description: `Failed to create opportunity: ${(error as any)?.message || 'Please try again.'}`,
         variant: "destructive"
       });
     } finally {
@@ -889,7 +855,7 @@ function OpportunitiesTable() {
   }
 
   // Enhanced filtering logic - FIXED version matching PartnersPage
-  // displayedOpportunities already declared above, just reuse it
+  let displayedOpportunities = opportunities;
   
   // Apply active list filter first (before other filters)
   if (activeList && activeList.members && opportunities.length > 0) {
