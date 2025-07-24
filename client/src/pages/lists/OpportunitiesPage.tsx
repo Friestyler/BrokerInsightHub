@@ -893,83 +893,81 @@ function OpportunitiesTable() {
     );
   }
 
-  // Enhanced filtering logic for both filter and selection-based lists
-  const filteredOpportunities = (() => {
-    let opportunitiesData = opportunities;
-    
-    // If we have an active list with members, use its members for filtering
-    if (activeList && activeList.members) {
-      // Handle both array of IDs and array of objects with id property
-      const listMemberIds = Array.isArray(activeList.members)
-        ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
-        : [];
-      console.log('Opportunities filtering debug:', {
-        activeList: activeList.name,
-        activeListType: activeList.type,
-        membersRaw: activeList.members,
-        listMemberIds,
-        totalOpportunities: opportunities.length,
-        sampleOpportunityIds: opportunities.slice(0, 5).map(o => o.id),
-        sampleMembers: listMemberIds.slice(0, 10)
-      });
-      opportunitiesData = opportunities.filter((opp: any) => {
-        const isIncluded = listMemberIds.includes(opp.id);
-        if (opportunities.indexOf(opp) < 3) {
-          console.log(`Opportunity ${opp.id} (${opp.title}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
-        }
-        return isIncluded;
-      });
-      console.log('Filtered opportunities:', opportunitiesData.length, 'out of', opportunities.length);
-    }
-    
-    // Apply current filters (from UI or active list/view)
-    return opportunitiesData.filter((opportunity: any) => {
-      // Text search - using actual API response fields
-      const title = opportunity.title || '';
-      const searchCustomerName = opportunity.clientName || opportunity.customerName || '';
-      const searchPartnerName = opportunity.partnerName || '';
-      
-      const matchesText = !filterText || 
-        title.toLowerCase().includes(filterText.toLowerCase()) ||
-        searchCustomerName.toLowerCase().includes(filterText.toLowerCase()) ||
-        searchPartnerName.toLowerCase().includes(filterText.toLowerCase());
-        
-      // Status filter - simplified logic (handle null values)
-      const oppStatus = opportunity.status || '';
-      const matchesStatus = selectedStatus === 'all' || oppStatus === selectedStatus;
-      
-      // Type filter - simplified logic (handle null values)
-      const oppType = opportunity.type || '';
-      const matchesType = selectedType === 'all' || oppType === selectedType;
-      
-      // Customer filter
-      const filterCustomerName = opportunity.clientName || opportunity.customerName || '';
-      const matchesCustomer = selectedCustomer === 'all' || filterCustomerName === selectedCustomer;
-      
-      // Partner filter
-      const filterPartnerName = opportunity.partnerName || '';
-      const matchesPartner = selectedPartner === 'all' || filterPartnerName === selectedPartner;
-      
-      // Stage filter
-      const stage = opportunity.stage || '';
-      const matchesStage = selectedStage === 'all' || stage === selectedStage;
-      
-      // Probability filter
-      const probability = opportunity.probability;
-      const matchesProbability = selectedProbability === 'all' || String(probability) === selectedProbability;
-      
-      // Customer/Partner filters from active list
-      const customerId = opportunity.customerId || opportunity.clientId;
-      const partnerId = opportunity.partnerId || opportunity.partner?.id;
-      
-      const matchesCustomerId = !activeList?.filters.customerId || 
-        String(customerId) === activeList.filters.customerId;
-      const matchesPartnerId = !activeList?.filters.partnerId || 
-        String(partnerId) === activeList.filters.partnerId;
-      
-      return matchesText && matchesStatus && matchesType && matchesCustomer && matchesPartner && matchesStage && matchesProbability && matchesCustomerId && matchesPartnerId;
+  // Enhanced filtering logic - FIXED version matching PartnersPage
+  let displayedOpportunities = opportunities;
+  
+  // Apply active list filter first (before other filters)
+  if (activeList && activeList.members && opportunities.length > 0) {
+    // Handle both array of IDs and array of objects with id property
+    const listMemberIds = Array.isArray(activeList.members)
+      ? activeList.members.map((m: any) => typeof m === 'object' ? m.id : m)
+      : [];
+    console.log('Opportunities filtering debug:', {
+      activeList: activeList.name,
+      activeListType: activeList.type,
+      membersRaw: activeList.members,
+      listMemberIds,
+      totalOpportunities: opportunities.length,
+      sampleOpportunityIds: opportunities.slice(0, 5).map(o => o.id),
+      sampleMembers: listMemberIds.slice(0, 10)
     });
-  })();
+    displayedOpportunities = opportunities.filter((opp: any) => {
+      const isIncluded = listMemberIds.includes(opp.id);
+      if (opportunities.indexOf(opp) < 3) {
+        console.log(`Opportunity ${opp.id} (${opp.title}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
+      }
+      return isIncluded;
+    });
+    console.log('Filtered opportunities:', displayedOpportunities.length, 'out of', opportunities.length);
+  }
+
+  // Apply text and dropdown filters to the displayed opportunities
+  const filteredOpportunities = displayedOpportunities.filter((opportunity: any) => {
+    // Text search - using actual API response fields
+    const title = opportunity.title || '';
+    const searchCustomerName = opportunity.clientName || opportunity.customerName || '';
+    const searchPartnerName = opportunity.partnerName || '';
+    
+    const matchesText = !filterText || 
+      title.toLowerCase().includes(filterText.toLowerCase()) ||
+      searchCustomerName.toLowerCase().includes(filterText.toLowerCase()) ||
+      searchPartnerName.toLowerCase().includes(filterText.toLowerCase());
+      
+    // Status filter - simplified logic (handle null values)
+    const oppStatus = opportunity.status || '';
+    const matchesStatus = selectedStatus === 'all' || oppStatus === selectedStatus;
+    
+    // Type filter - simplified logic (handle null values)
+    const oppType = opportunity.type || '';
+    const matchesType = selectedType === 'all' || oppType === selectedType;
+    
+    // Customer filter
+    const filterCustomerName = opportunity.clientName || opportunity.customerName || '';
+    const matchesCustomer = selectedCustomer === 'all' || filterCustomerName === selectedCustomer;
+    
+    // Partner filter
+    const filterPartnerName = opportunity.partnerName || '';
+    const matchesPartner = selectedPartner === 'all' || filterPartnerName === selectedPartner;
+    
+    // Stage filter
+    const stage = opportunity.stage || '';
+    const matchesStage = selectedStage === 'all' || stage === selectedStage;
+    
+    // Probability filter
+    const probability = opportunity.probability;
+    const matchesProbability = selectedProbability === 'all' || String(probability) === selectedProbability;
+    
+    // Customer/Partner filters from active list
+    const customerId = opportunity.customerId || opportunity.clientId;
+    const partnerId = opportunity.partnerId || opportunity.partner?.id;
+    
+    const matchesCustomerId = !activeList?.filters.customerId || 
+      String(customerId) === activeList.filters.customerId;
+    const matchesPartnerId = !activeList?.filters.partnerId || 
+      String(partnerId) === activeList.filters.partnerId;
+    
+    return matchesText && matchesStatus && matchesType && matchesCustomer && matchesPartner && matchesStage && matchesProbability && matchesCustomerId && matchesPartnerId;
+  });
 
   // Apply sorting manually using the state
   const handleSort = (key: string) => {
@@ -980,7 +978,7 @@ function OpportunitiesTable() {
   };
 
   // Sort the filtered opportunities
-  const displayedOpportunities = [...filteredOpportunities].sort((a: any, b: any) => {
+  const sortedOpportunities = [...filteredOpportunities].sort((a: any, b: any) => {
     const aValue = a[tableSortConfig.key] || '';
     const bValue = b[tableSortConfig.key] || '';
     
@@ -992,7 +990,7 @@ function OpportunitiesTable() {
   });
   
   // Calculate stats based on filtered opportunities
-  const stats = calculateOpportunityStats(displayedOpportunities);
+  const stats = calculateOpportunityStats(sortedOpportunities);
   
   // Function to toggle opportunity selection
   const toggleSelectOpportunity = (id: number) => {
@@ -1005,10 +1003,10 @@ function OpportunitiesTable() {
   
   // Function to toggle select/deselect all opportunities
   const toggleSelectAll = () => {
-    if (selectedOpportunities.length === displayedOpportunities.length) {
+    if (selectedOpportunities.length === sortedOpportunities.length) {
       setSelectedOpportunities([]);
     } else {
-      setSelectedOpportunities(displayedOpportunities.map((opp: any) => opp.id));
+      setSelectedOpportunities(sortedOpportunities.map((opp: any) => opp.id));
     }
   };
   
@@ -1400,6 +1398,7 @@ function OpportunitiesTable() {
         </div>
 
         {/* Lists Cards Display */}
+        {console.log('Lists dropdown visibility:', showListsDropdown, 'Lists data length:', opportunitySavedListsData.length)}
         {showListsDropdown && (
           <div className="px-4 pb-4">
             <div className={`grid ${
@@ -1512,7 +1511,7 @@ function OpportunitiesTable() {
               </tr>
             </thead>
             <tbody>
-              {filteredOpportunities.map((opportunity: any) => (
+              {sortedOpportunities.map((opportunity: any) => (
                 <tr 
                   key={opportunity.id} 
                   className="border-b border-[#E6E7F1] hover:bg-gray-50"
