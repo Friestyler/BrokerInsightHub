@@ -1415,7 +1415,11 @@ function OpportunitiesTable() {
                         ? 'border-[#5567E5] bg-[#F8F9FF] shadow-sm' 
                         : 'border-[#E6E7F1] bg-white hover:border-[#D6D7E4] hover:shadow-sm'
                     }`}
-                    onClick={() => setActiveList(isSelected ? null : list)}
+                    onClick={() => {
+                      console.log('List clicked:', list.name, 'isSelected:', isSelected);
+                      console.log('List members preview:', list.members?.slice(0, 10));
+                      setActiveList(isSelected ? null : list);
+                    }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium text-gray-900">{list.name}</h3>

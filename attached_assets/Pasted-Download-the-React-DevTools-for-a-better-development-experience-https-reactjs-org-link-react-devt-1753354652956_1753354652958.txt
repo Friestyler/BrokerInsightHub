@@ -1,0 +1,136 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+consoleCommands.ts:189 🎯 AVAILABLE CONSOLE COMMANDS:
+consoleCommands.ts:190 - testEnvironmentSwitch("nn") - Switch to specific environment
+consoleCommands.ts:191 - clearAllCaches() - Clear all browser caches
+consoleCommands.ts:192 - forceEnvironmentUpdate("concordia") - Force update to environment
+consoleCommands.ts:193 - testAllEnvironments() - Test all environment assets
+consoleCommands.ts:194 - monitorDOMChanges() - Monitor DOM changes
+consoleCommands.ts:195 - checkCurrentState() - Check current environment state
+consoleCommands.ts:196 - window.environmentDiagnostics.runComprehensiveDiagnostic() - Run full diagnostic
+stableStartupSequence.ts:10 🚀 STABLE STARTUP SEQUENCE INITIATED
+stableStartupSequence.ts:13 🔑 STEP 1: AUTOMATIC LOGIN
+stableStartupSequence.ts:18 ✅ AUTOMATIC LOGIN COMPLETE
+stableStartupSequence.ts:21 🎯 STEP 2: STABLE ENVIRONMENT INITIALIZATION
+stableEnvironmentSwitch.ts:89 🎯 INITIALIZING STABLE ENVIRONMENT: degoudse
+stableEnvironmentSwitch.ts:37 🔄 STABLE ENVIRONMENT SWITCH TO: degoudse
+stableEnvironmentSwitch.ts:80 🎯 STABLE ENVIRONMENT SWITCH - Dispatched stableEnvironmentChanged event for: degoudse
+stableEnvironmentSwitch.ts:82 ✅ STABLE ENVIRONMENT SWITCH TO degoudse COMPLETE
+stableEnvironmentSwitch.ts:95 ✅ STABLE ENVIRONMENT INITIALIZED
+stableStartupSequence.ts:24 ✅ STABLE ENVIRONMENT INITIALIZED
+stableStartupSequence.ts:27 ⏳ STEP 3: DOM STABILIZATION
+stableStartupSequence.ts:32 ✅ STABLE STARTUP SEQUENCE COMPLETE
+stableStartupSequence.ts:33 🎯 USER SELECTED ENVIRONMENT: degoudse
+stableStartupSequence.ts:29 ✅ DOM STABILIZATION COMPLETE
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(0)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(0)
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:36 URL already has environment prefix, returning as-is
+queryClient.ts:91 apiRequest - Fetching from URL: /api/degoudse/opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:91 apiRequest - Fetching from URL: /api/degoudse/saved-lists?entity_type=opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:91 apiRequest - Fetching from URL: /api/degoudse/saved-views?entity_type=opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:91 apiRequest - Fetching from URL: /api/degoudse/customers
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:91 apiRequest - Fetching from URL: /api/degoudse/products
+queryClient.ts:18 Environment detection: Object
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(0)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(0)
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/partners
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-lists?entity_type=partners
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-lists?entity_type=customers
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-lists?entity_type=opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-views?entity_type=partners
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-views?entity_type=customers
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/saved-views?entity_type=opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/okr-metrics
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/okr-tags
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/template-assignments/partner
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/template-assignments/customer
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:26 Environment URL transformation: Object
+queryClient.ts:45 Environment URL transformed: Object
+queryClient.ts:144 Fetching from URL: /api/degoudse/template-assignments/opportunity
+queryClient.ts:18 Environment detection: Object
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(0)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(0)
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(10)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(10)
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(10)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(10)
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(10)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(10)
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(10)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(10)
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(10)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(10)
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(10)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(10)
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(10)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(10)
+injected.js:5 [USO] Button detection aborting due to timeout.
+OpportunitiesPage.tsx:465 Raw saved lists data: Array(10)
+OpportunitiesPage.tsx:466 Filtered opportunity lists: Array(10)
