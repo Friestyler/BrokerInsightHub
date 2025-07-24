@@ -1121,7 +1121,10 @@ function OpportunitiesTable() {
           <div className="flex items-center gap-4">
             <button 
               className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
-              onClick={() => setShowListsDropdown(!showListsDropdown)}
+              onClick={() => {
+                console.log('🔘 SAVED LISTS BUTTON CLICKED! Current state:', showListsDropdown, '→ Setting to:', !showListsDropdown);
+                setShowListsDropdown(!showListsDropdown);
+              }}
             >
               {showListsDropdown ? (
                 <ChevronDown width="16" height="16" className="transition-transform" />
