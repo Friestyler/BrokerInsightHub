@@ -239,7 +239,7 @@ export default function PartnerDetailBrokerPOV() {
   console.log('🚨 BROKER VIEW - Current environment (state):', currentEnvironment);
   console.log('🚨 BROKER VIEW - Current environment (actual):', actualCurrentEnvironment);
   
-  // Force re-render when environment changes - SIMPLIFIED
+  // Force re-render when environment changes - LISTEN TO STABLE ENVIRONMENT CHANGES
   useEffect(() => {
     const handleEnvironmentChange = (event: any) => {
       console.log('🚨 BROKER VIEW - Environment changed detected!', event);
@@ -251,11 +251,15 @@ export default function PartnerDetailBrokerPOV() {
       }
     };
 
-    // Only listen for explicit environment change events
+    // Listen for both old and new environment change events
     window.addEventListener('environmentChanged', handleEnvironmentChange);
+    window.addEventListener('stableEnvironmentChanged', handleEnvironmentChange);
+    window.addEventListener('storage', handleEnvironmentChange);
     
     return () => {
       window.removeEventListener('environmentChanged', handleEnvironmentChange);
+      window.removeEventListener('stableEnvironmentChanged', handleEnvironmentChange);
+      window.removeEventListener('storage', handleEnvironmentChange);
     };
   }, [currentEnvironment]);
 
@@ -326,15 +330,16 @@ export default function PartnerDetailBrokerPOV() {
   console.log('Broker POV - Current environment (actual):', actualCurrentEnvironment);
   
   // Get partner information and logo using environment branding (with safe fallback)
+  // Use currentEnvironment state instead of actualCurrentEnvironment for responsive updates
   const safeCustomEnvironments = customEnvironments || [];
-  const environmentBranding = getEnvironmentBranding(actualCurrentEnvironment, safeCustomEnvironments);
+  const environmentBranding = getEnvironmentBranding(currentEnvironment, safeCustomEnvironments);
   
   const partner = {
-    id: actualCurrentEnvironment,
+    id: currentEnvironment,
     name: environmentBranding.partnerName,
     description: `Insurance company that shared this list with Regional Insurance Partners`,
     primary_contact: 'Partnership Manager',
-    contact_email: `partnerships@${actualCurrentEnvironment}.nl`,
+    contact_email: `partnerships@${currentEnvironment}.nl`,
     location: 'Netherlands',
     phone: '+31 70 344 2000'
   };
@@ -347,11 +352,11 @@ export default function PartnerDetailBrokerPOV() {
   // Simple environment logging without aggressive cache busting
   useEffect(() => {
     console.log('🎯 BROKER VIEW - Environment and partner info:', {
-      environment: actualCurrentEnvironment,
+      environment: currentEnvironment,
       partnerName: partner.name,
       logoSrc: environmentLogo
     });
-  }, [partner.name, actualCurrentEnvironment, environmentLogo]);
+  }, [partner.name, currentEnvironment, environmentLogo]);
   
   // REMOVED: Aggressive environment sync that was causing switching issues
   // useEffect(() => {
@@ -367,37 +372,36 @@ export default function PartnerDetailBrokerPOV() {
   //   syncEnvironment();
   // }, [currentEnvironment]);
 
-  // Fetch broker campaigns (shared campaigns)
-
+  // Fetch broker campaigns (shared campaigns) - use currentEnvironment for responsive updates
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/broker/shared-campaigns`],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/broker/shared-campaigns`),
+    queryKey: [`/api/${currentEnvironment}/broker/shared-campaigns`],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/broker/shared-campaigns`),
     enabled: activeTab === 'campaigns',
     staleTime: 2 * 60 * 1000,
   });
 
-  // Fetch assigned campaigns for this partner
+  // Fetch assigned campaigns for this partner - use currentEnvironment for responsive updates
   const { data: assignedCampaigns = [], isLoading: assignedCampaignsLoading } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/assigned-campaigns`],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/partners/${partnerId}/assigned-campaigns`),
+    queryKey: [`/api/${currentEnvironment}/partners/${partnerId}/assigned-campaigns`],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/partners/${partnerId}/assigned-campaigns`),
     enabled: activeTab === 'campaigns' && !!partnerId,
     staleTime: 2 * 60 * 1000,
   });
 
-  // Fetch filter options for opportunities
+  // Fetch filter options for opportunities - use currentEnvironment for responsive updates
   const { data: filterOptions = {} } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/opportunities/filters`],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/partners/${partnerId}/opportunities/filters`),
+    queryKey: [`/api/${currentEnvironment}/partners/${partnerId}/opportunities/filters`],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/partners/${partnerId}/opportunities/filters`),
     enabled: !!partnerId && activeTab === 'opportunities',
     staleTime: 5 * 60 * 1000,
   });
 
-  // For broker view, fetch opportunities with proper list filtering
+  // For broker view, fetch opportunities with proper list filtering - use currentEnvironment for responsive updates
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/opportunities`, activeOpportunitiesList?.id],
+    queryKey: [`/api/${currentEnvironment}/opportunities`, activeOpportunitiesList?.id],
     queryFn: async () => {
       const listParam = activeOpportunitiesList?.id ? `?listId=${activeOpportunitiesList.id}&brokerView=true` : '?brokerView=true';
-      const result = await apiRequest('GET', `/api/${actualCurrentEnvironment}/opportunities${listParam}`);
+      const result = await apiRequest('GET', `/api/${currentEnvironment}/opportunities${listParam}`);
       console.log('🔍 BROKER VIEW - Opportunities data:', result);
       // Log specific assessment status fields
       if (result && result.length > 0) {
@@ -416,9 +420,9 @@ export default function PartnerDetailBrokerPOV() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Fetch customers for this partner in broker view - filtered by shared opportunities
+  // Fetch customers for this partner in broker view - use currentEnvironment for responsive updates
   const { data: partnerCustomers = [], isLoading: customersLoading } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/partners/4/customers`, allOpportunities.length],
+    queryKey: [`/api/${currentEnvironment}/partners/4/customers`, allOpportunities.length],
     queryFn: async () => {
       // Hardcoded Belgian customers for broker view
       const hardcodedCustomers = [
@@ -479,15 +483,15 @@ export default function PartnerDetailBrokerPOV() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Customer lists and views data
+  // Customer lists and views data - use currentEnvironment for responsive updates
   const { data: customerSavedLists = [] } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/saved-lists`, { entity_type: 'customers', partner_id: 4 }],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/saved-lists?entity_type=customers&partner_id=4`),
+    queryKey: [`/api/${currentEnvironment}/saved-lists`, { entity_type: 'customers', partner_id: 4 }],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/saved-lists?entity_type=customers&partner_id=4`),
   });
 
   const { data: customerSavedViews = [] } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/saved-views`, { entity_type: 'customers' }],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/saved-views?entity_type=customers`),
+    queryKey: [`/api/${currentEnvironment}/saved-views`, { entity_type: 'customers' }],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/saved-views?entity_type=customers`),
   });
 
   // Customer filtering state
@@ -542,10 +546,10 @@ export default function PartnerDetailBrokerPOV() {
 
 
 
-  // Fetch all lists shared with John Smith or partners using the new broker-specific endpoint
+  // Fetch all lists shared with John Smith or partners using the new broker-specific endpoint - use currentEnvironment for responsive updates
   const { data: savedListsData } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/broker/shared-lists`, 'opportunities'],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/broker/shared-lists?entity_type=opportunities`),
+    queryKey: [`/api/${currentEnvironment}/broker/shared-lists`, 'opportunities'],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/broker/shared-lists?entity_type=opportunities`),
     staleTime: 0, // Always refresh to get latest data
     refetchOnWindowFocus: true,
   });
@@ -553,10 +557,10 @@ export default function PartnerDetailBrokerPOV() {
   // All returned lists are already filtered to show only those shared with John Smith or partners
   const partnerRelevantLists = savedListsData || [];
   
-  // Fetch all opportunity lists for the modal
+  // Fetch all opportunity lists for the modal - use currentEnvironment for responsive updates
   const { data: opportunityLists } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/saved-lists`, 'opportunities', 'all'],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/saved-lists?entity_type=opportunities`),
+    queryKey: [`/api/${currentEnvironment}/saved-lists`, 'opportunities', 'all'],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/saved-lists?entity_type=opportunities`),
   });
   
   console.log(`Showing ${partnerRelevantLists.length} lists shared with John Smith or partners:`, 
