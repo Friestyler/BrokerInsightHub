@@ -139,8 +139,20 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
 
 
 
-  const { data: portfolioData, isLoading } = useQuery<PortfolioData>({
+  const { data: portfolioData, isLoading, error } = useQuery<PortfolioData>({
     queryKey: [`/api/${envId}/${entityType}/${entityId}/portfolio-overview`],
+    enabled: !!entityId
+  });
+
+  // Debug logging
+  console.log('PortfolioOverviewTab Debug:', {
+    envId,
+    entityType,
+    entityId,
+    queryKey: `/api/${envId}/${entityType}/${entityId}/portfolio-overview`,
+    portfolioData,
+    isLoading,
+    error,
     enabled: !!entityId
   });
 
