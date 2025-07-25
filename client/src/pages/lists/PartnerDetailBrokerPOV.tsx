@@ -88,6 +88,7 @@ export default function PartnerDetailBrokerPOV() {
   const urlParams = new URLSearchParams(window.location.search);
   const listParam = urlParams.get('list');
   const envParam = urlParams.get('env');
+  const tabParam = urlParams.get('tab'); // Extract tab parameter
   
   // BROKER VIEW ENVIRONMENT DETECTION - RESPECT URL PARAMS WITH FALLBACK
   const getCurrentEnvironment = () => {
@@ -136,7 +137,7 @@ export default function PartnerDetailBrokerPOV() {
     };
   }, [envParam]);
   
-  const [activeTab, setActiveTab] = useState("products");
+  const [activeTab, setActiveTab] = useState(tabParam || "products"); // Initialize from URL parameter
   const [activeProductTab, setActiveProductTab] = useState("overview");
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   
