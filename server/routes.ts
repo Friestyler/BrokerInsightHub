@@ -14348,8 +14348,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         return res.status(400).json({ error: 'Name and Environment ID are required' });
       }
       
-      // Generate unique schema name
-      const schemaName = environmentId.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+      // Custom environments share the degoudse database backend - no separate schemas needed
       
       // Check if environment ID already exists
       const existingEnv = await pool.query('SELECT id FROM custom_environments WHERE environment_id = $1', [environmentId]);
@@ -14357,12 +14356,12 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         return res.status(400).json({ error: 'Environment ID already exists' });
       }
       
-      // Create the environment record
+      // Create the environment record - custom environments use degoudse data backend
       const result = await pool.query(`
-        INSERT INTO custom_environments (name, environment_id, logo_url, schema_name, description, created_by_id)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO custom_environments (name, environment_id, logo_url, description, created_by_id)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *
-      `, [name, environmentId, logoUrl, schemaName, description, createdById]);
+      `, [name, environmentId, logoUrl, description, createdById]);
       
       const newEnvironment = result.rows[0];
       

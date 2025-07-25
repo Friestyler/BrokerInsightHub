@@ -2028,14 +2028,13 @@ export const insertBrokerPartnerMappingSchema = createInsertSchema(brokerPartner
 export type BrokerPartnerMapping = typeof brokerPartnerMappings.$inferSelect;
 export type InsertBrokerPartnerMapping = z.infer<typeof insertBrokerPartnerMappingSchema>;
 
-// Custom Environments table
+// Custom Environments table - these are just visual identities that use the same degoudse data
 export const customEnvironments = pgTable("custom_environments", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   environmentId: text("environment_id").notNull().unique(), // unique slug (e.g., "acme-corp", "global-insurance")
   logoUrl: text("logo_url"), // URL or path to logo file
   isActive: boolean("is_active").notNull().default(true),
-  schemaName: text("schema_name").notNull(), // PostgreSQL schema name for this environment
   description: text("description"),
   createdById: integer("created_by_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),

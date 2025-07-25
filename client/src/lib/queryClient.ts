@@ -43,36 +43,15 @@ export function getEnvironmentUrl(url: string | RequestInit): string {
     return url;
   }
   
-  // All environments (degoudse, baloise, nn, concordia) should use the degoudse backend data
-  if (envId === 'degoudse' || envId === 'baloise' || envId === 'nn' || envId === 'concordia') {
-    // All environments use degoudse data backend
-    if (url.startsWith('/api/') && !url.includes('/degoudse/') && !url.includes('/baloise/') && !url.includes('/nn/') && !url.includes('/concordia/')) {
-      const newUrl = url.replace('/api/', `/api/degoudse/`);
-      console.log('Environment URL transformed:', { from: url, to: newUrl });
-      return newUrl;
-    }
-    // If URL already has environment prefix, redirect to degoudse
-    if (url.includes('/baloise/')) {
-      const newUrl = url.replace('/api/baloise/', '/api/degoudse/');
-      console.log('Environment URL transformed:', { from: url, to: newUrl });
-      return newUrl;
-    }
-    if (url.includes('/nn/')) {
-      const newUrl = url.replace('/api/nn/', '/api/degoudse/');
-      console.log('Environment URL transformed:', { from: url, to: newUrl });
-      return newUrl;
-    }
-    if (url.includes('/concordia/')) {
-      const newUrl = url.replace('/api/concordia/', '/api/degoudse/');
-      console.log('Environment URL transformed:', { from: url, to: newUrl });
-      return newUrl;
-    }
-  }
+  // Custom environments should always use degoudse data backend
+  // Only baloise, nn, concordia have their own data schemas
   
-  // For other environments, prefix the URL with the environment path
+  // For standard environments (baloise, nn, concordia), use their own schemas
+  // For all other environments (including custom ones), use degoudse schema
   if (url.startsWith('/api/')) {
-    const newUrl = url.replace('/api/', `/api/${envId}/`);
-    console.log('Environment URL transformed:', { from: url, to: newUrl });
+    const targetEnv = ['baloise', 'nn', 'concordia'].includes(envId) ? envId : 'degoudse';
+    const newUrl = url.replace('/api/', `/api/${targetEnv}/`);
+    console.log('Environment URL transformed:', { from: url, to: newUrl, targetEnv, envId });
     return newUrl;
   }
   

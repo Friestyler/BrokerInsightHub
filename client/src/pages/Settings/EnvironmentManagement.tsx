@@ -230,7 +230,7 @@ export default function EnvironmentManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Environment Management</h1>
-          <p className="text-gray-600 mt-1">Create and manage custom environments with isolated data and branding</p>
+          <p className="text-gray-600 mt-1">Create custom branded environments that share the same data as De Goudse</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
