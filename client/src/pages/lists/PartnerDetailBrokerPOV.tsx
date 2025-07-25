@@ -435,8 +435,8 @@ export default function PartnerDetailBrokerPOV() {
   });
 
   // CRITICAL FIX: Use correct API endpoint that's working in server logs
-  const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/opportunities`, 'broker', partnerId],
+  const { data: allOpportunities = [], isLoading: opportunitiesLoading, error: opportunitiesError } = useQuery({
+    queryKey: [`/api/${currentEnvironment}/opportunities`, 'broker', partnerId, activeTab], // Include activeTab to refetch when switching to opportunities
     queryFn: async () => {
       // Use the working API endpoint that server logs show is successful
       const url = `/api/${currentEnvironment}/opportunities?brokerView=true&partnerId=${partnerId}`;
@@ -444,9 +444,22 @@ export default function PartnerDetailBrokerPOV() {
       const result = await apiRequest('GET', url);
       console.log('🔍 BROKER VIEW - Raw API response:', result);
       console.log('🔍 BROKER VIEW - Response length:', result?.length || 0);
+      console.log('🔍 BROKER VIEW - First opportunity:', result?.[0]);
       return result || [];
     },
-    staleTime: 1000, // Short stale time for debugging
+    staleTime: 30000, // 30 seconds
+    enabled: !!partnerId && activeTab === 'opportunities', // Only run when on opportunities tab
+  });
+
+  // DEBUGGING: Log the query state
+  console.log('🔍 BROKER VIEW - Query state:', {
+    partnerId,
+    currentEnvironment,
+    activeTab,
+    isLoading: opportunitiesLoading,
+    error: opportunitiesError,
+    dataLength: allOpportunities?.length || 0,
+    data: allOpportunities
   });
 
   // Fetch customers for this partner in broker view - use currentEnvironment for responsive updates
