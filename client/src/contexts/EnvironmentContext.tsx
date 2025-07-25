@@ -88,7 +88,7 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
         id: env.environment_id,
         name: env.name,
         logo: env.logo_url || undefined,
-        apiBaseUrl: "/api/degoudse", // Custom environments use degoudse backend
+        apiBaseUrl: "/api/degoudse", // ALL environments use degoudse backend
         databaseId: "degoudse"
       }));
       
