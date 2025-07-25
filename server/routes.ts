@@ -14358,10 +14358,10 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       // Create the environment record - custom environments use degoudse data backend
       const result = await pool.query(`
-        INSERT INTO custom_environments (name, environment_id, logo_url, description, created_by_id)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO custom_environments (name, environment_id, logo_url, description, schema_name, created_by_id)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
-      `, [name, environmentId, logoUrl, description, createdById]);
+      `, [name, environmentId, logoUrl, description, 'degoudse', createdById]);
       
       const newEnvironment = result.rows[0];
       

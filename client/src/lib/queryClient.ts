@@ -71,8 +71,8 @@ export async function apiRequest<T = any>(
   url: string,
   data?: unknown | undefined,
 ): Promise<T> {
-  // Apply environment to URL
-  const envUrl = getEnvironmentUrl(url);
+  // Apply environment to URL only if url is a string
+  const envUrl = typeof url === 'string' ? getEnvironmentUrl(url) : url;
   console.log('apiRequest - Fetching from URL:', envUrl);
   
   try {
@@ -83,7 +83,7 @@ export async function apiRequest<T = any>(
         // Add environment header as an alternative way to specify environment
         'X-Environment': getCurrentEnvironmentId(),
         // Force fresh data for saved lists
-        ...(envUrl.includes('saved-lists') ? { 'Cache-Control': 'no-cache' } : {})
+        ...(typeof envUrl === 'string' && envUrl.includes('saved-lists') ? { 'Cache-Control': 'no-cache' } : {})
       },
       body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
@@ -103,12 +103,12 @@ export async function apiRequest<T = any>(
       errorName: error?.constructor?.name,
       errorMessage: error?.message,
       url: url,
-      envUrl: getEnvironmentUrl(url),
+      envUrl: typeof url === 'string' ? getEnvironmentUrl(url) : url,
       method: method,
       timestamp: new Date().toISOString()
     });
 
-    if (!url.includes('template-assignments')) {
+    if (typeof url === 'string' && !url.includes('template-assignments')) {
       console.error('Full error object:', error);
     }
 

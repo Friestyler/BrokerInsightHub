@@ -49,7 +49,7 @@ export default function EnvironmentManagement() {
   // Fetch custom environments
   const { data: environments = [], isLoading } = useQuery({
     queryKey: ['/api/admin/custom-environments'],
-    queryFn: () => apiRequest('/api/admin/custom-environments'),
+    queryFn: () => apiRequest('GET', '/api/admin/custom-environments'),
   });
 
   // Upload logo mutation
@@ -82,12 +82,11 @@ export default function EnvironmentManagement() {
         logoUrl = await uploadLogoMutation.mutateAsync(data.logoFile);
       }
       
-      return apiRequest('/api/admin/custom-environments', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...data,
-          logoUrl,
-        }),
+      return apiRequest('POST', '/api/admin/custom-environments', {
+        name: data.name,
+        environmentId: data.environmentId,
+        description: data.description,
+        logoUrl,
       });
     },
     onSuccess: () => {
@@ -113,19 +112,16 @@ export default function EnvironmentManagement() {
   // Update environment mutation
   const updateEnvironmentMutation = useMutation({
     mutationFn: async ({ id, data, logoFile }: { id: number; data: Partial<EnvironmentFormData>; logoFile?: File }) => {
-      let logoUrl = data.logoUrl;
+      let logoUrl = data.logoUrl || '';
       
       // Upload new logo if provided
       if (logoFile) {
         logoUrl = await uploadLogoMutation.mutateAsync(logoFile);
       }
       
-      return apiRequest(`/api/admin/custom-environments/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          ...data,
-          logoUrl,
-        }),
+      return apiRequest('PUT', `/api/admin/custom-environments/${id}`, {
+        ...data,
+        logoUrl,
       });
     },
     onSuccess: () => {
@@ -152,9 +148,7 @@ export default function EnvironmentManagement() {
   // Delete environment mutation
   const deleteEnvironmentMutation = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/admin/custom-environments/${id}`, {
-        method: 'DELETE',
-      }),
+      apiRequest('DELETE', `/api/admin/custom-environments/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/custom-environments'] });
       toast({
@@ -378,9 +372,7 @@ export default function EnvironmentManagement() {
                       <p className="text-gray-600 text-sm mb-2">{environment.description}</p>
                     )}
                     <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      <span>Created by {environment.createdByName || 'Unknown'}</span>
-                      <span>•</span>
-                      <span>Schema: {environment.schemaName}</span>
+                      <span>Uses De Goudse data backend</span>
                       <span>•</span>
                       <span>{new Date(environment.createdAt).toLocaleDateString()}</span>
                     </div>
