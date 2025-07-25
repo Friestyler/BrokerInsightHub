@@ -85,9 +85,9 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       // Convert custom environments to Environment format
       const customEnvs: Environment[] = customEnvironments.map((env: any) => ({
-        id: env.environment_id,
+        id: env.environment_id || env.id.toString(), // Handle both environment_id and id fields
         name: env.name,
-        logo: env.logo_url || undefined,
+        logo: env.logo_url || env.logo || undefined, // Handle both logo_url and logo fields
         apiBaseUrl: "/api/degoudse", // ALL environments use degoudse backend
         databaseId: "degoudse"
       }));

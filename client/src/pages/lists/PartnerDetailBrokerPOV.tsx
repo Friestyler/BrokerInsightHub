@@ -333,7 +333,7 @@ export default function PartnerDetailBrokerPOV() {
   // Get partner information based on selected environment (front-end only hack)
   const getPartnerInfoForEnvironment = (envId: string) => {
     console.log('🚨 BROKER VIEW - getPartnerInfoForEnvironment called with envId:', envId);
-    const branding = getEnvironmentBranding(envId, customEnvironments);
+    const branding = getEnvironmentBranding(envId, customEnvironments || []);
     console.log('🚨 BROKER VIEW - branding result:', branding);
     const partnerInfo = {
       id: envId,
@@ -354,7 +354,7 @@ export default function PartnerDetailBrokerPOV() {
   
   // Get the correct logo for broker view with fallback (using environment branding)
   const getBrokerLogo = (envId: string) => {
-    const branding = getEnvironmentBranding(envId, customEnvironments);
+    const branding = getEnvironmentBranding(envId, customEnvironments || []);
     return branding.logo;
   };
   
