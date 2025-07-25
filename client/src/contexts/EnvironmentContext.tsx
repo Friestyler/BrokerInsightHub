@@ -99,8 +99,14 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
         databaseId: "degoudse"
       }));
       
-      // Combine fallback environments with custom environments
-      const allEnvironments = [...FALLBACK_ENVIRONMENTS, ...customEnvs];
+      // Get IDs of environments that exist in database to avoid duplicates
+      const dbEnvironmentIds = customEnvs.map(env => env.id);
+      
+      // Only include fallback environments that are NOT in the database
+      const fallbackEnvsNotInDB = FALLBACK_ENVIRONMENTS.filter(env => !dbEnvironmentIds.includes(env.id));
+      
+      // Combine filtered fallback environments with database environments
+      const allEnvironments = [...fallbackEnvsNotInDB, ...customEnvs];
       setEnvironments(allEnvironments);
       
       // Update current environment if needed (especially for custom environments)
