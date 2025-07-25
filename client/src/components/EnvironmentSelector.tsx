@@ -8,8 +8,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEnvironment } from "../contexts/EnvironmentContext";
-import deGoudseLogo from "../assets/de-goudse-logo.png";
-import baloiseLogo from "../assets/baloise-logo.png";
+import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
+import baloiseLogo from "@assets/Baloise_1750499789244.png";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
 
