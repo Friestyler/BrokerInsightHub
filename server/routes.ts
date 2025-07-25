@@ -1224,41 +1224,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get activities for a specific partner (including related opportunity activities)
+  // Get activities for a specific partner (including related opportunity activities) - ALL ENVIRONMENTS USE DEGOUDSE SCHEMA
   app.get('/api/:envId/partners/:id/activities', async (req, res) => {
     try {
       const envId = req.params.envId;
       const partnerId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool(envId);
+      const envPool = pool; // Always use degoudse database
       
-      // Fetch tasks for this partner AND related opportunity tasks
+      // Fetch tasks for this partner AND related opportunity tasks from degoudse schema
       const tasksResult = await envPool.query(`
         SELECT t.*, u.name as assigned_to_name, 
                CASE WHEN t.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
-        FROM ${envId}.activity_tasks t
-        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
-        LEFT JOIN ${envId}.opportunities o ON t.entity_id = o.id AND t.entity_type = 'opportunity'
+        FROM degoudse.activity_tasks t
+        LEFT JOIN degoudse.users u ON t.assigned_to = u.id
+        LEFT JOIN degoudse.opportunities o ON t.entity_id = o.id AND t.entity_type = 'opportunity'
         WHERE (t.entity_type = 'partner' AND t.partner_id = $1)
            OR (t.entity_type = 'opportunity' AND t.entity_id IN (
-               SELECT o2.id FROM ${envId}.opportunities o2 WHERE o2.partner_id = $1
+               SELECT o2.id FROM degoudse.opportunities o2 WHERE o2.partner_id = $1
            ))
         ORDER BY t.created_at DESC
       `, [partnerId]);
       
-      // Fetch comments for this partner AND related opportunity comments
+      // Fetch comments for this partner AND related opportunity comments from degoudse schema
       const commentsResult = await envPool.query(`
         SELECT c.*, u.name as author_name
-        FROM ${envId}.activity_comments c
-        LEFT JOIN ${envId}.users u ON c.user_id = u.id
+        FROM degoudse.activity_comments c
+        LEFT JOIN degoudse.users u ON c.user_id = u.id
         WHERE c.partner_id = $1
         ORDER BY c.created_at DESC
       `, [partnerId]);
       
-      // Fetch attachments for this partner
+      // Fetch attachments for this partner from degoudse schema
       const attachmentsResult = await envPool.query(`
         SELECT a.*, u.name as author_name
-        FROM ${envId}.activity_attachments a
-        LEFT JOIN ${envId}.users u ON a.uploaded_by_id = u.id
+        FROM degoudse.activity_attachments a
+        LEFT JOIN degoudse.users u ON a.uploaded_by_id = u.id
         WHERE a.partner_id = $1
         ORDER BY a.created_at DESC
       `, [partnerId]);
@@ -1470,14 +1470,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get timeline for a specific partner
+  // Get timeline for a specific partner - ALL ENVIRONMENTS USE DEGOUDSE SCHEMA
   app.get('/api/:envId/partners/:id/timeline', async (req, res) => {
     try {
       const envId = req.params.envId;
       const partnerId = parseInt(req.params.id);
+      const envPool = pool; // Always use degoudse database
       
-      // Fetch all timeline activities from database with user information
-      const timelineQuery = sql`
+      // Fetch all timeline activities from degoudse schema (not environment-specific schemas)
+      const timelineResult = await envPool.query(`
         SELECT 
           t.id, 
           'task' as activity_type, 
@@ -1491,9 +1492,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           t.created_at,
           t.updated_at,
           u.name as author_name
-        FROM ${sql.identifier(envId)}.activity_tasks t
-        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
-        WHERE t.partner_id = ${partnerId}
+        FROM degoudse.activity_tasks t
+        LEFT JOIN degoudse.users u ON t.assigned_to = u.id
+        WHERE t.partner_id = $1
         
         UNION ALL
         
@@ -1510,9 +1511,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.created_at,
           c.updated_at,
           u.name as author_name
-        FROM ${sql.identifier(envId)}.activity_comments c
-        LEFT JOIN ${sql.identifier(envId)}.users u ON c.user_id = u.id
-        WHERE c.partner_id = ${partnerId}
+        FROM degoudse.activity_comments c
+        LEFT JOIN degoudse.users u ON c.user_id = u.id
+        WHERE c.partner_id = $1
         
         UNION ALL
         
@@ -1529,14 +1530,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           a.created_at,
           null as updated_at,
           u.name as author_name
-        FROM ${sql.identifier(envId)}.activity_attachments a
-        LEFT JOIN ${sql.identifier(envId)}.users u ON a.uploaded_by_id = u.id
-        WHERE a.partner_id = ${partnerId}
+        FROM degoudse.activity_attachments a
+        LEFT JOIN degoudse.users u ON a.uploaded_by_id = u.id
+        WHERE a.partner_id = $1
         
         ORDER BY created_at DESC
-      `;
-      
-      const timelineResult = await db.execute(timelineQuery);
+      `, [partnerId]);
       
       // Transform the results to match expected frontend format
       const timeline = timelineResult.rows.map((item: any) => ({
@@ -1705,7 +1704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use simple parameterized SQL queries instead of complex Drizzle templates
       const envPool = pool;
       
-      // Query 1: Direct partner tasks
+      // Query 1: Direct partner tasks from degoudse schema
       const partnerTasksQuery = `
         SELECT 
           t.id, 
@@ -1721,13 +1720,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'partner' as source_type,
           p.name as source_name,
           $1 as source_id
-        FROM ${envId}.activity_tasks t
-        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
-        LEFT JOIN ${envId}.partners p ON p.id = $1
+        FROM degoudse.activity_tasks t
+        LEFT JOIN degoudse.users u ON t.assigned_to = u.id
+        LEFT JOIN degoudse.partners p ON p.id = $1
         WHERE t.partner_id = $1
       `;
       
-      // Query 2: Tasks from opportunities connected to this partner
+      // Query 2: Tasks from opportunities connected to this partner from degoudse schema
       const opportunityTasksQuery = `
         SELECT 
           t.id, 
@@ -1743,13 +1742,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'opportunity' as source_type,
           o.title as source_name,
           o.id as source_id
-        FROM ${envId}.activity_tasks t
-        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
-        LEFT JOIN ${envId}.opportunities o ON t.entity_id = o.id
+        FROM degoudse.activity_tasks t
+        LEFT JOIN degoudse.users u ON t.assigned_to = u.id
+        LEFT JOIN degoudse.opportunities o ON t.entity_id = o.id
         WHERE t.entity_type = 'opportunity' AND o.partner_id = $1
       `;
       
-      // Query 3: Tasks from customers connected to this partner through opportunities
+      // Query 3: Tasks from customers connected to this partner through opportunities from degoudse schema
       const customerTasksQuery = `
         SELECT 
           t.id, 
@@ -1765,10 +1764,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'customer' as source_type,
           c.name as source_name,
           c.id as source_id
-        FROM ${envId}.activity_tasks t
-        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
-        LEFT JOIN ${envId}.customers c ON t.entity_id = c.id
-        LEFT JOIN ${envId}.opportunities o ON o.client_id = c.id
+        FROM degoudse.activity_tasks t
+        LEFT JOIN degoudse.users u ON t.assigned_to = u.id
+        LEFT JOIN degoudse.customers c ON t.entity_id = c.id
+        LEFT JOIN degoudse.opportunities o ON o.client_id = c.id
         WHERE t.entity_type = 'customer' AND o.partner_id = $1
       `;
       
@@ -3101,7 +3100,37 @@ Prioritize actions that:
     }
   });
 
-  // Users endpoint for fetching user information
+  // Users endpoint for fetching user information - ALL ENVIRONMENTS USE DEGOUDSE SCHEMA
+  app.get('/api/:envId/users', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = pool; // Always use degoudse database
+      const result = await envPool.query(`
+        SELECT id, name, email, role, partner_id, created_at, updated_at
+        FROM degoudse.users
+        WHERE id IS NOT NULL
+        ORDER BY id
+      `);
+      
+      const users = result.rows.map((user: any) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        partner_id: user.partner_id,
+        initials: user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
+        created_at: user.created_at,
+        updated_at: user.updated_at
+      }));
+      
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
+  // Legacy endpoint for backward compatibility
   app.get('/api/degoudse/users', async (req, res) => {
     try {
       const envPool = pool;
@@ -5928,7 +5957,57 @@ Return as JSON in this exact format:
 
   // Partner Product Assignments API endpoints
 
-  // Get Partner Product Assignments
+  // Get Partner Product Assignments - ALL ENVIRONMENTS USE DEGOUDSE SCHEMA
+  app.get('/api/:envId/partners/:id/product-assignments', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool; // Always use degoudse database
+      
+      const result = await envPool.query(`
+        SELECT 
+          pt.id as "productId",
+          pt.name as "productName",
+          pt.description as "productDescription", 
+          pt.category as category,
+          -- Aggregated values from all partner's customers
+          COUNT(DISTINCT cpa.customer_id) as "customerCount",
+          SUM(pt.premium_value) as "totalPremiumValue",
+          AVG(pt.premium_value) as "avgPremiumValue",
+          AVG(pt.premium_percentage) as "avgPremiumPercentage",
+          AVG(pt.discount_percentage) as "avgDiscountPercentage",
+          -- Category info
+          c.name as "categoryName",
+          c.color as "categoryColor",
+          -- Parent category info for main category grouping
+          parent_cat.name as "parentCategoryName",
+          parent_cat.color as "parentCategoryColor",
+          -- Contract date ranges
+          MIN(pt.contract_start_date) as "earliestContractStart",
+          MAX(pt.contract_end_date) as "latestContractEnd",
+          -- Status summary
+          'Active' as "statusSummary"
+        FROM degoudse.customer_product_assignments cpa
+        INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
+        INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.categories parent_cat ON (c.parent_id = parent_cat.id AND c.parent_id IS NOT NULL) OR (c.parent_id IS NULL AND c.id = parent_cat.id)
+        WHERE pc.partner_id = $1
+        GROUP BY 
+          pt.id, pt.name, pt.description, pt.category,
+          c.name, c.color, parent_cat.name, parent_cat.color,
+          pt.contract_start_date, pt.contract_end_date
+        ORDER BY "totalPremiumValue" DESC, "customerCount" DESC
+      `, [partnerId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching partner product assignments:', error);
+      res.status(500).json({ error: 'Failed to fetch partner product assignments' });
+    }
+  });
+
+  // Legacy endpoint for backward compatibility
   app.get('/api/degoudse/partners/:id/product-assignments', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
@@ -5975,7 +6054,154 @@ Return as JSON in this exact format:
     }
   });
 
-  // Get Partner Portfolio Overview
+  // Get Partner Portfolio Overview - ALL ENVIRONMENTS USE DEGOUDSE SCHEMA
+  app.get('/api/:envId/partners/:id/portfolio-overview', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool; // Always use degoudse database
+      
+      // Get partner basic info from degoudse schema
+      const partnerResult = await envPool.query(`
+        SELECT name FROM degoudse.partners WHERE id = $1
+      `, [partnerId]);
+      
+      if (partnerResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      
+      const partnerName = partnerResult.rows[0].name;
+      
+      // Get portfolio summary metrics - use actual customer_product_assignments through partner relationships
+      const summaryResult = await envPool.query(`
+        SELECT 
+          COUNT(DISTINCT cpa.product_template_id) as products_covered,
+          COUNT(DISTINCT parent_cat.id) as categories_covered,
+          SUM(COALESCE(pt.premium_value, 0)) as total_premium,
+          (SELECT COUNT(*) FROM degoudse.product_templates) as total_available_products
+        FROM degoudse.customer_product_assignments cpa
+        INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
+        INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
+        WHERE pc.partner_id = $1
+      `, [partnerId]);
+      
+      const summary = summaryResult.rows[0] || {};
+      const coveragePercentage = summary.total_available_products > 0 
+        ? Math.round((summary.products_covered / summary.total_available_products) * 100)
+        : 0;
+      
+      // Get category breakdown - show how many customers have products in each category
+      const categoryResult = await envPool.query(`
+        SELECT 
+          parent_cat.id as categoryId,
+          parent_cat.name as categoryName,
+          parent_cat.color as categoryColor,
+          COUNT(DISTINCT pc.customer_id) as customers_with_products,
+          (SELECT COUNT(DISTINCT customer_id) FROM degoudse.partner_customers WHERE partner_id = $1) as total_customers,
+          SUM(COALESCE(pt.premium_value, 0)) as current_premium,
+          CASE 
+            WHEN (SELECT COUNT(DISTINCT customer_id) FROM degoudse.partner_customers WHERE partner_id = $1) > 0 
+            THEN ROUND((COUNT(DISTINCT pc.customer_id)::numeric / (SELECT COUNT(DISTINCT customer_id) FROM degoudse.partner_customers WHERE partner_id = $1)::numeric) * 100, 1)
+            ELSE 0 
+          END as coverage_percentage
+        FROM degoudse.customer_product_assignments cpa
+        INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
+        INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.categories parent_cat ON (c.parent_id = parent_cat.id AND c.parent_id IS NOT NULL) OR (c.parent_id IS NULL AND c.id = parent_cat.id)
+        WHERE pc.partner_id = $1 AND parent_cat.id IS NOT NULL
+        GROUP BY parent_cat.id, parent_cat.name, parent_cat.color
+        ORDER BY current_premium DESC
+      `, [partnerId]);
+      
+      // Get gap analysis - products that could be sold to customers who don't have them
+      const gapResult = await envPool.query(`
+        SELECT 
+          pt.id as product_id,
+          pt.name as product_name,
+          c.name as category_name,
+          pt.premium_value as potential_value,
+          COUNT(DISTINCT pc.customer_id) as potential_customers,
+          CASE 
+            WHEN pt.premium_value > 5000 THEN 'critical'
+            WHEN pt.premium_value > 2000 THEN 'medium'
+            ELSE 'low'
+          END as priority
+        FROM degoudse.product_templates pt
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        CROSS JOIN degoudse.partner_customers pc
+        LEFT JOIN degoudse.customer_product_assignments cpa ON cpa.customer_id = pc.customer_id AND cpa.product_template_id = pt.id
+        WHERE pc.partner_id = $1 
+          AND cpa.id IS NULL 
+          AND pt.is_active = true
+        GROUP BY pt.id, pt.name, c.name, pt.premium_value
+        HAVING COUNT(DISTINCT pc.customer_id) > 0
+        ORDER BY pt.premium_value DESC
+        LIMIT 50
+      `, [partnerId]);
+      
+      // Group gaps by priority
+      const criticalGaps = gapResult.rows.filter(gap => gap.priority === 'critical');
+      const mediumGaps = gapResult.rows.filter(gap => gap.priority === 'medium');
+      const lowGaps = gapResult.rows.filter(gap => gap.priority === 'low');
+      
+      const portfolioOverview = {
+        partnerName,
+        summary: {
+          totalPremium: parseFloat(summary.total_premium || '0'),
+          productsCovered: parseInt(summary.products_covered || '0'),
+          totalProducts: parseInt(summary.total_available_products || '0'),
+          coveragePercentage,
+          categoriesCovered: parseInt(summary.categories_covered || '0'),
+          gapOpportunities: gapResult.rows.length
+        },
+        categoryBreakdown: categoryResult.rows.map(cat => ({
+          categoryId: cat.categoryid,
+          categoryName: cat.categoryname,
+          categoryColor: cat.categorycolor,
+          productsCovered: parseInt(cat.customers_with_products || '0'),
+          totalProducts: parseInt(cat.total_customers || '0'),
+          coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
+          currentPremium: parseFloat(cat.current_premium || '0'),
+          gapValue: 0 // Will calculate properly later if needed
+        })),
+        gapAnalysis: {
+          critical: {
+            count: criticalGaps.length,
+            totalValue: criticalGaps.reduce((sum, gap) => sum + parseFloat(gap.potential_value || '0'), 0),
+            topProducts: criticalGaps.slice(0, 3).map(gap => ({
+              productName: gap.product_name,
+              potentialValue: parseFloat(gap.potential_value || '0'),
+              category: gap.category_name
+            }))
+          },
+          medium: {
+            count: mediumGaps.length,
+            totalValue: mediumGaps.reduce((sum, gap) => sum + parseFloat(gap.potential_value || '0'), 0),
+            topProducts: mediumGaps.slice(0, 3).map(gap => ({
+              productName: gap.product_name,
+              potentialValue: parseFloat(gap.potential_value || '0'),
+              category: gap.category_name
+            }))
+          },
+          wellCovered: {
+            count: parseInt(summary.products_covered || '0'),
+            totalValue: parseFloat(summary.total_premium || '0'),
+            coverageRate: coveragePercentage
+          }
+        }
+      };
+      
+      res.json(portfolioOverview);
+    } catch (error) {
+      console.error('Error fetching partner portfolio overview:', error);
+      res.status(500).json({ error: 'Failed to fetch partner portfolio overview' });
+    }
+  });
+
+  // Legacy endpoint for backward compatibility
   app.get('/api/degoudse/partners/:id/portfolio-overview', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
