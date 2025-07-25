@@ -43,13 +43,11 @@ export function getEnvironmentUrl(url: string | RequestInit): string {
     return url;
   }
   
-  // Custom environments should always use degoudse data backend
-  // Only baloise, nn, concordia have their own data schemas
+  // ALL ENVIRONMENTS USE DEGOUDSE DATABASE - no exceptions
+  // This ensures all environments (baloise, nn, concordia, custom) share the same data
   
-  // For standard environments (baloise, nn, concordia), use their own schemas
-  // For all other environments (including custom ones), use degoudse schema
   if (url.startsWith('/api/')) {
-    const targetEnv = ['baloise', 'nn', 'concordia'].includes(envId) ? envId : 'degoudse';
+    const targetEnv = 'degoudse'; // ALWAYS use degoudse database for all environments
     const newUrl = url.replace('/api/', `/api/${targetEnv}/`);
     console.log('Environment URL transformed:', { from: url, to: newUrl, targetEnv, envId });
     return newUrl;
