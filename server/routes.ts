@@ -6594,18 +6594,22 @@ Return as JSON in this exact format:
     }
   });
 
-  app.get('/api/degoudse/opportunities', async (req, res) => {
+  // CRITICAL FIX: Handle both degoudse and custom environment paths for opportunities
+  app.get('/api/:envId/opportunities', async (req, res) => {
     try {
+      const envId = req.params.envId;
+      // Always use degoudse database regardless of envId
       const envPool = pool;
       
       // Check if this is a broker request by looking at the referer header
       const referer = req.get('Referer') || '';
       const isBrokerRequest = referer.includes('/broker-view') || req.query.brokerView === 'true';
       
-      // Extract list ID from query parameters for broker requests
+      // Extract parameters
       const listId = req.query.listId ? parseInt(req.query.listId as string) : null;
+      const partnerId = req.query.partnerId ? parseInt(req.query.partnerId as string) : null;
       
-      console.log(`Opportunities request - Referer: ${referer}, isBrokerRequest: ${isBrokerRequest}, listId: ${listId}`);
+      console.log(`Opportunities request - EnvId: ${envId}, Referer: ${referer}, isBrokerRequest: ${isBrokerRequest}, listId: ${listId}, partnerId: ${partnerId}`);
       
       let result;
       
@@ -6770,7 +6774,8 @@ Return as JSON in this exact format:
           }
         } else {
           // No list filtering - show all opportunities excluding original seed data
-          result = await envPool.query(`
+          // CRITICAL FIX: Apply partner filter if partnerId is provided
+          let baseQuery = `
             SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
                    o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
                    c.name as customer_name,
@@ -6785,9 +6790,21 @@ Return as JSON in this exact format:
             LEFT JOIN degoudse.users am ON o.owner_id = am.id
             LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
             WHERE o.id > 16
+          `;
+          
+          let queryParams = [];
+          if (partnerId) {
+            baseQuery += ` AND o.partner_id = $1`;
+            queryParams.push(partnerId);
+            console.log(`CRITICAL FIX: Filtering opportunities for partner ${partnerId}`);
+          }
+          
+          baseQuery += `
             GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
             ORDER BY o.id
-          `);
+          `;
+          
+          result = await envPool.query(baseQuery, queryParams);
         }
       }
       
