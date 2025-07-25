@@ -196,6 +196,12 @@ export default function PartnerDetailBrokerPOV() {
   // Always use fresh environment value to ensure we get the latest
   const actualCurrentEnvironment = getCurrentEnvironment();
 
+  // Get custom environments for proper logo display - MUST BE BEFORE USAGE
+  const { data: customEnvironments = [] } = useQuery({
+    queryKey: ['/api/admin/custom-environments'],
+    queryFn: () => apiRequest('/api/admin/custom-environments')
+  });
+
   // Filter functions
   const updateOpportunityFilter = (key: string, value: string) => {
     const newFilters = { ...opportunityFilters, [key]: value };
@@ -377,12 +383,6 @@ export default function PartnerDetailBrokerPOV() {
   }, [currentEnvironment]);
 
   // Fetch broker campaigns (shared campaigns)
-  // Fetch custom environments for branding
-  const { data: customEnvironments = [] } = useQuery({
-    queryKey: [`/api/admin/custom-environments`],
-    queryFn: () => apiRequest('GET', `/api/admin/custom-environments`),
-    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
-  });
 
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
     queryKey: [`/api/${actualCurrentEnvironment}/broker/shared-campaigns`],
