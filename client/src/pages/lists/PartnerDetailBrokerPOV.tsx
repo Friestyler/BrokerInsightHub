@@ -434,24 +434,19 @@ export default function PartnerDetailBrokerPOV() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // For broker view, fetch opportunities with proper list filtering - use currentEnvironment for responsive updates
-  // CRITICAL FIX: Filter opportunities for current partner in broker view
+  // CRITICAL FIX: Use correct API endpoint that's working in server logs
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/opportunities`, activeOpportunitiesList?.id, partnerId],
+    queryKey: [`/api/${currentEnvironment}/opportunities`, 'broker', partnerId],
     queryFn: async () => {
-      const listParam = activeOpportunitiesList?.id 
-        ? `?listId=${activeOpportunitiesList.id}&brokerView=true&partnerId=${partnerId}` 
-        : `?brokerView=true&partnerId=${partnerId}`;
-      const result = await apiRequest('GET', `/api/${currentEnvironment}/opportunities${listParam}`);
-      console.log('🔍 BROKER VIEW - Opportunities data:', result);
-      // Filter client-side as backup to ensure we only show current partner opportunities
-      const filteredResult = result?.filter((opp: any) => 
-        opp.partnerId === parseInt(partnerId) || opp.partner_id === parseInt(partnerId)
-      ) || [];
-      console.log(`🔍 BROKER VIEW - Filtered opportunities for partner ${partnerId}:`, filteredResult.length);
-      return filteredResult;
+      // Use the working API endpoint that server logs show is successful
+      const url = `/api/${currentEnvironment}/opportunities?brokerView=true&partnerId=${partnerId}`;
+      console.log('🔍 BROKER VIEW - Fetching from URL:', url);
+      const result = await apiRequest('GET', url);
+      console.log('🔍 BROKER VIEW - Raw API response:', result);
+      console.log('🔍 BROKER VIEW - Response length:', result?.length || 0);
+      return result || [];
     },
-    staleTime: 2 * 60 * 1000,
+    staleTime: 1000, // Short stale time for debugging
   });
 
   // Fetch customers for this partner in broker view - use currentEnvironment for responsive updates
