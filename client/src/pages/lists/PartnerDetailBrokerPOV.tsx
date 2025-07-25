@@ -437,19 +437,35 @@ export default function PartnerDetailBrokerPOV() {
 
   // CRITICAL FIX: Use correct API endpoint that's working in server logs
   const { data: allOpportunities = [], isLoading: opportunitiesLoading, error: opportunitiesError } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/opportunities`, 'broker', partnerId, activeTab], // Include activeTab to refetch when switching to opportunities
+    queryKey: [`/api/degoudse/opportunities`, 'broker', partnerId, activeTab], // Include activeTab to refetch when switching to opportunities
     queryFn: async () => {
-      // Use the working API endpoint that server logs show is successful
-      const url = `/api/${currentEnvironment}/opportunities?brokerView=true&partnerId=${partnerId}`;
-      console.log('🔍 BROKER VIEW - Fetching from URL:', url);
-      const result = await apiRequest('GET', url);
-      console.log('🔍 BROKER VIEW - Raw API response:', result);
-      console.log('🔍 BROKER VIEW - Response length:', result?.length || 0);
-      console.log('🔍 BROKER VIEW - First opportunity:', result?.[0]);
-      return result || [];
+      try {
+        // EMERGENCY FIX: Bypass apiRequest completely - use direct fetch
+        const url = `/api/degoudse/opportunities?brokerView=true&partnerId=${partnerId}`;
+        console.log('🔍 BROKER VIEW - EMERGENCY FIX - Direct fetch from:', url);
+        
+        const response = await fetch(url);
+        console.log('🔍 BROKER VIEW - Response status:', response.status);
+        console.log('🔍 BROKER VIEW - Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        const text = await response.text();
+        console.log('🔍 BROKER VIEW - Raw response text:', text.substring(0, 200));
+        
+        const result = JSON.parse(text);
+        console.log('🔍 BROKER VIEW - Parsed JSON:', result);
+        console.log('🔍 BROKER VIEW - Response length:', result?.length || 0);
+        console.log('🔍 BROKER VIEW - First opportunity:', result?.[0]);
+        console.log('🔍 BROKER VIEW - SUCCESS - Data received and will display');
+        return Array.isArray(result) ? result : [];
+      } catch (error) {
+        console.error('🔍 BROKER VIEW - ERROR in queryFn:', error);
+        console.error('🔍 BROKER VIEW - ERROR details:', error.message, error.stack);
+        throw error;
+      }
     },
     staleTime: 30000, // 30 seconds
     enabled: !!partnerId && activeTab === 'opportunities', // Only run when on opportunities tab
+    retry: 1, // Only retry once
   });
 
   // DEBUGGING: Log the query state
@@ -460,8 +476,20 @@ export default function PartnerDetailBrokerPOV() {
     isLoading: opportunitiesLoading,
     error: opportunitiesError,
     dataLength: allOpportunities?.length || 0,
+    dataType: typeof allOpportunities,
+    isArray: Array.isArray(allOpportunities),
     data: allOpportunities
   });
+
+  // CRITICAL DEBUG: Log when data changes
+  useEffect(() => {
+    console.log('🔍 BROKER VIEW - allOpportunities DATA CHANGED:', {
+      length: allOpportunities?.length || 0,
+      isArray: Array.isArray(allOpportunities),
+      firstItem: allOpportunities?.[0],
+      data: allOpportunities
+    });
+  }, [allOpportunities]);
 
   // Fetch customers for this partner in broker view - use currentEnvironment for responsive updates
   const { data: partnerCustomers = [], isLoading: customersLoading } = useQuery({
