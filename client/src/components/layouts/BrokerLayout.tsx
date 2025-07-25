@@ -56,13 +56,13 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('environmentChanged', handleEnvironmentChange);
 
-    // Poll for changes every 500ms as fallback
-    const interval = setInterval(detectEnvironment, 500);
+    // REMOVED: Polling that was causing environment switching issues
+    // const interval = setInterval(detectEnvironment, 500);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('environmentChanged', handleEnvironmentChange);
-      clearInterval(interval);
+      // clearInterval(interval); // REMOVED: No more polling
     };
   }, []);
 

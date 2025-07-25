@@ -118,8 +118,8 @@ export default function PartnerDetailBrokerPOV() {
       
       // Update current environment state
       setCurrentEnvironment(envParam);
-    } else {
-      // Just update state to match current detected environment
+    } else if (targetEnv) {
+      // Just update state to match current detected environment WITHOUT changing localStorage
       setCurrentEnvironment(targetEnv);
     }
     
@@ -239,38 +239,23 @@ export default function PartnerDetailBrokerPOV() {
   console.log('🚨 BROKER VIEW - Current environment (state):', currentEnvironment);
   console.log('🚨 BROKER VIEW - Current environment (actual):', actualCurrentEnvironment);
   
-  // Force re-render when environment changes
+  // Force re-render when environment changes - SIMPLIFIED
   useEffect(() => {
-    const handleEnvironmentChange = () => {
-      console.log('🚨 BROKER VIEW - Environment changed detected!');
-      const newEnv = getCurrentEnvironment();
+    const handleEnvironmentChange = (event: any) => {
+      console.log('🚨 BROKER VIEW - Environment changed detected!', event);
+      const newEnv = event.detail || getCurrentEnvironment();
       console.log('🚨 BROKER VIEW - New environment:', newEnv);
-      setCurrentEnvironment(newEnv);
-      setRenderKey(prev => prev + 1);
-    };
-
-    // Listen for stable environment changes
-    window.addEventListener('stableEnvironmentChanged', handleEnvironmentChange);
-    window.addEventListener('environmentChanged', handleEnvironmentChange);
-    window.addEventListener('storage', handleEnvironmentChange);
-    
-    // Also check for environment changes on window focus
-    const handleFocus = () => {
-      const newEnv = getCurrentEnvironment();
       if (newEnv !== currentEnvironment) {
-        console.log('🚨 BROKER VIEW - Environment changed on focus:', newEnv);
         setCurrentEnvironment(newEnv);
         setRenderKey(prev => prev + 1);
       }
     };
-    
-    window.addEventListener('focus', handleFocus);
+
+    // Only listen for explicit environment change events
+    window.addEventListener('environmentChanged', handleEnvironmentChange);
     
     return () => {
-      window.removeEventListener('stableEnvironmentChanged', handleEnvironmentChange);
       window.removeEventListener('environmentChanged', handleEnvironmentChange);
-      window.removeEventListener('storage', handleEnvironmentChange);
-      window.removeEventListener('focus', handleFocus);
     };
   }, [currentEnvironment]);
 
@@ -368,19 +353,19 @@ export default function PartnerDetailBrokerPOV() {
     });
   }, [partner.name, actualCurrentEnvironment, environmentLogo]);
   
-  // Simple environment sync without aggressive cache busting
-  useEffect(() => {
-    const syncEnvironment = () => {
-      const freshEnv = getCurrentEnvironment();
-      if (freshEnv !== currentEnvironment) {
-        console.log('🎯 BROKER VIEW - Environment sync:', { from: currentEnvironment, to: freshEnv });
-        setCurrentEnvironment(freshEnv);
-        setRenderKey(prev => prev + 1);
-      }
-    };
-    
-    syncEnvironment();
-  }, [currentEnvironment]);
+  // REMOVED: Aggressive environment sync that was causing switching issues
+  // useEffect(() => {
+  //   const syncEnvironment = () => {
+  //     const freshEnv = getCurrentEnvironment();
+  //     if (freshEnv !== currentEnvironment) {
+  //       console.log('🎯 BROKER VIEW - Environment sync:', { from: currentEnvironment, to: freshEnv });
+  //       setCurrentEnvironment(freshEnv);
+  //       setRenderKey(prev => prev + 1);
+  //     }
+  //   };
+  //   
+  //   syncEnvironment();
+  // }, [currentEnvironment]);
 
   // Fetch broker campaigns (shared campaigns)
 
