@@ -14339,9 +14339,21 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   app.post('/api/admin/custom-environments', async (req: Request, res: Response) => {
     try {
       const { name, environmentId, logoUrl, description } = req.body;
-      const createdById = 1; // Default user ID for testing
+      // Get the first available user ID from public.users (required for foreign key)
+      let createdById = 2; // Default to admin user we just created
+      try {
+        const userCheck = await pool.query('SELECT id FROM users WHERE is_active = true LIMIT 1');
+        console.log('User check result:', userCheck.rows);
+        if (userCheck.rows.length > 0) {
+          createdById = userCheck.rows[0].id;
+          console.log('Using user ID:', createdById);
+        }
+      } catch (userError) {
+        console.log('User check failed, using default ID:', userError);
+        createdById = 2; // Fallback to admin user
+      }
       
-      console.log('Creating new environment:', { name, environmentId });
+      console.log('Creating new environment:', { name, environmentId, createdById });
       
       // Validate required fields
       if (!name || !environmentId) {
