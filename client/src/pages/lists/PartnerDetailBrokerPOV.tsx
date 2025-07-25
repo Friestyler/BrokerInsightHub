@@ -205,10 +205,15 @@ export default function PartnerDetailBrokerPOV() {
   const actualCurrentEnvironment = getCurrentEnvironment();
 
   // Get custom environments for proper logo display - MUST BE BEFORE USAGE
-  const { data: customEnvironments = [], isLoading: customEnvironmentsLoading } = useQuery({
+  const { data: customEnvironments = [], isLoading: customEnvironmentsLoading, refetch: refetchCustomEnvironments } = useQuery({
     queryKey: ['/api/admin/custom-environments'],
-    queryFn: () => apiRequest('GET', '/api/admin/custom-environments'),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    queryFn: async () => {
+      const result = await apiRequest('GET', '/api/admin/custom-environments');
+      console.log('🎯 BROKER VIEW - Custom environments API response:', result);
+      return result;
+    },
+    staleTime: 0, // No cache to ensure fresh data
+    cacheTime: 0, // No cache storage
   });
 
   // Filter functions
@@ -343,6 +348,13 @@ export default function PartnerDetailBrokerPOV() {
   // Get partner information and logo using environment branding (with safe fallback)
   // Use currentEnvironment state instead of actualCurrentEnvironment for responsive updates
   const safeCustomEnvironments = customEnvironments || [];
+  
+  console.log('🎯 BROKER VIEW - Environment branding inputs:', {
+    currentEnvironment,
+    customEnvironmentsCount: safeCustomEnvironments.length,
+    customEnvironmentsData: safeCustomEnvironments
+  });
+  
   const environmentBranding = getEnvironmentBranding(currentEnvironment, safeCustomEnvironments);
   
   console.log('Broker POV - Environment branding result:', environmentBranding);
@@ -376,7 +388,13 @@ export default function PartnerDetailBrokerPOV() {
     if (!customEnvironmentsLoading && customEnvironments.length > 0) {
       setRenderKey(prev => prev + 1);
     }
-  }, [partner.name, currentEnvironment, environmentLogo, customEnvironments, customEnvironmentsLoading]);
+    
+    // Force refetch custom environments on environment change to ensure fresh data
+    if (currentEnvironment === 'Acme-TechCorp' && customEnvironments.length === 0) {
+      console.log('🎯 BROKER VIEW - Forcing custom environments refetch for Acme-TechCorp');
+      refetchCustomEnvironments();
+    }
+  }, [partner.name, currentEnvironment, environmentLogo, customEnvironments, customEnvironmentsLoading, refetchCustomEnvironments]);
   
   // REMOVED: Aggressive environment sync that was causing switching issues
   // useEffect(() => {
