@@ -20,8 +20,14 @@ function getCurrentEnvironmentId(): string {
 }
 
 // Function to add environment to API URL
-export function getEnvironmentUrl(url: string): string {
+export function getEnvironmentUrl(url: string | RequestInit): string {
   const envId = getCurrentEnvironmentId();
+  
+  // Handle case where url is a request object instead of string
+  if (typeof url !== 'string') {
+    console.log('Environment URL transformation:', { envId, originalUrl: url });
+    return url as any; // Return as-is for non-string URLs
+  }
   
   console.log('Environment URL transformation:', { envId, originalUrl: url });
   

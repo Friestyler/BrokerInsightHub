@@ -19,7 +19,6 @@ import type { CustomEnvironment } from '@shared/schema';
 const environmentSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   environmentId: z.string().min(1, 'Environment ID is required').regex(/^[a-zA-Z0-9-_]+$/, 'Environment ID can only contain letters, numbers, hyphens and underscores'),
-  logoUrl: z.string().optional(),
   description: z.string().optional(),
 });
 
@@ -39,7 +38,6 @@ export default function EnvironmentManagement() {
     defaultValues: {
       name: '',
       environmentId: '',
-      logoUrl: '',
       description: '',
     },
   });
@@ -54,13 +52,44 @@ export default function EnvironmentManagement() {
     queryFn: () => apiRequest('/api/admin/custom-environments'),
   });
 
+  // Upload logo mutation
+  const uploadLogoMutation = useMutation({
+    mutationFn: async (file: File): Promise<string> => {
+      const formData = new FormData();
+      formData.append('logo', file);
+      
+      const response = await fetch('/api/admin/upload-logo', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload logo');
+      }
+      
+      const result = await response.json();
+      return result.logoUrl;
+    },
+  });
+
   // Create environment mutation
   const createEnvironmentMutation = useMutation({
-    mutationFn: (data: EnvironmentFormData) => 
-      apiRequest('/api/admin/custom-environments', {
+    mutationFn: async (data: EnvironmentFormData & { logoFile?: File }) => {
+      let logoUrl = '';
+      
+      // Upload logo first if provided
+      if (data.logoFile) {
+        logoUrl = await uploadLogoMutation.mutateAsync(data.logoFile);
+      }
+      
+      return apiRequest('/api/admin/custom-environments', {
         method: 'POST',
-        body: JSON.stringify(data),
-      }),
+        body: JSON.stringify({
+          ...data,
+          logoUrl,
+        }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/custom-environments'] });
       setIsCreateDialogOpen(false);
@@ -83,16 +112,29 @@ export default function EnvironmentManagement() {
 
   // Update environment mutation
   const updateEnvironmentMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<EnvironmentFormData> }) =>
-      apiRequest(`/api/admin/custom-environments/${id}`, {
+    mutationFn: async ({ id, data, logoFile }: { id: number; data: Partial<EnvironmentFormData>; logoFile?: File }) => {
+      let logoUrl = data.logoUrl;
+      
+      // Upload new logo if provided
+      if (logoFile) {
+        logoUrl = await uploadLogoMutation.mutateAsync(logoFile);
+      }
+      
+      return apiRequest(`/api/admin/custom-environments/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(data),
-      }),
+        body: JSON.stringify({
+          ...data,
+          logoUrl,
+        }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/custom-environments'] });
       setIsEditDialogOpen(false);
       setEditingEnvironment(null);
       editForm.reset();
+      setLogoFile(null);
+      setLogoPreview(null);
       toast({
         title: 'Environment updated',
         description: 'Environment has been updated successfully.',
@@ -130,9 +172,10 @@ export default function EnvironmentManagement() {
   });
 
   const handleCreateSubmit = (data: EnvironmentFormData) => {
-    // If logo file is uploaded, we'd typically upload it first and get URL
-    // For now, we'll use the logoUrl field directly
-    createEnvironmentMutation.mutate(data);
+    createEnvironmentMutation.mutate({
+      ...data,
+      logoFile: logoFile || undefined,
+    });
   };
 
   const handleEditSubmit = (data: Partial<EnvironmentFormData>) => {
@@ -140,6 +183,7 @@ export default function EnvironmentManagement() {
     updateEnvironmentMutation.mutate({
       id: editingEnvironment.id,
       data,
+      logoFile: logoFile || undefined,
     });
   };
 
@@ -147,9 +191,10 @@ export default function EnvironmentManagement() {
     setEditingEnvironment(environment);
     editForm.reset({
       name: environment.name,
-      logoUrl: environment.logoUrl || '',
       description: environment.description || '',
     });
+    setLogoFile(null);
+    setLogoPreview(environment.logoUrl || null);
     setIsEditDialogOpen(true);
   };
 
@@ -228,19 +273,31 @@ export default function EnvironmentManagement() {
                   )}
                 />
 
-                <FormField
-                  control={createForm.control}
-                  name="logoUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Logo URL (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://example.com/logo.png" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-2">
+                  <FormLabel>Logo (Optional)</FormLabel>
+                  <div className="flex items-center space-x-4">
+                    {logoPreview && (
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={logoPreview} 
+                          alt="Logo preview"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoChange}
+                        className="cursor-pointer"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Upload PNG, JPG, or SVG. Max size: 2MB
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 <FormField
                   control={createForm.control}
@@ -377,19 +434,31 @@ export default function EnvironmentManagement() {
                 )}
               />
 
-              <FormField
-                control={editForm.control}
-                name="logoUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Logo URL (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://example.com/logo.png" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <FormLabel>Logo (Optional)</FormLabel>
+                <div className="flex items-center space-x-4">
+                  {logoPreview && (
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                      <img 
+                        src={logoPreview} 
+                        alt="Logo preview"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Upload PNG, JPG, or SVG. Max size: 2MB
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               <FormField
                 control={editForm.control}

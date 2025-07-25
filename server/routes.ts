@@ -180,6 +180,39 @@ const csvUpload = multer({
   }
 });
 
+// Logo upload configuration for environment management
+const logoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 2 * 1024 * 1024, // Limit file size to 2MB for logos
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept common image formats
+    const imageMimeTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/svg+xml'
+    ];
+    
+    const isImageFile = imageMimeTypes.includes(file.mimetype) || 
+                       file.originalname.toLowerCase().match(/\.(jpg|jpeg|png|gif|svg)$/);
+    
+    console.log('Logo file filter check:', {
+      filename: file.originalname,
+      mimetype: file.mimetype,
+      isImageFile
+    });
+    
+    if (isImageFile) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Image file type not supported. Received: ${file.mimetype}, filename: ${file.originalname}`));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add environment middleware for environment-specific routes
   const { environmentMiddleware } = await import('./middleware/environmentMiddleware');
@@ -14393,6 +14426,32 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     } catch (error) {
       console.error('Error deleting custom environment:', error);
       res.status(500).json({ error: 'Failed to delete custom environment' });
+    }
+  });
+
+  // Logo upload endpoint
+  app.post('/api/admin/upload-logo', logoUpload.single('logo'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No logo file provided' });
+      }
+
+      // For simplicity, we'll return a data URL for the uploaded image
+      // In production, you'd typically upload to cloud storage and return a URL
+      const logoData = req.file.buffer.toString('base64');
+      const mimeType = req.file.mimetype;
+      const logoUrl = `data:${mimeType};base64,${logoData}`;
+
+      console.log('Logo uploaded successfully:', {
+        filename: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+
+      res.json({ logoUrl });
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      res.status(500).json({ error: 'Failed to upload logo' });
     }
   });
 
