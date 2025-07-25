@@ -40,9 +40,17 @@ import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
 // GET ENVIRONMENT BRANDING - RESPECTS USER SELECTION AND SUPPORTS CUSTOM ENVIRONMENTS
 const getEnvironmentBranding = (envId: string, customEnvironments: any[] = []) => {
   console.log('🎯 BROKER VIEW - getEnvironmentBranding called with envId:', envId);
+  console.log('🎯 BROKER VIEW - customEnvironments:', customEnvironments);
   
-  // First check if it's a custom environment
-  const customEnv = customEnvironments.find(env => env.id === envId);
+  // First check if it's a custom environment - match both by id and name
+  const customEnv = customEnvironments.find(env => 
+    env.id === envId || 
+    env.name === envId || 
+    env.id === parseInt(envId) ||
+    envId.includes(env.name.replace(/\s+/g, '-')) ||
+    envId === env.name.replace(/\s+/g, '-')
+  );
+  
   if (customEnv) {
     const result = {
       logo: customEnv.logo,
@@ -197,9 +205,10 @@ export default function PartnerDetailBrokerPOV() {
   const actualCurrentEnvironment = getCurrentEnvironment();
 
   // Get custom environments for proper logo display - MUST BE BEFORE USAGE
-  const { data: customEnvironments = [] } = useQuery({
+  const { data: customEnvironments = [], isLoading: customEnvironmentsLoading } = useQuery({
     queryKey: ['/api/admin/custom-environments'],
-    queryFn: () => apiRequest('/api/admin/custom-environments')
+    queryFn: () => apiRequest('GET', '/api/admin/custom-environments'),
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   // Filter functions
@@ -328,11 +337,15 @@ export default function PartnerDetailBrokerPOV() {
   // For broker view, show the appropriate partner based on selected environment
   console.log('Broker POV - Current environment (state):', currentEnvironment);
   console.log('Broker POV - Current environment (actual):', actualCurrentEnvironment);
+  console.log('Broker POV - Custom environments loading:', customEnvironmentsLoading);
+  console.log('Broker POV - Custom environments data:', customEnvironments);
   
   // Get partner information and logo using environment branding (with safe fallback)
   // Use currentEnvironment state instead of actualCurrentEnvironment for responsive updates
   const safeCustomEnvironments = customEnvironments || [];
   const environmentBranding = getEnvironmentBranding(currentEnvironment, safeCustomEnvironments);
+  
+  console.log('Broker POV - Environment branding result:', environmentBranding);
   
   const partner = {
     id: currentEnvironment,
@@ -349,14 +362,21 @@ export default function PartnerDetailBrokerPOV() {
   console.log('🚨 BROKER VIEW - Partner info:', partner);
   console.log('🚨 BROKER VIEW - Environment logo:', environmentLogo);
   
-  // Simple environment logging without aggressive cache busting
+  // Force re-render when environment or custom environments change
   useEffect(() => {
     console.log('🎯 BROKER VIEW - Environment and partner info:', {
       environment: currentEnvironment,
       partnerName: partner.name,
-      logoSrc: environmentLogo
+      logoSrc: environmentLogo,
+      customEnvironmentsLoaded: !customEnvironmentsLoading,
+      customEnvironmentsCount: customEnvironments.length
     });
-  }, [partner.name, currentEnvironment, environmentLogo]);
+    
+    // Force a render update when custom environments finish loading
+    if (!customEnvironmentsLoading && customEnvironments.length > 0) {
+      setRenderKey(prev => prev + 1);
+    }
+  }, [partner.name, currentEnvironment, environmentLogo, customEnvironments, customEnvironmentsLoading]);
   
   // REMOVED: Aggressive environment sync that was causing switching issues
   // useEffect(() => {
