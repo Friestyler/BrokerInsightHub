@@ -1,0 +1,235 @@
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ 🎯 AVAILABLE CONSOLE COMMANDS:
+ - testEnvironmentSwitch("nn") - Switch to specific environment
+ - clearAllCaches() - Clear all browser caches
+ - forceEnvironmentUpdate("concordia") - Force update to environment
+ - testAllEnvironments() - Test all environment assets
+ - monitorDOMChanges() - Monitor DOM changes
+ - checkCurrentState() - Check current environment state
+ - window.environmentDiagnostics.runComprehensiveDiagnostic() - Run full diagnostic
+ 🚀 STABLE STARTUP SEQUENCE INITIATED
+ 🔑 STEP 1: AUTOMATIC LOGIN
+ ✅ AUTOMATIC LOGIN COMPLETE
+ 🎯 STEP 2: STABLE ENVIRONMENT INITIALIZATION
+ 🎯 INITIALIZING STABLE ENVIRONMENT: baloise
+ 🔄 STABLE ENVIRONMENT SWITCH TO: baloise
+ 🎯 STABLE ENVIRONMENT SWITCH - Dispatched stableEnvironmentChanged event for: baloise
+ ✅ STABLE ENVIRONMENT SWITCH TO baloise COMPLETE
+ ✅ STABLE ENVIRONMENT INITIALIZED
+ ✅ STABLE ENVIRONMENT INITIALIZED
+ ⏳ STEP 3: DOM STABILIZATION
+ ✅ STABLE STARTUP SEQUENCE COMPLETE
+ 🎯 USER SELECTED ENVIRONMENT: baloise
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/partners
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/partners/1/customers
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/partners/1/opportunities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/partners/1/opportunities/filters
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/partners/1/customers/filter-options
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/users
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/partners/1/products
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:42 URL already has environment prefix, returning as-is
+queryClient.ts:127 Fetching from URL: /api/degoudse/partners/1/product-assignments
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:74 apiRequest - Fetching from URL: /api/degoudse/saved-views?entity_type=opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:74 apiRequest - Fetching from URL: /api/degoudse/opportunity-withhold-reasons
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/customers
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:74 apiRequest - Fetching from URL: /api/degoudse/saved-lists?entity_type=opportunities&partner_id=1
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:74 apiRequest - Fetching from URL: /api/degoudse/saved-lists?entity_type=opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:74 apiRequest - Fetching from URL: /api/degoudse/saved-lists?entity_type=customers
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/template-assignments/partner
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/okr-metrics
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/okr-tags
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/categories
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/saved-lists?entity_type=partners
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/saved-lists?entity_type=customers
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/saved-lists?entity_type=opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/saved-views?entity_type=partners
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/saved-views?entity_type=customers
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/saved-views?entity_type=opportunities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/template-assignments/customer
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/template-assignments/opportunity
+queryClient.ts:18 Environment detection: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/baloise/users
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:42 URL already has environment prefix, returning as-is
+queryClient.ts:127 Fetching from URL: /api/degoudse/partners/1/activities
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/baloise/partners/1/timeline
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/baloise/partners/1/all-tasks
+queryClient.ts:18 Environment detection: Object
+PartnerActivityHub.tsx:529 AllTasks Debug: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/baloise/partners/1/portfolio-overview
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:18 Environment detection: Object
+queryClient.ts:32 Environment URL transformation: Object
+queryClient.ts:52 Environment URL transformed: Object
+queryClient.ts:127 Fetching from URL: /api/degoudse/baloise/partners/1/product-assignments
+queryClient.ts:18 Environment detection: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+stableStartupSequence.ts:29 ✅ DOM STABILIZATION COMPLETE
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+queryClient.ts:181 Fetch error in queryFn: Error: Endpoint /api/degoudse/baloise/users returned HTML instead of JSON - likely missing backend route
+    at queryClient.ts:155:15
+(anonymous) @ queryClient.ts:181
+queryClient.ts:182 Query key: Array(1)
+(anonymous) @ queryClient.ts:182
+queryClient.ts:181 Fetch error in queryFn: Error: Endpoint /api/degoudse/baloise/partners/1/timeline returned HTML instead of JSON - likely missing backend route
+    at queryClient.ts:155:15
+(anonymous) @ queryClient.ts:181
+queryClient.ts:182 Query key: Array(1)
+(anonymous) @ queryClient.ts:182
+queryClient.ts:181 Fetch error in queryFn: Error: Endpoint /api/degoudse/baloise/partners/1/all-tasks returned HTML instead of JSON - likely missing backend route
+    at queryClient.ts:155:15
+(anonymous) @ queryClient.ts:181
+queryClient.ts:182 Query key: Array(1)
+(anonymous) @ queryClient.ts:182
+PartnerActivityHub.tsx:529 AllTasks Debug: Object
+queryClient.ts:181 Fetch error in queryFn: Error: Endpoint /api/degoudse/baloise/partners/1/portfolio-overview returned HTML instead of JSON - likely missing backend route
+    at queryClient.ts:155:15
+(anonymous) @ queryClient.ts:181
+queryClient.ts:182 Query key: Array(1)
+(anonymous) @ queryClient.ts:182
+PortfolioOverviewTab.tsx:148 PortfolioOverviewTab Debug: Object
+queryClient.ts:181 Fetch error in queryFn: Error: Endpoint /api/degoudse/baloise/partners/1/product-assignments returned HTML instead of JSON - likely missing backend route
+    at queryClient.ts:155:15
+(anonymous) @ queryClient.ts:181
+queryClient.ts:182 Query key: Array(1)
+(anonymous) @ queryClient.ts:182

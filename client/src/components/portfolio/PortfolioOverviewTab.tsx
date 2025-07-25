@@ -140,7 +140,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
 
 
   const { data: portfolioData, isLoading, error } = useQuery<PortfolioData>({
-    queryKey: [`/api/${envId}/${entityType}/${entityId}/portfolio-overview`],
+    queryKey: [`/api/${entityType}/${entityId}/portfolio-overview`],
     enabled: !!entityId
   });
 
@@ -149,7 +149,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     envId,
     entityType,
     entityId,
-    queryKey: `/api/${envId}/${entityType}/${entityId}/portfolio-overview`,
+    queryKey: `/api/${entityType}/${entityId}/portfolio-overview`,
     portfolioData,
     isLoading,
     error,
@@ -158,37 +158,37 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
 
   // Fetch entity data for prefilling
   const { data: entityData } = useQuery<any>({
-    queryKey: [`/api/${envId}/${entityType}/${entityId}`],
+    queryKey: [`/api/${entityType}/${entityId}`],
     enabled: !!entityId && isModalOpen
   });
 
   // Fetch available products
   const { data: products } = useQuery({
-    queryKey: [`/api/${envId}/product-catalogue`],
+    queryKey: [`/api/product-catalogue`],
     enabled: isModalOpen
   });
 
   // Fetch product assignments for the list display
   const { data: productAssignments } = useQuery({
-    queryKey: [`/api/${envId}/${entityType}/${entityId}/product-assignments`],
+    queryKey: [`/api/${entityType}/${entityId}/product-assignments`],
     enabled: !!entityId
   });
 
   // Fetch users for mentions
   const { data: users } = useQuery({
-    queryKey: [`/api/${envId}/users`],
+    queryKey: [`/api/users`],
     enabled: isModalOpen
   });
 
   // Fetch customers attached to partner (only for partner entity type)
   const { data: partnerCustomers } = useQuery({
-    queryKey: [`/api/${envId}/partners/${entityId}/customers`],
+    queryKey: [`/api/partners/${entityId}/customers`],
     enabled: isModalOpen && entityType === 'partners'
   });
 
   // Fetch saved customer lists
   const { data: savedCustomerLists } = useQuery({
-    queryKey: [`/api/${envId}/saved-lists?entity_type=customers`],
+    queryKey: [`/api/saved-lists?entity_type=customers`],
     enabled: isModalOpen
   });
 
@@ -273,7 +273,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     try {
       // Fetch customers for this specific product
       const productId = product.productId || product.productid;
-      const response = await apiRequest('GET', `/api/${envId}/${entityType}/${entityId}/products/${productId}/customers`);
+      const response = await apiRequest('GET', `/api/${entityType}/${entityId}/products/${productId}/customers`);
       
       if (response && Array.isArray(response)) {
         const customers = response.map((customer: any) => ({
@@ -358,7 +358,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
 
 Create a concise, professional comment (max 200 words) that highlights the opportunity, mentions relevant coverage gaps, and suggests next steps for the account manager.`;
 
-      const response = await apiRequest('POST', `/api/${envId}/ai/generate-comment`, {
+      const response = await apiRequest('POST', `/api/ai/generate-comment`, {
         prompt,
         entityType,
         entityId,
