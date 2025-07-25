@@ -53,7 +53,7 @@ const getEnvironmentBranding = (envId: string, customEnvironments: any[] = []) =
   
   if (customEnv) {
     const result = {
-      logo: customEnv.logo || qollabiLogo, // Fallback to Qollabi logo if no custom logo
+      logo: customEnv.logo_url || customEnv.logoUrl || qollabiLogo, // Support both field names with fallback
       name: customEnv.name,
       partnerName: customEnv.name
     };

@@ -1,5 +1,15 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M12 2L1 12L12 22L23 12L12 2Z" fill="#5567E5" />
-  <path d="M9 9L15 15" stroke="white" stroke-width="2" stroke-linecap="round" />
-  <path d="M15 9L9 15" stroke="white" stroke-width="2" stroke-linecap="round" />
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#1E40AF" stroke="#1D4ED8" stroke-width="2"/>
+  
+  <!-- Letter A -->
+  <path d="M20 45 L25 32 L27 32 L32 45 L29.5 45 L28.5 42 L23.5 42 L22.5 45 L20 45 Z M24.5 39 L27.5 39 L26 35.5 L24.5 39 Z" fill="white"/>
+  
+  <!-- Letter C -->
+  <path d="M34 45 L34 32 L42 32 L42 34.5 L36.5 34.5 L36.5 37 L41 37 L41 39.5 L36.5 39.5 L36.5 42.5 L42 42.5 L42 45 L34 45 Z" fill="white"/>
+  
+  <!-- Tech accent - small gear icon -->
+  <circle cx="50" cy="18" r="6" fill="#FCD34D" stroke="#F59E0B" stroke-width="1"/>
+  <circle cx="50" cy="18" r="3" fill="none" stroke="#1E40AF" stroke-width="1"/>
+  <path d="M47 18 L53 18 M50 15 L50 21" stroke="#1E40AF" stroke-width="1"/>
 </svg>
