@@ -14283,6 +14283,119 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // Custom Environment Management API endpoints
+  app.get('/api/admin/custom-environments', async (req: Request, res: Response) => {
+    try {
+      console.log('Fetching custom environments...');
+      const environments = await pool.query(`
+        SELECT ce.*, u.full_name as created_by_name
+        FROM custom_environments ce
+        LEFT JOIN users u ON ce.created_by_id = u.id
+        WHERE ce.is_active = true
+        ORDER BY ce.created_at DESC
+      `);
+      
+      console.log(`Found ${environments.rows.length} custom environments`);
+      res.json(environments.rows);
+    } catch (error) {
+      console.error('Error fetching custom environments:', error);
+      res.status(500).json({ error: 'Failed to fetch custom environments' });
+    }
+  });
+
+  app.post('/api/admin/custom-environments', async (req: Request, res: Response) => {
+    try {
+      const { name, environmentId, logoUrl, description } = req.body;
+      const createdById = 1; // Default user ID for testing
+      
+      console.log('Creating new environment:', { name, environmentId });
+      
+      // Validate required fields
+      if (!name || !environmentId) {
+        return res.status(400).json({ error: 'Name and Environment ID are required' });
+      }
+      
+      // Generate unique schema name
+      const schemaName = environmentId.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+      
+      // Check if environment ID already exists
+      const existingEnv = await pool.query('SELECT id FROM custom_environments WHERE environment_id = $1', [environmentId]);
+      if (existingEnv.rows.length > 0) {
+        return res.status(400).json({ error: 'Environment ID already exists' });
+      }
+      
+      // Create the environment record
+      const result = await pool.query(`
+        INSERT INTO custom_environments (name, environment_id, logo_url, schema_name, description, created_by_id)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `, [name, environmentId, logoUrl, schemaName, description, createdById]);
+      
+      const newEnvironment = result.rows[0];
+      
+      console.log('Environment created successfully:', newEnvironment);
+      res.status(201).json(newEnvironment);
+    } catch (error) {
+      console.error('Error creating custom environment:', error);
+      res.status(500).json({ error: 'Failed to create custom environment' });
+    }
+  });
+
+  app.put('/api/admin/custom-environments/:id', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { name, logoUrl, description } = req.body;
+      
+      console.log(`Updating environment ${id}:`, { name, logoUrl, description });
+      
+      if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+      }
+      
+      const result = await pool.query(`
+        UPDATE custom_environments 
+        SET name = $1, logo_url = $2, description = $3, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $4 AND is_active = true
+        RETURNING *
+      `, [name, logoUrl, description, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Environment not found' });
+      }
+      
+      console.log('Environment updated successfully:', result.rows[0]);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating custom environment:', error);
+      res.status(500).json({ error: 'Failed to update custom environment' });
+    }
+  });
+
+  app.delete('/api/admin/custom-environments/:id', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      console.log(`Deleting environment ${id}`);
+      
+      // Get environment details before deletion
+      const envResult = await pool.query('SELECT * FROM custom_environments WHERE id = $1', [id]);
+      if (envResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Environment not found' });
+      }
+      
+      const environment = envResult.rows[0];
+      
+      // Soft delete the environment
+      await pool.query('UPDATE custom_environments SET is_active = false WHERE id = $1', [id]);
+      
+      console.log('Environment deleted successfully');
+      res.json({ success: true, message: 'Environment deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting custom environment:', error);
+      res.status(500).json({ error: 'Failed to delete custom environment' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -34,6 +34,7 @@ import UserManagement from "@/pages/Settings/UserManagement";
 import ContactsPage from "@/pages/lists/ContactsPage";
 import DeveloperPage from "@/pages/Settings/DeveloperPage";
 import DatabaseAdmin from "@/pages/Settings/DatabaseAdmin";
+import EnvironmentManagement from "@/pages/Settings/EnvironmentManagement";
 import UploadSettingsPage from "@/pages/DataUpload/UploadSettingsPage";
 import UploadProcessPage from "@/pages/DataUpload/UploadProcessPage";
 import EntitySelectPage from "@/pages/DataUpload/EntitySelectPage";
@@ -172,6 +173,7 @@ function Router() {
           <Route path="/settings/users" component={UserManagement} />
           <Route path="/settings/developer" component={DeveloperPage} />
           <Route path="/settings/database" component={DatabaseAdmin} />
+          <Route path="/settings/environments" component={EnvironmentManagement} />
           <Route path="/settings/upload" component={UploadSettingsPage} />
 
           <Route component={NotFound} />

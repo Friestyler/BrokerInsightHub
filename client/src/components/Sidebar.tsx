@@ -547,6 +547,16 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
               Database Admin
             </button>
             <button
+              onClick={() => navigateTo('/settings/environments')}
+              className={`submenu-nav-container ${location.startsWith("/settings/environments") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+              </svg>
+              Environments
+            </button>
+            <button
               onClick={() => navigateTo('/settings/upload')}
               className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/settings/upload") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
             >
