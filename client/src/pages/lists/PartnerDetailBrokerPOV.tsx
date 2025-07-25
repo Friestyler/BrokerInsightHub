@@ -330,37 +330,28 @@ export default function PartnerDetailBrokerPOV() {
     }
   }, [editingStageId, editStageDropdownRef]);
 
-  // Get partner information based on selected environment (front-end only hack)
-  const getPartnerInfoForEnvironment = (envId: string) => {
-    console.log('🚨 BROKER VIEW - getPartnerInfoForEnvironment called with envId:', envId);
-    const branding = getEnvironmentBranding(envId, customEnvironments || []);
-    console.log('🚨 BROKER VIEW - branding result:', branding);
-    const partnerInfo = {
-      id: envId,
-      name: branding.partnerName,
-      description: `Insurance company that shared this list with Regional Insurance Partners`,
-      primary_contact: 'Partnership Manager',
-      contact_email: `partnerships@${envId}.nl`,
-      location: 'Netherlands',
-      phone: '+31 70 344 2000'
-    };
-    console.log('🚨 BROKER VIEW - partnerInfo result:', partnerInfo);
-    return partnerInfo;
-  };
-
   // For broker view, show the appropriate partner based on selected environment
   console.log('Broker POV - Current environment (state):', currentEnvironment);
   console.log('Broker POV - Current environment (actual):', actualCurrentEnvironment);
   
-  // Get the correct logo for broker view with fallback (using environment branding)
-  const getBrokerLogo = (envId: string) => {
-    const branding = getEnvironmentBranding(envId, customEnvironments || []);
-    return branding.logo;
+  // Get partner information and logo using environment branding (with safe fallback)
+  const safeCustomEnvironments = customEnvironments || [];
+  const environmentBranding = getEnvironmentBranding(actualCurrentEnvironment, safeCustomEnvironments);
+  
+  const partner = {
+    id: actualCurrentEnvironment,
+    name: environmentBranding.partnerName,
+    description: `Insurance company that shared this list with Regional Insurance Partners`,
+    primary_contact: 'Partnership Manager',
+    contact_email: `partnerships@${actualCurrentEnvironment}.nl`,
+    location: 'Netherlands',
+    phone: '+31 70 344 2000'
   };
   
-  // Use the actual current environment instead of stale state - force cache bust
-  const environmentLogo = getBrokerLogo(actualCurrentEnvironment);
-  const partner = getPartnerInfoForEnvironment(actualCurrentEnvironment);
+  const environmentLogo = environmentBranding.logo;
+  
+  console.log('🚨 BROKER VIEW - Partner info:', partner);
+  console.log('🚨 BROKER VIEW - Environment logo:', environmentLogo);
   
   // Simple environment logging without aggressive cache busting
   useEffect(() => {
