@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuIte
 import { apiRequest } from '@/lib/queryClient';
 import { z } from 'zod';
 import type { CustomEnvironment } from '@shared/schema';
+import { useEnvironment } from '@/contexts/EnvironmentContext';
 
 const environmentSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -32,6 +33,7 @@ export default function EnvironmentManagement() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { refreshEnvironments } = useEnvironment();
 
   const createForm = useForm<EnvironmentFormData>({
     resolver: zodResolver(environmentSchema),
@@ -91,6 +93,7 @@ export default function EnvironmentManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/custom-environments'] });
+      refreshEnvironments(); // Refresh the environment dropdown
       setIsCreateDialogOpen(false);
       createForm.reset();
       setLogoFile(null);
@@ -126,6 +129,7 @@ export default function EnvironmentManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/custom-environments'] });
+      refreshEnvironments(); // Refresh the environment dropdown
       setIsEditDialogOpen(false);
       setEditingEnvironment(null);
       editForm.reset();
@@ -151,6 +155,7 @@ export default function EnvironmentManagement() {
       apiRequest('DELETE', `/api/admin/custom-environments/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/custom-environments'] });
+      refreshEnvironments(); // Refresh the environment dropdown
       toast({
         title: 'Environment deleted',
         description: 'Environment has been deleted successfully.',

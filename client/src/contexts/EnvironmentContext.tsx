@@ -67,8 +67,8 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [environments, setEnvironments] = useState<Environment[]>(FALLBACK_ENVIRONMENTS);
   const [environment, setEnvironmentState] = useState<Environment>(() => {
     const savedEnvId = localStorage.getItem('selectedEnvironment');
-    // Allow all available environments: degoudse, baloise, nn, and concordia
-    if (savedEnvId && (savedEnvId === 'degoudse' || savedEnvId === 'baloise' || savedEnvId === 'nn' || savedEnvId === 'concordia')) {
+    // Allow all fallback environments by default
+    if (savedEnvId && FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId)) {
       return FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId) || FALLBACK_ENVIRONMENTS[0];
     }
     // Default to nn for testing purposes - should display Nationale Nederlanden
@@ -76,18 +76,38 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return FALLBACK_ENVIRONMENTS.find(env => env.id === 'nn') || FALLBACK_ENVIRONMENTS[0];
   });
 
-  // Load environments - use fallback environments directly for demo
+  // Load environments - fetch custom environments and combine with fallback
   const loadEnvironments = async () => {
-    // For demo purposes, use the fallback environments which include both De Goudse and Baloise
-    setEnvironments(FALLBACK_ENVIRONMENTS);
-    
-    // Update current environment if needed
-    const savedEnvId = localStorage.getItem('selectedEnvironment');
-    if (savedEnvId) {
-      const currentEnv = FALLBACK_ENVIRONMENTS.find((e: Environment) => e.id === savedEnvId);
-      if (currentEnv) {
-        setEnvironmentState(currentEnv);
+    try {
+      // Fetch custom environments from API
+      const response = await fetch('/api/admin/custom-environments');
+      const customEnvironments = await response.json();
+      
+      // Convert custom environments to Environment format
+      const customEnvs: Environment[] = customEnvironments.map((env: any) => ({
+        id: env.environment_id,
+        name: env.name,
+        logo: env.logo_url || undefined,
+        apiBaseUrl: "/api/degoudse", // Custom environments use degoudse backend
+        databaseId: "degoudse"
+      }));
+      
+      // Combine fallback environments with custom environments
+      const allEnvironments = [...FALLBACK_ENVIRONMENTS, ...customEnvs];
+      setEnvironments(allEnvironments);
+      
+      // Update current environment if needed
+      const savedEnvId = localStorage.getItem('selectedEnvironment');
+      if (savedEnvId) {
+        const currentEnv = allEnvironments.find((e: Environment) => e.id === savedEnvId);
+        if (currentEnv) {
+          setEnvironmentState(currentEnv);
+        }
       }
+    } catch (error) {
+      console.error('Failed to load custom environments:', error);
+      // Fall back to default environments if API fails
+      setEnvironments(FALLBACK_ENVIRONMENTS);
     }
   };
 
