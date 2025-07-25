@@ -67,13 +67,20 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [environments, setEnvironments] = useState<Environment[]>(FALLBACK_ENVIRONMENTS);
   const [environment, setEnvironmentState] = useState<Environment>(() => {
     const savedEnvId = localStorage.getItem('selectedEnvironment');
-    // Allow all fallback environments by default
-    if (savedEnvId && FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId)) {
-      return FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId) || FALLBACK_ENVIRONMENTS[0];
+    // Always respect the saved environment from localStorage
+    if (savedEnvId) {
+      // First check if it's a fallback environment
+      const fallbackEnv = FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId);
+      if (fallbackEnv) {
+        return fallbackEnv;
+      }
+      // If not a fallback environment, it might be a custom environment
+      // We'll update this in loadEnvironments when custom envs are loaded
+      return FALLBACK_ENVIRONMENTS[0]; // Temporary fallback
     }
-    // Default to nn for testing purposes - should display Nationale Nederlanden
-    localStorage.setItem('selectedEnvironment', 'nn');
-    return FALLBACK_ENVIRONMENTS.find(env => env.id === 'nn') || FALLBACK_ENVIRONMENTS[0];
+    // Only default to degoudse if no environment is saved
+    localStorage.setItem('selectedEnvironment', 'degoudse');
+    return FALLBACK_ENVIRONMENTS.find(env => env.id === 'degoudse') || FALLBACK_ENVIRONMENTS[0];
   });
 
   // Load environments - fetch custom environments and combine with fallback
@@ -96,12 +103,15 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const allEnvironments = [...FALLBACK_ENVIRONMENTS, ...customEnvs];
       setEnvironments(allEnvironments);
       
-      // Update current environment if needed
+      // Update current environment if needed (especially for custom environments)
       const savedEnvId = localStorage.getItem('selectedEnvironment');
       if (savedEnvId) {
         const currentEnv = allEnvironments.find((e: Environment) => e.id === savedEnvId);
         if (currentEnv) {
+          console.log('🎯 ENVIRONMENT CONTEXT - Updating to saved environment:', currentEnv.id);
           setEnvironmentState(currentEnv);
+        } else {
+          console.log('🎯 ENVIRONMENT CONTEXT - Saved environment not found, keeping current:', environment.id);
         }
       }
     } catch (error) {
