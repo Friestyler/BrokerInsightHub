@@ -6624,8 +6624,30 @@ Return as JSON in this exact format:
           // This is a broker with restricted access - show opportunities from shared lists only
           console.log('Broker access detected - showing opportunities from shared lists');
           
+          // CRITICAL FIX: If partnerId is specified, filter opportunities for that partner only
+          if (partnerId) {
+            console.log(`CRITICAL BROKER FIX: Filtering for partner ${partnerId} in broker view`);
+            result = await envPool.query(`
+              SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date,
+                     o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+                     c.name as customer_name,
+                     p.name as partner_name,
+                     pr.name as product_name,
+                     am.name as account_manager_name,
+                     COUNT(DISTINCT op.product_id) as product_count
+              FROM degoudse.opportunities o
+              LEFT JOIN degoudse.customers c ON o.client_id = c.id
+              LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+              LEFT JOIN degoudse.products pr ON o.product_id = pr.id
+              LEFT JOIN degoudse.users am ON o.owner_id = am.id
+              LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+              WHERE o.partner_id = $1 AND o.id > 16
+              GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
+              ORDER BY o.id
+            `, [partnerId]);
+          }
           // If a specific list is requested, filter by list members
-          if (listId) {
+          else if (listId) {
             console.log(`Broker requesting specific list ${listId} - applying list member filtering`);
             
             // Get list members

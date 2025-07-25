@@ -435,16 +435,20 @@ export default function PartnerDetailBrokerPOV() {
   });
 
   // For broker view, fetch opportunities with proper list filtering - use currentEnvironment for responsive updates
-  // CRITICAL FIX: Filter opportunities for partner 4 in broker view
+  // CRITICAL FIX: Filter opportunities for current partner in broker view
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/opportunities`, activeOpportunitiesList?.id],
+    queryKey: [`/api/${currentEnvironment}/opportunities`, activeOpportunitiesList?.id, partnerId],
     queryFn: async () => {
-      const listParam = activeOpportunitiesList?.id ? `?listId=${activeOpportunitiesList.id}&brokerView=true&partnerId=4` : '?brokerView=true&partnerId=4';
+      const listParam = activeOpportunitiesList?.id 
+        ? `?listId=${activeOpportunitiesList.id}&brokerView=true&partnerId=${partnerId}` 
+        : `?brokerView=true&partnerId=${partnerId}`;
       const result = await apiRequest('GET', `/api/${currentEnvironment}/opportunities${listParam}`);
       console.log('🔍 BROKER VIEW - Opportunities data:', result);
-      // Filter client-side as backup to ensure we only show partner 4 opportunities
-      const filteredResult = result?.filter((opp: any) => opp.partnerId === 4 || opp.partner_id === 4) || [];
-      console.log('🔍 BROKER VIEW - Filtered opportunities for partner 4:', filteredResult.length);
+      // Filter client-side as backup to ensure we only show current partner opportunities
+      const filteredResult = result?.filter((opp: any) => 
+        opp.partnerId === parseInt(partnerId) || opp.partner_id === parseInt(partnerId)
+      ) || [];
+      console.log(`🔍 BROKER VIEW - Filtered opportunities for partner ${partnerId}:`, filteredResult.length);
       return filteredResult;
     },
     staleTime: 2 * 60 * 1000,
@@ -452,7 +456,7 @@ export default function PartnerDetailBrokerPOV() {
 
   // Fetch customers for this partner in broker view - use currentEnvironment for responsive updates
   const { data: partnerCustomers = [], isLoading: customersLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/partners/4/customers`, allOpportunities.length],
+    queryKey: [`/api/${currentEnvironment}/partners/${partnerId}/customers`, allOpportunities.length],
     queryFn: async () => {
       // CRITICAL FIX: Use real customer data from opportunities instead of hardcoded data
       if (allOpportunities.length > 0) {
