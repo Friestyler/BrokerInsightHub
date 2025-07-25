@@ -48,11 +48,20 @@ export default function EnvironmentManagement() {
     resolver: zodResolver(environmentSchema.omit({ environmentId: true })),
   });
 
-  // Fetch custom environments
+  // Fetch ALL environments (both built-in and custom)
   const { data: environments = [], isLoading } = useQuery({
     queryKey: ['/api/admin/custom-environments'],
     queryFn: () => apiRequest('GET', '/api/admin/custom-environments'),
   });
+
+  // Separate environments into built-in and custom
+  const builtInEnvironments = environments.filter(env => 
+    ['degoudse', 'baloise', 'nn', 'concordia'].includes(env.environment_id || env.environmentId)
+  );
+  
+  const customEnvironments = environments.filter(env => 
+    !['degoudse', 'baloise', 'nn', 'concordia'].includes(env.environment_id || env.environmentId)
+  );
 
   // Upload logo mutation
   const uploadLogoMutation = useMutation({
@@ -193,7 +202,7 @@ export default function EnvironmentManagement() {
       description: environment.description || '',
     });
     setLogoFile(null);
-    setLogoPreview(environment.logoUrl || null);
+    setLogoPreview(environment.logoUrl || environment.logo_url || null);
     setIsEditDialogOpen(true);
   };
 
@@ -229,7 +238,7 @@ export default function EnvironmentManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Environment Management</h1>
-          <p className="text-gray-600 mt-1">Create custom branded environments that share the same data as De Goudse</p>
+          <p className="text-gray-600 mt-1">Manage all environments including built-in and custom environments with branded logos</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
@@ -334,78 +343,155 @@ export default function EnvironmentManagement() {
         </Dialog>
       </div>
 
-      {/* Environment List */}
-      <div className="grid gap-4">
-        {environments.length === 0 ? (
-          <Card className="p-8 text-center border-[#E6E7F1]">
-            <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No custom environments</h3>
-            <p className="text-gray-600 mb-4">Create your first custom environment to get started.</p>
-            <Button 
-              onClick={() => setIsCreateDialogOpen(true)}
-              className="bg-[#5567E5] hover:bg-[#4556D3]"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create environment
-            </Button>
-          </Card>
-        ) : (
-          environments.map((environment: CustomEnvironment) => (
-            <Card key={environment.id} className="p-6 border-[#E6E7F1]">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    {environment.logoUrl ? (
+      {/* Built-in Environments Section */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Building className="h-5 w-5 text-[#5567E5]" />
+          <h2 className="text-lg font-semibold text-gray-900">Built-in Environments</h2>
+          <Badge variant="secondary" className="text-xs">
+            {builtInEnvironments.length}
+          </Badge>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {builtInEnvironments.map((env) => (
+            <Card key={`builtin-${env.id}`} className="p-4 border-[#E6E7F1] bg-gradient-to-br from-[#5567E5]/5 to-transparent">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  {env.logoUrl ? (
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center overflow-hidden shadow-sm border">
                       <img 
-                        src={environment.logoUrl} 
-                        alt={`${environment.name} logo`}
-                        className="w-10 h-10 object-contain rounded"
+                        src={env.logoUrl} 
+                        alt={`${env.name} logo`}
+                        className="w-full h-full object-contain"
                       />
-                    ) : (
-                      <Building className="w-6 h-6 text-gray-500" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{environment.name}</h3>
-                      <Badge variant="secondary" className="text-xs">
-                        <Globe className="w-3 h-3 mr-1" />
-                        {environment.environmentId}
-                      </Badge>
                     </div>
-                    {environment.description && (
-                      <p className="text-gray-600 text-sm mb-2">{environment.description}</p>
-                    )}
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      <span>Uses De Goudse data backend</span>
-                      <span>•</span>
-                      <span>{new Date(environment.createdAt).toLocaleDateString()}</span>
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <Building className="h-6 w-6 text-gray-400" />
                     </div>
-                  </div>
+                  )}
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
-                      <MoreVertical className="w-4 h-4" />
+                      <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEdit(environment)}>
-                      <Edit2 className="w-4 h-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleDelete(environment)}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
+                    <DropdownMenuItem onClick={() => handleEdit(env)}>
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Edit logo & info
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">{env.name}</h3>
+                <Badge variant="outline" className="text-xs mb-2">
+                  {env.environmentId || env.environment_id}
+                </Badge>
+                {env.description && (
+                  <p className="text-sm text-gray-600 mb-3">{env.description}</p>
+                )}
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span className="flex items-center text-green-600">
+                    <Globe className="h-3 w-3 mr-1" />
+                    Built-in
+                  </span>
+                  <span>Database: degoudse</span>
+                </div>
+              </div>
             </Card>
-          ))
+          ))}
+        </div>
+      </div>
+
+      {/* Custom Environments Section */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Plus className="h-5 w-5 text-[#5567E5]" />
+          <h2 className="text-lg font-semibold text-gray-900">Custom Environments</h2>
+          <Badge variant="secondary" className="text-xs">
+            {customEnvironments.length}
+          </Badge>
+        </div>
+        {customEnvironments.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {customEnvironments.map((env) => (
+              <Card key={`custom-${env.id}`} className="p-4 border-[#E6E7F1]">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    {env.logoUrl ? (
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={env.logoUrl} 
+                          alt={`${env.name} logo`}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Building className="h-6 w-6 text-gray-400" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{env.name}</h3>
+                      <Badge variant="secondary" className="text-xs">
+                        {env.environmentId || env.environment_id}
+                      </Badge>
+                    </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEdit(env)}>
+                        <Edit2 className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleDelete(env)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                {env.description && (
+                  <p className="text-sm text-gray-600 mb-3">{env.description}</p>
+                )}
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span className="flex items-center">
+                    <Globe className="h-3 w-3 mr-1" />
+                    Custom
+                  </span>
+                  <span>Database: degoudse</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="p-6 border-[#E6E7F1] border-dashed">
+            <div className="text-center">
+              <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No custom environments</h3>
+              <p className="text-gray-600 mb-4">
+                Create your first custom environment with branded logos and descriptions.
+              </p>
+              <Button 
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="bg-[#5567E5] hover:bg-[#4556D3]"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create environment
+              </Button>
+            </div>
+          </Card>
         )}
       </div>
 
