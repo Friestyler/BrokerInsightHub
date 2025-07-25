@@ -274,7 +274,10 @@ export default function PartnerView() {
                       </div>
                       <p className="text-gray-600 mb-3">{campaign.description}</p>
                       <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>Shared by De Goudse</span>
+                        <span>Shared by {localStorage.getItem('selectedEnvironment') === 'baloise' ? 'Baloise' : 
+                                                   localStorage.getItem('selectedEnvironment') === 'nn' ? 'Nationale Nederlanden' :
+                                                   localStorage.getItem('selectedEnvironment') === 'concordia' ? 'Concordia' :
+                                                   'De Goudse'}</span>
                         <span>•</span>
                         <span>{campaign.sponsorName}</span>
                         {campaign.sharedAt && (

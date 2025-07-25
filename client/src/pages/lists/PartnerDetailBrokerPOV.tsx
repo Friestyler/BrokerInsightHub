@@ -2259,7 +2259,7 @@ export default function PartnerDetailBrokerPOV() {
                                   <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                   <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                 </svg>
-                                <span className="text-xs text-gray-500">Shared by De Goudse</span>
+                                <span className="text-xs text-gray-500">Shared by {environmentBranding.name}</span>
                               </div>
                               {list.description && (
                                 <p className="text-sm text-gray-600">{list.description}</p>
@@ -2324,7 +2324,7 @@ export default function PartnerDetailBrokerPOV() {
                                     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                     <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                   </svg>
-                                  <span className="text-xs text-gray-500">Shared by De Goudse</span>
+                                  <span className="text-xs text-gray-500">Shared by {environmentBranding.name}</span>
                                 </div>
                               </div>
                               <div className={`text-sm px-2 py-1 rounded-full ${
