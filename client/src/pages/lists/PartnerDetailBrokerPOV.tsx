@@ -213,7 +213,7 @@ export default function PartnerDetailBrokerPOV() {
       return result;
     },
     staleTime: 0, // No cache to ensure fresh data
-    cacheTime: 0, // No cache storage
+    gcTime: 0, // No cache storage (gcTime replaces cacheTime in newer versions)
   });
 
   // Filter functions
@@ -549,7 +549,7 @@ export default function PartnerDetailBrokerPOV() {
 
 
   // Create unique values for filter dropdowns
-  const uniqueOpportunityStages = [...new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean))];
+  const uniqueOpportunityStages = Array.from(new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean)));
 
   // Filter customers based on search and filters
   const filteredCustomers = partnerCustomers.filter((customer: any) => {
@@ -1693,7 +1693,7 @@ export default function PartnerDetailBrokerPOV() {
                   <SelectContent>
                     <SelectItem value="all">All Tags</SelectItem>
                     {/* Show actual tags from assigned metrics */}
-                    {Array.from(new Set(assignedMetrics.flatMap((metric: any) => metric.tags || []))).map((tagName: string) => (
+                    {Array.from(new Set(assignedMetrics.flatMap((metric: any) => metric.tags || []))).map((tagName: any) => (
                       <SelectItem key={tagName} value={tagName}>
                         {tagName}
                       </SelectItem>
@@ -2130,7 +2130,7 @@ export default function PartnerDetailBrokerPOV() {
                       
                       {/* Show selected list when collapsed */}
                       {!expandedListsDropdown && activeOpportunitiesList && (() => {
-                        const activeListIndex = partnerRelevantLists.findIndex(list => list.id === activeOpportunitiesList.id);
+                        const activeListIndex = partnerRelevantLists.findIndex((list: any) => list.id === activeOpportunitiesList.id);
                         const listColor = getListColor(activeListIndex);
                         return (
                         <div className={`flex items-center space-x-2 px-3 py-1.5 ${listColor.bg} border ${listColor.border} rounded-md`}>
@@ -2330,7 +2330,7 @@ export default function PartnerDetailBrokerPOV() {
                       <div className="flex items-center gap-2">
                         {(() => {
                           // Get the active list colors for filter tags
-                          const activeListIndex = activeOpportunitiesList ? partnerRelevantLists.findIndex(list => list.id === activeOpportunitiesList.id) : -1;
+                          const activeListIndex = activeOpportunitiesList ? partnerRelevantLists.findIndex((list: any) => list.id === activeOpportunitiesList.id) : -1;
                           const listColor = activeListIndex >= 0 ? getListColor(activeListIndex) : { 
                             border: 'border-[#5567E5]', 
                             bg: 'bg-[#F8F9FF]', 
@@ -4039,6 +4039,9 @@ export default function PartnerDetailBrokerPOV() {
           setSelectedCampaigns([]);
           setShowCampaignShareModal(false);
         }}
+        onPartnerAssign={() => {
+          // Handle partner assignment if needed
+        }}
       />
 
       {/* Partner Details Dialog */}
@@ -4216,7 +4219,7 @@ export default function PartnerDetailBrokerPOV() {
             <DialogHeader className="space-y-2 pb-0">
               <div className="flex items-center justify-between">
                 <DialogTitle className="text-xl font-semibold text-[#282A3F] leading-tight">
-                  Comments & Notes: {commentsHistoryData?.opportunity?.customerName || 'Customer'}
+                  Comments & Notes: {(commentsHistoryData as any)?.opportunity?.customerName || 'Customer'}
                 </DialogTitle>
                 <Button 
                   variant="ghost" 
@@ -4239,15 +4242,15 @@ export default function PartnerDetailBrokerPOV() {
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
-                      {commentsHistoryData?.opportunity?.title?.charAt(0) || 'O'}
+                      {(commentsHistoryData as any)?.opportunity?.title?.charAt(0) || 'O'}
                     </span>
                   </div>
                   <div>
                     <div className="font-medium text-[#282A3F]">
-                      {commentsHistoryData?.opportunity?.title}
+                      {(commentsHistoryData as any)?.opportunity?.title}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {commentsHistoryData?.totalComments || 0} comments
+                      {(commentsHistoryData as any)?.totalComments || 0} comments
                     </div>
                   </div>
                 </div>
@@ -4291,8 +4294,8 @@ export default function PartnerDetailBrokerPOV() {
 
             {/* Comments section */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {commentsHistoryData?.comments?.length > 0 ? (
-                commentsHistoryData.comments.map((comment: any, index: number) => (
+              {(commentsHistoryData as any)?.comments?.length > 0 ? (
+                (commentsHistoryData as any).comments.map((comment: any, index: number) => (
                   <div key={index} className="flex gap-3 p-4 bg-gray-50 rounded-lg">
                     <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-xs font-medium">
