@@ -411,18 +411,24 @@ export default function PartnerDetailBrokerPOV() {
   //   syncEnvironment();
   // }, [currentEnvironment]);
 
-  // Fetch broker campaigns (shared campaigns) - use currentEnvironment for responsive updates
+  // EMERGENCY FIX: Bypass broken apiRequest for broker campaigns
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/broker/shared-campaigns`],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/broker/shared-campaigns`),
+    queryKey: [`/api/degoudse/broker/shared-campaigns`],
+    queryFn: async () => {
+      const response = await fetch(`/api/degoudse/broker/shared-campaigns`);
+      return response.json();
+    },
     enabled: activeTab === 'campaigns',
     staleTime: 2 * 60 * 1000,
   });
 
-  // Fetch assigned campaigns for this partner - use currentEnvironment for responsive updates
+  // EMERGENCY FIX: Bypass broken apiRequest for assigned campaigns
   const { data: assignedCampaigns = [], isLoading: assignedCampaignsLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/partners/${partnerId}/assigned-campaigns`],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/partners/${partnerId}/assigned-campaigns`),
+    queryKey: [`/api/degoudse/partners/${partnerId}/assigned-campaigns`],
+    queryFn: async () => {
+      const response = await fetch(`/api/degoudse/partners/${partnerId}/assigned-campaigns`);
+      return response.json();
+    },
     enabled: activeTab === 'campaigns' && !!partnerId,
     staleTime: 2 * 60 * 1000,
   });
@@ -641,10 +647,13 @@ export default function PartnerDetailBrokerPOV() {
 
 
 
-  // Fetch all lists shared with John Smith or partners using the new broker-specific endpoint - use currentEnvironment for responsive updates
+  // EMERGENCY FIX: Bypass broken apiRequest for saved lists
   const { data: savedListsData } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/broker/shared-lists`, 'opportunities'],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/broker/shared-lists?entity_type=opportunities`),
+    queryKey: [`/api/degoudse/broker/shared-lists`, 'opportunities'],
+    queryFn: async () => {
+      const response = await fetch(`/api/degoudse/broker/shared-lists?entity_type=opportunities`);
+      return response.json();
+    },
     staleTime: 0, // Always refresh to get latest data
     refetchOnWindowFocus: true,
   });
@@ -652,10 +661,13 @@ export default function PartnerDetailBrokerPOV() {
   // All returned lists are already filtered to show only those shared with John Smith or partners
   const partnerRelevantLists = savedListsData || [];
   
-  // Fetch all opportunity lists for the modal - use currentEnvironment for responsive updates
+  // EMERGENCY FIX: Bypass broken apiRequest for opportunity lists
   const { data: opportunityLists } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/saved-lists`, 'opportunities', 'all'],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/saved-lists?entity_type=opportunities`),
+    queryKey: [`/api/degoudse/saved-lists`, 'opportunities', 'all'],
+    queryFn: async () => {
+      const response = await fetch(`/api/degoudse/saved-lists?entity_type=opportunities`);
+      return response.json();
+    },
   });
   
   console.log(`Showing ${partnerRelevantLists.length} lists shared with John Smith or partners:`, 
@@ -1069,28 +1081,40 @@ export default function PartnerDetailBrokerPOV() {
     assessments: uniqueOpportunityAssessments
   };
 
-  // Fetch template assignments for Mevas BV (partner_id 12)
+  // EMERGENCY FIX: Bypass broken apiRequest for template assignments
   const { data: templateAssignments } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/template-assignments/partner`],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/template-assignments/partner`),
+    queryKey: [`/api/degoudse/template-assignments/partner`],
+    queryFn: async () => {
+      const response = await fetch(`/api/degoudse/template-assignments/partner`);
+      return response.json();
+    },
   });
 
-  // Fetch all OKR metrics to match with assignments
+  // EMERGENCY FIX: Bypass broken apiRequest for OKR metrics
   const { data: allMetrics } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/okr-metrics`],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/okr-metrics`),
+    queryKey: [`/api/degoudse/okr-metrics`],
+    queryFn: async () => {
+      const response = await fetch(`/api/degoudse/okr-metrics`);
+      return response.json();
+    },
   });
 
-  // Fetch OKR tags for filtering
+  // EMERGENCY FIX: Bypass broken apiRequest for OKR tags
   const { data: tags = [] } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/okr-tags`],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/okr-tags`),
+    queryKey: [`/api/degoudse/okr-tags`],
+    queryFn: async () => {
+      const response = await fetch(`/api/degoudse/okr-tags`);
+      return response.json();
+    },
   });
 
-  // Fetch users for comment assignment
+  // EMERGENCY FIX: Bypass broken apiRequest for users
   const { data: users } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/users`],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/users`),
+    queryKey: [`/api/degoudse/users`],
+    queryFn: async () => {
+      const response = await fetch(`/api/degoudse/users`);
+      return response.json();
+    },
   });
 
   // Get metrics assigned to the current partner

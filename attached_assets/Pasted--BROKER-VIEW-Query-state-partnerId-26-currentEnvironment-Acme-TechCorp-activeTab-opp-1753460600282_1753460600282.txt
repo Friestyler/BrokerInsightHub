@@ -1,0 +1,156 @@
+🔍 BROKER VIEW - Query state: {partnerId: '26', currentEnvironment: 'Acme-TechCorp', activeTab: 'opportunities', isLoading: false, error: null, …}
+PartnerDetailBrokerPOV.tsx:661 Showing 0 lists shared with John Smith or partners: []
+PartnerDetailBrokerPOV.tsx:972 Active filter list state: {listId: undefined, listName: undefined, members: undefined, allOpportunitiesCount: 28, listParam: null, …}
+PartnerDetailBrokerPOV.tsx:1104 Broker view - Template assignments: undefined
+PartnerDetailBrokerPOV.tsx:1105 Broker view - All metrics: undefined
+PartnerDetailBrokerPOV.tsx:1106 Broker view - Assigned metrics for current partner: []
+PartnerDetailBrokerPOV.tsx:1107 Broker view - Tags: []
+PartnerDetailBrokerPOV.tsx:1548 ✅ BROKER VIEW - Logo loaded successfully: data:image/png;base64,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
+queryClient.ts:181 Fetch error in queryFn: Error: Endpoint /api/degoudse/Acme-TechCorp/partners/4/timeline returned HTML instead of JSON - likely missing backend route
+    at queryClient.ts:155:15
+(anonymous) @ queryClient.ts:181
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=8755a362:840
+run @ @tanstack_react-query.js?v=8755a362:494
+start @ @tanstack_react-query.js?v=8755a362:536
+fetch @ @tanstack_react-query.js?v=8755a362:926
+executeFetch_fn @ @tanstack_react-query.js?v=8755a362:2211
+onSubscribe @ @tanstack_react-query.js?v=8755a362:1898
+subscribe @ @tanstack_react-query.js?v=8755a362:24
+(anonymous) @ @tanstack_react-query.js?v=8755a362:3022
+subscribeToStore @ chunk-276SZO74.js?v=8755a362:11984
+commitHookEffectListMount @ chunk-276SZO74.js?v=8755a362:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=8755a362:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=8755a362:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=8755a362:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=8755a362:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=8755a362:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=8755a362:19447
+commitRootImpl @ chunk-276SZO74.js?v=8755a362:19416
+commitRoot @ chunk-276SZO74.js?v=8755a362:19277
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=8755a362:18895
+flushSyncCallbacks @ chunk-276SZO74.js?v=8755a362:9119
+(anonymous) @ chunk-276SZO74.js?v=8755a362:18627Understand this error
+queryClient.ts:182 Query key: ['/api/Acme-TechCorp/partners/4/timeline']
+(anonymous) @ queryClient.ts:182
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=8755a362:840
+run @ @tanstack_react-query.js?v=8755a362:494
+start @ @tanstack_react-query.js?v=8755a362:536
+fetch @ @tanstack_react-query.js?v=8755a362:926
+executeFetch_fn @ @tanstack_react-query.js?v=8755a362:2211
+onSubscribe @ @tanstack_react-query.js?v=8755a362:1898
+subscribe @ @tanstack_react-query.js?v=8755a362:24
+(anonymous) @ @tanstack_react-query.js?v=8755a362:3022
+subscribeToStore @ chunk-276SZO74.js?v=8755a362:11984
+commitHookEffectListMount @ chunk-276SZO74.js?v=8755a362:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=8755a362:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=8755a362:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=8755a362:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=8755a362:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=8755a362:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=8755a362:19447
+commitRootImpl @ chunk-276SZO74.js?v=8755a362:19416
+commitRoot @ chunk-276SZO74.js?v=8755a362:19277
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=8755a362:18895
+flushSyncCallbacks @ chunk-276SZO74.js?v=8755a362:9119
+(anonymous) @ chunk-276SZO74.js?v=8755a362:18627Understand this error
+queryClient.ts:181 Fetch error in queryFn: Error: Endpoint /api/degoudse/Acme-TechCorp/users returned HTML instead of JSON - likely missing backend route
+    at queryClient.ts:155:15
+(anonymous) @ queryClient.ts:181
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=8755a362:840
+run @ @tanstack_react-query.js?v=8755a362:494
+start @ @tanstack_react-query.js?v=8755a362:536
+fetch @ @tanstack_react-query.js?v=8755a362:926
+executeFetch_fn @ @tanstack_react-query.js?v=8755a362:2211
+onSubscribe @ @tanstack_react-query.js?v=8755a362:1898
+subscribe @ @tanstack_react-query.js?v=8755a362:24
+(anonymous) @ @tanstack_react-query.js?v=8755a362:3022
+subscribeToStore @ chunk-276SZO74.js?v=8755a362:11984
+commitHookEffectListMount @ chunk-276SZO74.js?v=8755a362:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=8755a362:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=8755a362:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=8755a362:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=8755a362:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=8755a362:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=8755a362:19447
+commitRootImpl @ chunk-276SZO74.js?v=8755a362:19416
+commitRoot @ chunk-276SZO74.js?v=8755a362:19277
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=8755a362:18895
+flushSyncCallbacks @ chunk-276SZO74.js?v=8755a362:9119
+(anonymous) @ chunk-276SZO74.js?v=8755a362:18627Understand this error
+queryClient.ts:182 Query key: ['/api/Acme-TechCorp/users']
+(anonymous) @ queryClient.ts:182
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=8755a362:840
+run @ @tanstack_react-query.js?v=8755a362:494
+start @ @tanstack_react-query.js?v=8755a362:536
+fetch @ @tanstack_react-query.js?v=8755a362:926
+executeFetch_fn @ @tanstack_react-query.js?v=8755a362:2211
+onSubscribe @ @tanstack_react-query.js?v=8755a362:1898
+subscribe @ @tanstack_react-query.js?v=8755a362:24
+(anonymous) @ @tanstack_react-query.js?v=8755a362:3022
+subscribeToStore @ chunk-276SZO74.js?v=8755a362:11984
+commitHookEffectListMount @ chunk-276SZO74.js?v=8755a362:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=8755a362:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=8755a362:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=8755a362:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=8755a362:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=8755a362:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=8755a362:19447
+commitRootImpl @ chunk-276SZO74.js?v=8755a362:19416
+commitRoot @ chunk-276SZO74.js?v=8755a362:19277
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=8755a362:18895
+flushSyncCallbacks @ chunk-276SZO74.js?v=8755a362:9119
+(anonymous) @ chunk-276SZO74.js?v=8755a362:18627Understand this error
+queryClient.ts:181 Fetch error in queryFn: Error: Endpoint /api/degoudse/Acme-TechCorp/partners/4/all-tasks returned HTML instead of JSON - likely missing backend route
+    at queryClient.ts:155:15
+(anonymous) @ queryClient.ts:181
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=8755a362:840
+run @ @tanstack_react-query.js?v=8755a362:494
+start @ @tanstack_react-query.js?v=8755a362:536
+fetch @ @tanstack_react-query.js?v=8755a362:926
+executeFetch_fn @ @tanstack_react-query.js?v=8755a362:2211
+onSubscribe @ @tanstack_react-query.js?v=8755a362:1898
+subscribe @ @tanstack_react-query.js?v=8755a362:24
+(anonymous) @ @tanstack_react-query.js?v=8755a362:3022
+subscribeToStore @ chunk-276SZO74.js?v=8755a362:11984
+commitHookEffectListMount @ chunk-276SZO74.js?v=8755a362:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=8755a362:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=8755a362:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=8755a362:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=8755a362:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=8755a362:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=8755a362:19447
+commitRootImpl @ chunk-276SZO74.js?v=8755a362:19416
+commitRoot @ chunk-276SZO74.js?v=8755a362:19277
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=8755a362:18895
+flushSyncCallbacks @ chunk-276SZO74.js?v=8755a362:9119
+(anonymous) @ chunk-276SZO74.js?v=8755a362:18627Understand this error
+queryClient.ts:182 Query key: ['/api/Acme-TechCorp/partners/4/all-tasks']
+(anonymous) @ queryClient.ts:182
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=8755a362:840
+run @ @tanstack_react-query.js?v=8755a362:494
+start @ @tanstack_react-query.js?v=8755a362:536
+fetch @ @tanstack_react-query.js?v=8755a362:926
+executeFetch_fn @ @tanstack_react-query.js?v=8755a362:2211
+onSubscribe @ @tanstack_react-query.js?v=8755a362:1898
+subscribe @ @tanstack_react-query.js?v=8755a362:24
+(anonymous) @ @tanstack_react-query.js?v=8755a362:3022
+subscribeToStore @ chunk-276SZO74.js?v=8755a362:11984
+commitHookEffectListMount @ chunk-276SZO74.js?v=8755a362:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=8755a362:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=8755a362:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=8755a362:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=8755a362:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=8755a362:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=8755a362:19447
+commitRootImpl @ chunk-276SZO74.js?v=8755a362:19416
+commitRoot @ chunk-276SZO74.js?v=8755a362:19277
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=8755a362:18895
+flushSyncCallbacks @ chunk-276SZO74.js?v=8755a362:9119
+(anonymous) @ chunk-276SZO74.js?v=8755a362:18627Understand this error
+PartnerActivityHub.tsx:529 AllTasks Debug: {partnerId: 4, allTasks: undefined, isLoading: false, error: Error: Endpoint /api/degoudse/Acme-TechCorp/partners/4/all-tasks returned HTML instead of JSON - li…, isArray: false, …}
