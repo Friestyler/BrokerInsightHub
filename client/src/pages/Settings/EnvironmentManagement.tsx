@@ -17,6 +17,12 @@ import { z } from 'zod';
 import type { CustomEnvironment } from '@shared/schema';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
 
+// Import logo assets
+import deGoudseLogo from '@assets/De_Goudse_logo_1749670246231.png';
+import baloiseLogo from '@assets/Baloise_1750499789244.png';
+import nnLogo from '@assets/NN_Group_logo_1751474283145.jpeg';
+import concordiaLogo from '@assets/images-Concordia_1752649338540.png';
+
 const environmentSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   environmentId: z.string().min(1, 'Environment ID is required').regex(/^[a-zA-Z0-9-_]+$/, 'Environment ID can only contain letters, numbers, hyphens and underscores'),
@@ -34,6 +40,17 @@ export default function EnvironmentManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { refreshEnvironments } = useEnvironment();
+
+  // Logo mapping function
+  const getAssetLogo = (logoUrl: string): string | null => {
+    const assetMapping: Record<string, string> = {
+      '@assets/De_Goudse_logo_1749670246231.png': deGoudseLogo,
+      '@assets/Baloise_1750499789244.png': baloiseLogo,
+      '@assets/NN_Group_logo_1751474283145.jpeg': nnLogo,
+      '@assets/images-Concordia_1752649338540.png': concordiaLogo,
+    };
+    return assetMapping[logoUrl] || logoUrl;
+  };
 
   const createForm = useForm<EnvironmentFormData>({
     resolver: zodResolver(environmentSchema),
@@ -202,7 +219,10 @@ export default function EnvironmentManagement() {
       description: environment.description || '',
     });
     setLogoFile(null);
-    setLogoPreview(environment.logoUrl || environment.logo_url || null);
+    // Handle both logoUrl and logo_url field names and map asset paths to imported URLs
+    const logoUrl = environment.logoUrl || environment.logo_url;
+    const resolvedLogoUrl = logoUrl ? getAssetLogo(logoUrl) : null;
+    setLogoPreview(resolvedLogoUrl);
     setIsEditDialogOpen(true);
   };
 
@@ -357,10 +377,10 @@ export default function EnvironmentManagement() {
             <Card key={`builtin-${env.id}`} className="p-4 border-[#E6E7F1] bg-gradient-to-br from-[#5567E5]/5 to-transparent">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3">
-                  {env.logoUrl ? (
+                  {env.logoUrl || env.logo_url ? (
                     <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center overflow-hidden shadow-sm border">
                       <img 
-                        src={env.logoUrl} 
+                        src={getAssetLogo(env.logoUrl || env.logo_url) || env.logoUrl || env.logo_url} 
                         alt={`${env.name} logo`}
                         className="w-full h-full object-contain"
                       />
@@ -421,10 +441,10 @@ export default function EnvironmentManagement() {
               <Card key={`custom-${env.id}`} className="p-4 border-[#E6E7F1]">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center space-x-3">
-                    {env.logoUrl ? (
+                    {env.logoUrl || env.logo_url ? (
                       <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                         <img 
-                          src={env.logoUrl} 
+                          src={getAssetLogo(env.logoUrl || env.logo_url) || env.logoUrl || env.logo_url} 
                           alt={`${env.name} logo`}
                           className="w-full h-full object-contain"
                         />
