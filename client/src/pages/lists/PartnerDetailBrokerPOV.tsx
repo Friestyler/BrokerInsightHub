@@ -949,55 +949,8 @@ export default function PartnerDetailBrokerPOV() {
     }
   }, [activeFilterList?.members, isEditingList, editingListId]);
 
-  const baseOpportunities = allOpportunities.filter((opp: any) => {
-    // In edit mode, show ALL opportunities so user can select/deselect
-    if (isEditingList) {
-      return true;
-    }
-    
-    // In normal mode, filter based on the active list
-    if (activeFilterList) {
-      // Check if list has specific members (opportunity IDs)
-      if (activeFilterList.members && activeFilterList.members.length > 0) {
-        const isIncluded = activeFilterList.members.includes(opp.id);
-        console.log(`Opportunity ${opp.id} (${opp.title}) - included: ${isIncluded}`, {
-          oppId: opp.id,
-          listMembers: activeFilterList.members,
-          isIncluded
-        });
-        return isIncluded;
-      }
-      
-      // If no specific members, apply list filters
-      if (activeFilterList.filters) {
-        const filters = typeof activeFilterList.filters === 'string' 
-          ? JSON.parse(activeFilterList.filters) 
-          : activeFilterList.filters;
-          
-        // Apply search text filter
-        if (filters.searchText) {
-          const searchLower = filters.searchText.toLowerCase();
-          const matchesSearch = 
-            opp.title?.toLowerCase().includes(searchLower) ||
-            opp.customer_names?.toLowerCase().includes(searchLower) ||
-            opp.stage?.toLowerCase().includes(searchLower);
-          if (!matchesSearch) return false;
-        }
-        
-        // Apply status filter
-        if (filters.status && opp.stage !== filters.status) {
-          return false;
-        }
-        
-        // Apply type filter
-        if (filters.type && opp.type !== filters.type) {
-          return false;
-        }
-      }
-    }
-    // If no active list or no filters, show all opportunities
-    return true;
-  });
+  // CRITICAL FIX: For broker view, show all opportunities for the partner instead of filtering by lists
+  const baseOpportunities = allOpportunities; // Show all opportunities returned by API
 
   // Filter opportunities based on search and filters - using baseOpportunities for proper list integration
   const filteredOpportunities = baseOpportunities.filter((opportunity: any) => {
