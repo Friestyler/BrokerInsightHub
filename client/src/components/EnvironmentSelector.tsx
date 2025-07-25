@@ -23,6 +23,14 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
   
   // Helper function to get the correct logo for each environment
   const getEnvironmentLogo = (envId: string) => {
+    // First check if it's a custom environment with uploaded logo
+    const customEnv = environments.find(env => env.id === envId);
+    if (customEnv && customEnv.logo && !customEnv.logo.includes('assets/')) {
+      // Custom environment with uploaded logo (base64 or URL)
+      return customEnv.logo;
+    }
+    
+    // Fallback to hardcoded logos for built-in environments
     if (envId === 'degoudse') return deGoudseLogo;
     if (envId === 'baloise') return baloiseLogo;
     if (envId === 'nn') return nnLogo;

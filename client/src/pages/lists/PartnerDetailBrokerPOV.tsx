@@ -37,11 +37,23 @@ import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
 import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
 
-// GET ENVIRONMENT BRANDING - RESPECTS USER SELECTION
-const getEnvironmentBranding = (envId: string) => {
+// GET ENVIRONMENT BRANDING - RESPECTS USER SELECTION AND SUPPORTS CUSTOM ENVIRONMENTS
+const getEnvironmentBranding = (envId: string, customEnvironments: any[] = []) => {
   console.log('🎯 BROKER VIEW - getEnvironmentBranding called with envId:', envId);
   
-  // Use simple environment mapping based on user selection
+  // First check if it's a custom environment
+  const customEnv = customEnvironments.find(env => env.id === envId);
+  if (customEnv) {
+    const result = {
+      logo: customEnv.logo,
+      name: customEnv.name,
+      partnerName: customEnv.name
+    };
+    console.log('🎯 BROKER VIEW - Found custom environment:', result);
+    return result;
+  }
+  
+  // Use simple environment mapping based on user selection for built-in environments
   const brandingMap = {
     'nn': { logo: nnLogo, name: 'Nationale Nederlanden', partnerName: 'Nationale Nederlanden' },
     'baloise': { logo: baloiseLogoPng, name: 'Baloise', partnerName: 'Baloise' },
@@ -321,7 +333,7 @@ export default function PartnerDetailBrokerPOV() {
   // Get partner information based on selected environment (front-end only hack)
   const getPartnerInfoForEnvironment = (envId: string) => {
     console.log('🚨 BROKER VIEW - getPartnerInfoForEnvironment called with envId:', envId);
-    const branding = getEnvironmentBranding(envId);
+    const branding = getEnvironmentBranding(envId, customEnvironments);
     console.log('🚨 BROKER VIEW - branding result:', branding);
     const partnerInfo = {
       id: envId,
@@ -342,7 +354,7 @@ export default function PartnerDetailBrokerPOV() {
   
   // Get the correct logo for broker view with fallback (using environment branding)
   const getBrokerLogo = (envId: string) => {
-    const branding = getEnvironmentBranding(envId);
+    const branding = getEnvironmentBranding(envId, customEnvironments);
     return branding.logo;
   };
   
@@ -374,6 +386,13 @@ export default function PartnerDetailBrokerPOV() {
   }, [currentEnvironment]);
 
   // Fetch broker campaigns (shared campaigns)
+  // Fetch custom environments for branding
+  const { data: customEnvironments = [] } = useQuery({
+    queryKey: [`/api/admin/custom-environments`],
+    queryFn: () => apiRequest('GET', `/api/admin/custom-environments`),
+    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
+  });
+
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
     queryKey: [`/api/${actualCurrentEnvironment}/broker/shared-campaigns`],
     queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/broker/shared-campaigns`),
