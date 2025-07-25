@@ -53,7 +53,7 @@ const getEnvironmentBranding = (envId: string, customEnvironments: any[] = []) =
   
   if (customEnv) {
     const result = {
-      logo: customEnv.logo,
+      logo: customEnv.logo || qollabiLogo, // Fallback to Qollabi logo if no custom logo
       name: customEnv.name,
       partnerName: customEnv.name
     };
@@ -1506,10 +1506,19 @@ export default function PartnerDetailBrokerPOV() {
               <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
                 <img 
                   key={`partner-logo-${actualCurrentEnvironment}-${renderKey}`}
-                  src={environmentLogo} 
+                  src={environmentLogo || qollabiLogo} 
                   alt={`${partner.name} Logo`}
                   className="w-full h-full object-contain p-1"
                   data-environment-logo
+                  onError={(e) => {
+                    console.error('🚨 BROKER VIEW - Logo failed to load:', environmentLogo);
+                    console.error('🚨 BROKER VIEW - Logo error event:', e);
+                    // Show Qollabi logo as final fallback
+                    (e.target as HTMLImageElement).src = qollabiLogo;
+                  }}
+                  onLoad={() => {
+                    console.log('✅ BROKER VIEW - Logo loaded successfully:', environmentLogo || qollabiLogo);
+                  }}
                 />
               </div>
             </div>
