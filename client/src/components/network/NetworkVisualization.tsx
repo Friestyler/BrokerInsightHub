@@ -587,10 +587,19 @@ export default function NetworkVisualization() {
     setTransform({ x: 0, y: 0, scale: 1 });
   };
 
-  // Simple working click handler
+  // Enhanced click handler to properly handle node data for details panel
   const handleNodeClick = (node: any) => {
     console.log('🔥 Network node clicked:', node.name || node.title || node.full_name, node.type || 'contact');
-    setSelectedNode(node);
+    
+    // Enhance node data with entityData for details panel
+    const enhancedNode = {
+      ...node,
+      ...node.entityData, // Merge in the actual entity data
+      type: node.type || 'contact' // Ensure type is set
+    };
+    
+    console.log('Enhanced node data:', enhancedNode);
+    setSelectedNode(enhancedNode);
   };
 
   // Drag functionality for mouse navigation
