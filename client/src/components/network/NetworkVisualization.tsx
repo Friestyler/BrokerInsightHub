@@ -98,15 +98,52 @@ export default function NetworkVisualization() {
   // Set default customer when data loads
   useEffect(() => {
     if (customersArray && Array.isArray(customersArray) && customersArray.length > 0 && !selectedCustomer) {
-      setSelectedCustomer(customersArray[0].name);
+      // Find a customer with opportunities for better visualization
+      const customerWithOpportunities = customersArray.find((customer: any) => {
+        const custOpps = opportunitiesArray?.filter((o: any) => o.customer_id === customer.id || o.clientId === customer.id);
+        return custOpps && custOpps.length > 0;
+      });
+      
+      const targetCustomer = customerWithOpportunities || customersArray[0];
+      setSelectedCustomer(targetCustomer.name);
+      
+      console.log('Selected customer:', targetCustomer);
+      console.log('Available opportunities:', opportunitiesArray?.slice(0, 3));
+      console.log('Available contacts:', contactsArray?.slice(0, 3));
     }
-  }, [customersArray, selectedCustomer]);
+  }, [customersArray, selectedCustomer, opportunitiesArray, contactsArray]);
 
   // Calculate real counts from data
   const getEntityCounts = () => {
     const selectedCustomerData = customersArray?.find((c: any) => c.name === selectedCustomer);
-    const customerOpportunities = opportunitiesArray?.filter((o: any) => o.customer_id === selectedCustomerData?.id) || [];
-    const customerContacts = contactsArray?.filter((c: any) => c.customer_id === selectedCustomerData?.id) || [];
+    if (!selectedCustomerData) {
+      return {
+        customers: customersArray?.length || 0,
+        opportunities: 0,
+        contacts: 0,
+        partners: partnersArray?.length || 0,
+        projects: 8,
+        products: productsArray?.length || 0,
+        hierarchy: 1
+      };
+    }
+    
+    // Check both customer_id and clientId field names
+    const customerOpportunities = opportunitiesArray?.filter((o: any) => 
+      o.customer_id === selectedCustomerData.id || o.clientId === selectedCustomerData.id
+    ) || [];
+    
+    const customerContacts = contactsArray?.filter((c: any) => 
+      c.customer_id === selectedCustomerData.id || c.clientId === selectedCustomerData.id
+    ) || [];
+    
+    console.log('Entity counts for', selectedCustomer, ':', {
+      customer: selectedCustomerData,
+      opportunities: customerOpportunities.length,
+      contacts: customerContacts.length,
+      opportunitySample: customerOpportunities[0],
+      contactSample: customerContacts[0]
+    });
     
     return {
       customers: customersArray?.length || 0,
@@ -181,8 +218,10 @@ export default function NetworkVisualization() {
       cy: 200
     });
 
-    // Customer opportunities
-    const customerOpportunities = opportunitiesArray?.filter((o: any) => o.customer_id === selectedCustomerData.id) || [];
+    // Customer opportunities (check both field names)
+    const customerOpportunities = opportunitiesArray?.filter((o: any) => 
+      o.customer_id === selectedCustomerData.id || o.clientId === selectedCustomerData.id
+    ) || [];
     customerOpportunities.slice(0, 3).forEach((opp: any, index: number) => {
       const angle = (index * 120) * (Math.PI / 180);
       const x = 400 + Math.cos(angle) * 120;
@@ -213,8 +252,10 @@ export default function NetworkVisualization() {
       });
     });
 
-    // Customer contacts
-    const customerContacts = contactsArray.filter((c: any) => c.customer_id === selectedCustomerData.id);
+    // Customer contacts (check both field names)
+    const customerContacts = contactsArray.filter((c: any) => 
+      c.customer_id === selectedCustomerData.id || c.clientId === selectedCustomerData.id
+    );
     customerContacts.slice(0, 5).forEach((contact: any, index: number) => {
       const angle = (index * 72 + 36) * (Math.PI / 180);
       const x = 400 + Math.cos(angle) * 80;
@@ -270,8 +311,9 @@ export default function NetworkVisualization() {
     // Add partner relationships (via opportunities)
     const customerPartners = new Set();
     customerOpportunities.forEach((opp: any) => {
-      if (opp.partner_id) {
-        const partner = partnersArray.find((p: any) => p.id === opp.partner_id);
+      const partnerId = opp.partner_id || opp.partnerId;
+      if (partnerId) {
+        const partner = partnersArray.find((p: any) => p.id === partnerId);
         if (partner && !customerPartners.has(partner.id)) {
           customerPartners.add(partner.id);
           
@@ -297,15 +339,17 @@ export default function NetworkVisualization() {
 
     // Add product connections (via opportunities)
     customerOpportunities.forEach((opp: any, index: number) => {
-      if (opp.product_id) {
-        const product = productsArray.find((p: any) => p.id === opp.product_id);
+      const productId = opp.product_id || opp.productId;
+      if (productId) {
+        const product = productsArray.find((p: any) => p.id === productId);
         if (product) {
           const angle = (180 + index * 30) * (Math.PI / 180);
           const x = 400 + Math.cos(angle) * 150;
           const y = 200 + Math.sin(angle) * 150;
 
+          const productNodeId = `product-${product.id}-opp-${opp.id}`;
           entities.push({
-            id: `product-${product.id}`,
+            id: productNodeId,
             name: product.name,
             type: 'product',
             color: '#F59E0B',
@@ -316,7 +360,7 @@ export default function NetworkVisualization() {
 
           relationships.push({
             from: `opportunity-${opp.id}`,
-            to: `product-${product.id}`,
+            to: productNodeId,
             type: 'involves',
             color: '#F59E0B'
           });
