@@ -685,15 +685,15 @@ export default function NetworkVisualization() {
               onClick={() => handleNodeClick(entity)}
             />
             
-            {/* Profile picture placeholder for contacts */}
+            {/* Profile picture placeholder for contacts - show for all contacts */}
             {entity.type === 'contact' && (
               <>
-                {/* Profile circle background */}
+                {/* White background circle for profile area */}
                 <circle
                   cx={entity.cx}
                   cy={entity.cy}
-                  r={(entity.size / 2) - 2}
-                  fill="#f3f4f6"
+                  r={(entity.size / 2) - 1}
+                  fill="white"
                   stroke="#d1d5db"
                   strokeWidth="1"
                   className="cursor-pointer"
@@ -704,17 +704,19 @@ export default function NetworkVisualization() {
                   {/* Head */}
                   <circle
                     cx={entity.cx}
-                    cy={entity.cy - (entity.size / 8)}
-                    r={entity.size / 10}
-                    fill="#9ca3af"
+                    cy={entity.cy - (entity.size / 6)}
+                    r={entity.size / 8}
+                    fill="#6b7280"
                   />
-                  {/* Body */}
-                  <ellipse
-                    cx={entity.cx}
-                    cy={entity.cy + (entity.size / 6)}
-                    rx={entity.size / 6}
-                    ry={entity.size / 8}
-                    fill="#9ca3af"
+                  {/* Body/shoulders */}
+                  <path
+                    d={`M ${entity.cx - entity.size/4} ${entity.cy + entity.size/8} 
+                        Q ${entity.cx} ${entity.cy + entity.size/12} 
+                        ${entity.cx + entity.size/4} ${entity.cy + entity.size/8}
+                        L ${entity.cx + entity.size/3} ${entity.cy + entity.size/3}
+                        L ${entity.cx - entity.size/3} ${entity.cy + entity.size/3}
+                        Z`}
+                    fill="#6b7280"
                   />
                 </g>
               </>
@@ -1044,7 +1046,6 @@ export default function NetworkVisualization() {
       <div className="relative h-96 bg-gray-50 rounded-lg border overflow-hidden">
         <div 
           className="w-full h-full"
-
           onWheel={(e) => {
             const delta = e.deltaY > 0 ? 0.9 : 1.1;
             const newScale = Math.max(0.3, Math.min(3, transform.scale * delta));
@@ -1060,6 +1061,10 @@ export default function NetworkVisualization() {
               scale: newScale
             }));
           }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
           style={{ 
             cursor: isDragging ? 'grabbing' : 'grab',
             transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
