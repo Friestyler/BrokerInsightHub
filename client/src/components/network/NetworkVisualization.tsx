@@ -603,8 +603,8 @@ export default function NetworkVisualization() {
 
   // Enhanced click handler to properly handle node data for details panel
   const handleNodeClick = (node: any) => {
-    console.log('🔥 Network node clicked:', node.name || node.title || node.full_name, node.type || 'contact');
-    console.log('Raw node data received:', node);
+    console.log('🔥 LEGACY Network node clicked:', node.name || node.title || node.full_name, node.type || 'contact');
+    console.log('🔥 LEGACY Raw node data received:', node);
     
     // Enhance node data with entityData for details panel
     const enhancedNode = {
@@ -614,7 +614,7 @@ export default function NetworkVisualization() {
       name: node.name || node.title || node.full_name || 'Unknown' // Ensure name is set
     };
     
-    console.log('Enhanced node data for details panel:', enhancedNode);
+    console.log('🔥 LEGACY Enhanced node data for details panel:', enhancedNode);
     setSelectedNode(enhancedNode);
   };
 
@@ -1041,7 +1041,21 @@ export default function NetworkVisualization() {
       return (
         <div 
           className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)}`}
-          onClick={() => handleNodeClick(person)}
+          onClick={(e) => {
+            e.stopPropagation();
+            console.log('🔥 ORG CHART CARD CLICKED:', person.name, person);
+            
+            // Format the person data to match expected node structure
+            const nodeData = {
+              ...person,
+              type: 'contact',
+              name: person.name || person.full_name || 'Unknown Contact',
+              entityData: person
+            };
+            
+            console.log('🔥 Formatted org chart node data:', nodeData);
+            setSelectedNode(nodeData);
+          }}
         >
           <div className="flex items-center space-x-3 mb-1">
             {/* Profile picture placeholder */}
