@@ -62,13 +62,12 @@ export default function NetworkVisualization() {
   const [activeView, setActiveView] = useState('network');
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [activeFilters, setActiveFilters] = useState({
-    customers: true,
-    opportunities: true,
-    contacts: true,
-    partners: true,
-    projects: true,
-    products: true,
-    hierarchy: true
+    customers: false,
+    opportunities: false,
+    contacts: false,
+    partners: false,
+    projects: false,
+    products: false
   });
   
   // Advanced filtering state
