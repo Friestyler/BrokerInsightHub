@@ -917,15 +917,11 @@ export default function NetworkVisualization() {
         matchedSample: listData.slice(0, 3).map(item => ({ id: item.id, name: item.name || item.title }))
       });
       
-      // Set selected records (replace, not add)
+      // Set selected records (replace, not add) but keep modal open
       setSelectedRecords(listData);
       
-      // Apply the filter to the visualization
-      applyEntityFilter(selectedEntityType, listData);
-      
-      // Close dialog and clear search
-      setIsFilterDialogOpen(false);
-      setSearchQuery('');
+      // Don't close the dialog - let user continue selecting/deselecting
+      // User can click Apply when ready or continue filtering
     };
 
     return (
@@ -979,6 +975,28 @@ export default function NetworkVisualization() {
             
             {/* Search & Select */}
             <div className="col-span-2 space-y-4">
+              {/* Current Selection Header */}
+              {selectedRecords.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium text-blue-900">
+                      Current Selection: {selectedRecords.length} {selectedEntityType}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedRecords([])}
+                      className="text-blue-700 border-blue-300 hover:bg-blue-100"
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                  <div className="text-xs text-blue-700 mt-1">
+                    Continue selecting items below to add or remove from your filter
+                  </div>
+                </div>
+              )}
+              
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -992,7 +1010,7 @@ export default function NetworkVisualization() {
               {/* Select All/None Controls */}
               <div className="flex items-center justify-between text-sm">
                 <div className="text-gray-600">
-                  {filteredData.length} {selectedEntityType} available
+                  {filteredData.length} {selectedEntityType} available • {selectedRecords.length} selected
                 </div>
                 <div className="space-x-2">
                   <Button 
@@ -1060,6 +1078,7 @@ export default function NetworkVisualization() {
                 onClick={() => {
                   console.log('Apply button clicked with records:', selectedRecords.length);
                   applyEntityFilter(selectedEntityType, selectedRecords);
+                  setIsFilterDialogOpen(false); // Close modal after applying
                 }}
                 disabled={selectedRecords.length === 0}
               >
