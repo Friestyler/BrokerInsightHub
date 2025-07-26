@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -882,16 +882,16 @@ export default function NetworkVisualization() {
 
     return (
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]" aria-describedby="filter-dialog-description">
+        <DialogContent className="max-w-4xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <Filter className="h-5 w-5" />
               <span>Filter {selectedEntityType}</span>
             </DialogTitle>
+            <DialogDescription>
+              Select saved lists or individual {selectedEntityType} to filter the network visualization
+            </DialogDescription>
           </DialogHeader>
-          <div id="filter-dialog-description" className="sr-only">
-            Select saved lists or individual {selectedEntityType} to filter the network visualization
-          </div>
           
           <div className="grid grid-cols-3 gap-6">
             {/* Saved Lists */}

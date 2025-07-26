@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -123,9 +123,9 @@ export default function ContactRelationshipsModal({
             <Users className="h-6 w-6 mr-3 text-[#5567E5]" />
             Relationship Network: {contactName}
           </DialogTitle>
-          <p className="text-sm text-gray-600 mt-1">
+          <DialogDescription className="text-sm text-gray-600 mt-1">
             View existing connections or search for new entities to connect
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 min-h-0 flex flex-col px-6">
