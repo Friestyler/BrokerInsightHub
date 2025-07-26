@@ -1107,11 +1107,6 @@ export default function NetworkVisualization() {
                 <div className="text-sm text-gray-600 font-medium">
                   {filter.label}
                 </div>
-                {appliedFilters[filter.key]?.length > 0 && (
-                  <div className="text-xs text-blue-600 font-semibold mt-1">
-                    {appliedFilters[filter.key].length} selected
-                  </div>
-                )}
               </div>
             );
           })}
