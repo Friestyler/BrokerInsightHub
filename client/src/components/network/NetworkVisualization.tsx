@@ -825,39 +825,29 @@ export default function NetworkVisualization() {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Don't start dragging immediately, wait for mouse movement
+    // Only start dragging if not clicking on interactive elements
+    if ((e.target as Element).closest('circle, rect, div[data-contact-card]')) {
+      return; // Don't start dragging if clicking on nodes/cards
+    }
+    setIsDragging(true);
     setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragStart.x && !dragStart.y) return;
-    
-    // Only start dragging after mouse moves a minimum distance
-    const distance = Math.sqrt(
-      Math.pow(e.clientX - (dragStart.x + transform.x), 2) + 
-      Math.pow(e.clientY - (dragStart.y + transform.y), 2)
-    );
-    
-    if (distance > 5) { // 5px threshold before dragging starts
-      setIsDragging(true);
-    }
-    
-    if (isDragging) {
-      setTransform(prev => ({
-        ...prev,
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
-      }));
-    }
+    if (!isDragging) return;
+    setTransform(prev => ({
+      ...prev,
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    }));
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    setDragStart({ x: 0, y: 0 }); // Reset drag start position
+    setDragStart({ x: 0, y: 0 });
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     const newScale = Math.max(0.3, Math.min(3, transform.scale * delta));
     
@@ -1177,6 +1167,7 @@ export default function NetworkVisualization() {
       return (
         <div 
           className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)}`}
+          data-contact-card="true"
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -1256,8 +1247,6 @@ export default function NetworkVisualization() {
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
           onWheel={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
             const delta = e.deltaY > 0 ? 0.9 : 1.1;
             const newScale = Math.max(0.3, Math.min(3, transform.scale * delta));
             
