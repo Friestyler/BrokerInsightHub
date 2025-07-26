@@ -107,29 +107,9 @@ export default function NetworkVisualization() {
     staleTime: 30000,
   });
 
-  // Fetch saved lists for each entity type
-  const { data: customerLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', 'customers'],
-    staleTime: 30000,
-  });
-
-  const { data: opportunityLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', 'opportunities'],
-    staleTime: 30000,
-  });
-
-  const { data: partnerLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', 'partners'],
-    staleTime: 30000,
-  });
-
-  const { data: contactLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', 'contacts'],
-    staleTime: 30000,
-  });
-
-  const { data: productLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', 'products'],
+  // Fetch saved lists for each entity type with proper API endpoints
+  const { data: allSavedLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists'],
     staleTime: 30000,
   });
 
@@ -331,14 +311,22 @@ export default function NetworkVisualization() {
   };
 
   const getEntityLists = (entityType: string) => {
-    switch (entityType) {
-      case 'customers': return customerLists || [];
-      case 'opportunities': return opportunityLists || [];
-      case 'partners': return partnerLists || [];
-      case 'contacts': return contactLists || [];
-      case 'products': return productLists || [];
-      default: return [];
-    }
+    if (!allSavedLists || !Array.isArray(allSavedLists)) return [];
+    
+    // Filter lists by entity type
+    const entityTypeMap = {
+      'customers': 'customer',
+      'opportunities': 'opportunity', 
+      'partners': 'partner',
+      'contacts': 'contact',
+      'products': 'product'
+    };
+    
+    const targetEntityType = entityTypeMap[entityType as keyof typeof entityTypeMap];
+    return allSavedLists.filter((list: any) => 
+      list.entity_type === targetEntityType || 
+      list.entityType === targetEntityType
+    );
   };
 
   const getFilteredEntityData = (entityType: string) => {
@@ -389,7 +377,9 @@ export default function NetworkVisualization() {
       color: '#3B82F6',
       size: 60,
       cx: 400,
-      cy: 200
+      cy: 200,
+      entityData: selectedCustomerData,
+      entityRoute: `/customers/${selectedCustomerData.id}`
     });
 
     // Customer opportunities (check both field names)
@@ -415,7 +405,9 @@ export default function NetworkVisualization() {
         color: color,
         size: 35,
         cx: x,
-        cy: y
+        cy: y,
+        entityData: opp,
+        entityRoute: `/opportunities/${opp.id}`
       });
 
       relationships.push({
@@ -471,7 +463,9 @@ export default function NetworkVisualization() {
         color: color,
         size: size,
         cx: x,
-        cy: y
+        cy: y,
+        entityData: contact,
+        entityRoute: `/contacts/${contact.id}`
       });
 
       relationships.push({
@@ -498,7 +492,9 @@ export default function NetworkVisualization() {
             color: '#8B5CF6',
             size: 30,
             cx: 600,
-            cy: 150 + Array.from(customerPartners).length * 60
+            cy: 150 + Array.from(customerPartners).length * 60,
+            entityData: partner,
+            entityRoute: `/partners/${partner.id}`
           });
 
           relationships.push({
@@ -529,7 +525,9 @@ export default function NetworkVisualization() {
             color: '#F59E0B',
             size: 20,
             cx: x,
-            cy: y
+            cy: y,
+            entityData: product,
+            entityRoute: `/products/${product.id}`
           });
 
           relationships.push({
@@ -581,7 +579,16 @@ export default function NetworkVisualization() {
               stroke={entity.type === 'customer' ? '#1E40AF' : 'none'}
               strokeWidth={entity.type === 'customer' ? '2' : '0'}
               className="cursor-pointer hover:opacity-80"
-              onClick={() => setSelectedNode(entity)}
+              onClick={() => {
+                console.log('Clicked entity:', entity.type, entity.name, entity.entityRoute);
+                setSelectedNode(entity);
+                
+                // Navigate to entity-specific page based on type
+                if (entity.entityRoute) {
+                  console.log('Navigating to:', entity.entityRoute);
+                  // Add navigation logic here if needed
+                }
+              }}
             />
             <text 
               x={entity.cx} 
@@ -832,38 +839,75 @@ export default function NetworkVisualization() {
     };
 
     const handleListSelect = (list: any) => {
-      // Apply list filter logic here
+      // Get entity IDs from list - handle different field names
+      const entityIds = list.entity_ids || list.entityIds || [];
+      
+      // Find matching entities from the current entity data
       const listData = entityData.filter((item: any) => 
-        list.entity_ids?.includes(item.id) || false
+        entityIds.includes(item.id)
       );
-      setSelectedRecords(listData);
+      
+      // Add to selected records (multi-select)
+      setSelectedRecords(prev => {
+        const newIds = listData.map(item => item.id);
+        const existingIds = prev.map(item => item.id);
+        const combinedItems = [...prev];
+        
+        listData.forEach(item => {
+          if (!existingIds.includes(item.id)) {
+            combinedItems.push(item);
+          }
+        });
+        
+        return combinedItems;
+      });
     };
 
     return (
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
+        <DialogContent className="max-w-4xl max-h-[80vh]" aria-describedby="filter-dialog-description">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <Filter className="h-5 w-5" />
               <span>Filter {selectedEntityType}</span>
             </DialogTitle>
           </DialogHeader>
+          <div id="filter-dialog-description" className="sr-only">
+            Select saved lists or individual {selectedEntityType} to filter the network visualization
+          </div>
           
           <div className="grid grid-cols-3 gap-6">
             {/* Saved Lists */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-gray-900">Saved Lists</h4>
+              <h4 className="font-semibold text-gray-900">Saved Lists ({entityLists.length})</h4>
               <ScrollArea className="h-60">
-                {entityLists.map((list: any) => (
-                  <div
-                    key={list.id}
-                    className="p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 mb-2"
-                    onClick={() => handleListSelect(list)}
-                  >
-                    <div className="font-medium text-sm">{list.name}</div>
-                    <div className="text-xs text-gray-500">{list.entity_count || 0} items</div>
+                {entityLists.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No saved lists found for {selectedEntityType}</p>
                   </div>
-                ))}
+                ) : (
+                  entityLists.map((list: any) => (
+                    <div
+                      key={list.id}
+                      className="p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-blue-50 hover:border-blue-300 mb-2 transition-colors"
+                      onClick={() => {
+                        console.log('Selected list:', list);
+                        console.log('Entity IDs in list:', list.entity_ids || list.entityIds || []);
+                        handleListSelect(list);
+                      }}
+                    >
+                      <div className="font-medium text-sm">{list.name}</div>
+                      <div className="text-xs text-gray-500">
+                        {(list.entity_ids && Array.isArray(list.entity_ids) ? list.entity_ids.length : 
+                          list.entityIds && Array.isArray(list.entityIds) ? list.entityIds.length :
+                          list.entity_count || 0)} items
+                      </div>
+                      <div className="text-xs text-blue-600 mt-1">
+                        Type: {list.entity_type || list.entityType || 'unknown'}
+                      </div>
+                    </div>
+                  ))
+                )}
               </ScrollArea>
             </div>
             
