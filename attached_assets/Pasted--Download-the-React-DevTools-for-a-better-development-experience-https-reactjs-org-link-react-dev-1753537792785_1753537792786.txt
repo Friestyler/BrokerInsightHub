@@ -1,0 +1,299 @@
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ 🎯 AVAILABLE CONSOLE COMMANDS:
+ - testEnvironmentSwitch("nn") - Switch to specific environment
+ - clearAllCaches() - Clear all browser caches
+ - forceEnvironmentUpdate("concordia") - Force update to environment
+ - testAllEnvironments() - Test all environment assets
+ - monitorDOMChanges() - Monitor DOM changes
+ - checkCurrentState() - Check current environment state
+ - window.environmentDiagnostics.runComprehensiveDiagnostic() - Run full diagnostic
+ 🚀 STABLE STARTUP SEQUENCE INITIATED
+ 🔑 STEP 1: AUTOMATIC LOGIN
+ ✅ AUTOMATIC LOGIN COMPLETE
+ 🎯 STEP 2: STABLE ENVIRONMENT INITIALIZATION
+ 🎯 INITIALIZING STABLE ENVIRONMENT: Acme-TechCorp
+ 🔄 STABLE ENVIRONMENT SWITCH TO: Acme-TechCorp
+ 🎯 STABLE ENVIRONMENT SWITCH - Dispatched stableEnvironmentChanged event for: Acme-TechCorp
+ ✅ STABLE ENVIRONMENT SWITCH TO Acme-TechCorp COMPLETE
+ ✅ STABLE ENVIRONMENT INITIALIZED
+ ✅ STABLE ENVIRONMENT INITIALIZED
+ ⏳ STEP 3: DOM STABILIZATION
+ ✅ STABLE STARTUP SEQUENCE COMPLETE
+ 🎯 USER SELECTED ENVIRONMENT: Acme-TechCorp
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/unified-activities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/users
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/partners
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/opportunities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/customers
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-lists?entity_type=partners
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-lists?entity_type=customers
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-lists?entity_type=opportunities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-views?entity_type=partners
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-views?entity_type=customers
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-views?entity_type=opportunities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/okr-metrics
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/okr-tags
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/template-assignments/partner
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/template-assignments/customer
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/template-assignments/opportunity
+ Environment detection: Object
+ 🎯 ENVIRONMENT CONTEXT - Updating to saved environment: Acme-TechCorp
+ ✅ DOM STABILIZATION COMPLETE
+ [USO] Button detection aborting due to timeout.
+ 🎯 Final networkData for rendering: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/customers
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/opportunities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/partners
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/contacts
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/products
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/contact-relationships
+ Environment detection: Object
+ 🎯 Final networkData for rendering: Object
+ Selected customer: Object
+ Available opportunities: Array(0)
+ Available contacts: Array(0)
+ 🎯 Final networkData for rendering: Object
+ 🎯 Final networkData for rendering: Object
+ 🎯 Final networkData for rendering: Object
+ 🎯 Final networkData for rendering: Object
+ 🎯 Final networkData for rendering: Object
+ 🎯 Final networkData for rendering: Object
+ 🎯 Final networkData for rendering: Object
+ 🎯 Final networkData for rendering: Object
+ 🎯 Final networkData for rendering: Object
+ 🎯 Final networkData for rendering: Object
+ Entity clicked: customers
+ 🎯 Final networkData for rendering: Object
+ 🎯 Final networkData for rendering: Object
+ Apply button clicked with records: 1
+ Applying filter for customers with 1 records
+ Filter applied successfully
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+ Building org chart from filtered customers contacts
+ Found 16 contact relationships for 1 filtered customers
+ Found 16 actual contacts from relationships
+ 🌐 Generating filtered network with filters: Object
+ 📊 Available data arrays: Object
+ ✅ Network generation complete: Object
+ 🔍 Entity details: Array(3)
+ 🎯 Final networkData for rendering: Object
+NetworkVisualization.tsx:873 Building org chart from filtered customers contacts
+NetworkVisualization.tsx:881 Found 16 contact relationships for 1 filtered customers
+NetworkVisualization.tsx:889 Found 16 actual contacts from relationships
+NetworkVisualization.tsx:380 🌐 Generating filtered network with filters: Object
+NetworkVisualization.tsx:381 📊 Available data arrays: Object
+NetworkVisualization.tsx:579 ✅ Network generation complete: Object
+NetworkVisualization.tsx:580 🔍 Entity details: Array(3)
+NetworkVisualization.tsx:586 🎯 Final networkData for rendering: Object
+NetworkVisualization.tsx:380 🌐 Generating filtered network with filters: Object
+NetworkVisualization.tsx:381 📊 Available data arrays: Object
+NetworkVisualization.tsx:579 ✅ Network generation complete: Object
+NetworkVisualization.tsx:580 🔍 Entity details: Array(3)
+NetworkVisualization.tsx:586 🎯 Final networkData for rendering: Object
+NetworkVisualization.tsx:380 🌐 Generating filtered network with filters: Object
+NetworkVisualization.tsx:381 📊 Available data arrays: Object
+NetworkVisualization.tsx:579 ✅ Network generation complete: Object
+NetworkVisualization.tsx:580 🔍 Entity details: Array(3)
+NetworkVisualization.tsx:586 🎯 Final networkData for rendering: Object
+NetworkVisualization.tsx:759 🔥 CIRCLE POINTER DOWN: Amazon CS Netherlands B.V
+NetworkVisualization.tsx:717 🔥 POINTER UP on node: Amazon CS Netherlands B.V
+NetworkVisualization.tsx:725 🔥 Drag distance: 170.48986052403205
+NetworkVisualization.tsx:754 🔥 CIRCLE DIRECT CLICK: Amazon CS Netherlands B.V
+NetworkVisualization.tsx:380 🌐 Generating filtered network with filters: Object
+NetworkVisualization.tsx:381 📊 Available data arrays: Object
+NetworkVisualization.tsx:579 ✅ Network generation complete: Object
+NetworkVisualization.tsx:580 🔍 Entity details: Array(3)
+NetworkVisualization.tsx:586 🎯 Final networkData for rendering: Object
+NetworkVisualization.tsx:380 🌐 Generating filtered network with filters: Object
+NetworkVisualization.tsx:381 📊 Available data arrays: Object
+NetworkVisualization.tsx:579 ✅ Network generation complete: Object
+NetworkVisualization.tsx:580 🔍 Entity details: Array(3)
+NetworkVisualization.tsx:586 🎯 Final networkData for rendering: Object
+NetworkVisualization.tsx:380 🌐 Generating filtered network with filters: Object
+NetworkVisualization.tsx:381 📊 Available data arrays: Object
+NetworkVisualization.tsx:579 ✅ Network generation complete: Object
+NetworkVisualization.tsx:580 🔍 Entity details: Array(3)
+NetworkVisualization.tsx:586 🎯 Final networkData for rendering: Object
+NetworkVisualization.tsx:873 Building org chart from filtered customers contacts
+NetworkVisualization.tsx:881 Found 16 contact relationships for 1 filtered customers
+NetworkVisualization.tsx:889 Found 16 actual contacts from relationships
+NetworkVisualization.tsx:380 🌐 Generating filtered network with filters: Object
+NetworkVisualization.tsx:381 📊 Available data arrays: Object
+NetworkVisualization.tsx:579 ✅ Network generation complete: Object
+NetworkVisualization.tsx:580 🔍 Entity details: Array(3)
+NetworkVisualization.tsx:586 🎯 Final networkData for rendering: Object
