@@ -824,48 +824,10 @@ export default function NetworkVisualization() {
     setTransform({ x: 0, y: 0, scale: 1 });
   };
 
-  // Simplified node click handler - direct approach
-  const handleNodeClick = (node: any, e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-    
-    // Log the click with appropriate fields
-    const nodeType = node.type || 'contact';
-    const nodeName = node.name || node.title || node.full_name || 'Unknown';
-    console.log('🔥 Network node clicked:', nodeType, nodeName);
-    
-    // Set selected node
+  // Simple working click handler
+  const handleNodeClick = (node: any) => {
+    console.log('🔥 Network node clicked:', node.name || node.title || node.full_name, node.type || 'contact');
     setSelectedNode(node);
-    
-    // Handle navigation if entity route exists
-    if (node.entityRoute) {
-      console.log('Navigation route available:', node.entityRoute);
-    }
-  };
-
-  // Pan/zoom handlers - basic approach
-  const handleSVGMouseDown = (e: React.MouseEvent) => {
-    // Only pan from empty SVG areas, not nodes
-    if ((e.target as Element).tagName === 'svg') {
-      setIsDragging(true);
-      setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
-    }
-  };
-
-  const handleSVGMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setTransform(prev => ({
-      ...prev,
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    }));
-  };
-
-  const handleSVGMouseUp = () => {
-    setIsDragging(false);
-    setDragStart({ x: 0, y: 0 });
   };
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -892,10 +854,7 @@ export default function NetworkVisualization() {
         ref={svgRef} 
         className="w-full h-full cursor-move" 
         viewBox="0 0 800 400"
-        onMouseDown={handleSVGMouseDown}
-        onMouseMove={handleSVGMouseMove}
-        onMouseUp={handleSVGMouseUp}
-        onMouseLeave={handleSVGMouseUp}
+
         onWheel={handleWheel}
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       >
@@ -931,11 +890,7 @@ export default function NetworkVisualization() {
               stroke={entity.type === 'customer' ? '#1E40AF' : 'none'}
               strokeWidth={entity.type === 'customer' ? '2' : '0'}
               className="cursor-pointer hover:opacity-80"
-              style={{ pointerEvents: 'all' }}
-              onClick={(e) => {
-                console.log('🔥 Circle element clicked directly');
-                handleNodeClick(entity, e);
-              }}
+              onClick={() => handleNodeClick(entity)}
             />
             <text 
               x={entity.cx} 
@@ -1181,12 +1136,7 @@ export default function NetworkVisualization() {
       return (
         <div 
           className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)}`}
-          data-contact-card="true"
-          style={{ pointerEvents: 'all' }}
-          onClick={(e) => {
-            console.log('🔥 Contact card clicked directly');
-            handleNodeClick(person, e);
-          }}
+          onClick={() => handleNodeClick(person)}
         >
           <div className="flex items-center space-x-2 mb-1">
             {getRoleIcon(person.level)}
@@ -1255,10 +1205,7 @@ export default function NetworkVisualization() {
       <div className="relative h-96 bg-gray-50 rounded-lg border overflow-hidden">
         <div 
           className="w-full h-full"
-          onMouseDown={handleSVGMouseDown}
-          onMouseMove={handleSVGMouseMove}
-          onMouseUp={handleSVGMouseUp}
-          onMouseLeave={handleSVGMouseUp}
+
           onWheel={(e) => {
             const delta = e.deltaY > 0 ? 0.9 : 1.1;
             const newScale = Math.max(0.3, Math.min(3, transform.scale * delta));
