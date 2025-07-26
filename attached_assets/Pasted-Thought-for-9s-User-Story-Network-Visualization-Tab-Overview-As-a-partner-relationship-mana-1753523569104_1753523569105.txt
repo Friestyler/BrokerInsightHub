@@ -1,0 +1,293 @@
+Thought for 9s### User Story: Network Visualization Tab
+
+## Overview
+
+As a partner relationship manager, I want to visualize complex customer relationships and organizational structures so that I can better understand stakeholder networks, identify key decision makers, and optimize my engagement strategy.
+
+## Feature Description
+
+The Network tab provides two complementary views for analyzing customer relationships:
+
+1. **Network View**: Interactive network diagram showing all entity relationships
+2. **Org Chart View**: Traditional organizational chart displaying hierarchical reporting structures
+
+
+## User Story
+
+### As a Partner Relationship Manager
+
+**I want** to access comprehensive network visualization capabilities**So that** I can understand complex customer relationships, identify key stakeholders, and make informed decisions about opportunity management.
+
+## Acceptance Criteria
+
+### 1. Network Tab Access
+
+- **Given** I am viewing the comprehensive reporting dashboard
+- **When** I click on the "Network Visualization" tab
+- **Then** I should see the network visualization interface with filter controls and view options
+
+
+### 2. Relationship Filters
+
+- **Given** I am on the Network tab
+- **When** I view the relationship filters section
+- **Then** I should see toggleable filter buttons for:
+
+- **Customers** (3) - with building icon
+- **Opportunities** (3) - with target icon
+- **Contacts** (30) - with users icon
+- **Partners** (3) - with user-check icon
+- **Projects** (8) - with folder icon
+- **Products** (4) - with package icon
+- **Hierarchy** (1) - with sitemap icon
+
+
+
+- **And** each filter should show the count of entities in that category
+- **And** I should be able to toggle filters on/off to show/hide entity types
+- **And** the visualization should update dynamically based on active filters
+
+
+### 3. View Toggle Functionality
+
+- **Given** I am on the Network tab
+- **When** I see the view toggle tabs
+- **Then** I should see two options:
+
+- **Network View** (with network icon)
+- **Org Chart** (with org chart icon)
+
+
+
+- **And** I should be able to switch between views seamlessly
+- **And** the selected view should be visually indicated
+
+
+### 4. Network View Features
+
+#### 4.1 Interactive Network Diagram
+
+- **Given** I am viewing the Network View
+- **When** the network loads
+- **Then** I should see:
+
+- **Central primary customer node** (large blue circle) representing the main customer entity
+- **Connected entity nodes** in different colors and sizes based on type and importance
+- **Relationship lines** connecting related entities with different colors indicating relationship types
+- **Node labels** showing entity names (truncated if too long)
+- **Value indicators** showing monetary values where applicable (e.g., "€125k")
+
+
+
+
+
+#### 4.2 Node Types and Visual Encoding
+
+- **Customers**: Blue circles (primary), yellow (owner/parent), purple (subsidiary)
+- **Opportunities**: Green (accepted), red (withheld), yellow (pending)
+- **Contacts**: Sized and colored by role hierarchy
+
+- Executive: Large red nodes
+- VP: Large purple nodes
+- Director: Medium blue nodes
+- Manager: Medium green nodes
+- Other: Small gray nodes
+
+
+
+- **Partners**: Green (accepted partnerships), red (withheld)
+- **Products**: Orange circles
+- **Projects**: Blue circles with status indicators
+- **Hierarchy**: Pink circles
+
+
+#### 4.3 Relationship Lines
+
+- **Different colors** indicating relationship types:
+
+- Orange: "owns" relationships
+- Purple: "manages" relationships
+- Gray: "works_on" relationships
+- Blue: "assigned_to" relationships
+- Green: "related_to" relationships
+- Red: "reports_to" relationships
+
+
+
+- **Line thickness** indicating relationship strength
+- **Directional arrows** showing relationship direction
+- **Relationship labels** on hover or for key connections
+
+
+#### 4.4 Interactive Controls
+
+- **Pan and zoom** functionality for large networks
+- **Node selection** - clicking a node highlights it and shows details
+- **Hover effects** - hovering shows additional information
+- **Zoom controls** - zoom in/out buttons
+- **Reset view** button to return to default position
+
+
+#### 4.5 Legend
+
+- **Visual legend** showing:
+
+- Primary Customer (blue circle)
+- Owner/Parent (yellow circle)
+- Accepted/Active (green circle)
+- Withheld/Inactive (red circle)
+- Projects (blue circle)
+
+
+
+
+
+### 5. Org Chart View Features
+
+#### 5.1 Hierarchical Display
+
+- **Given** I am viewing the Org Chart View
+- **When** the chart loads
+- **Then** I should see:
+
+- **Hierarchical tree structure** with proper parent-child relationships
+- **Executive level** at the top (red boxes)
+- **VP level** below executives (purple boxes)
+- **Director level** below VPs (blue boxes)
+- **Manager level** below directors (green boxes)
+- **Other roles** at the bottom (gray boxes)
+
+
+
+
+
+#### 5.2 Contact Cards
+
+Each contact should be displayed as a card containing:
+
+- **Name** prominently displayed
+- **Job title** below the name
+- **Department badge** (HR, IT, Marketing, Operations, Sales)
+- **Role-based color coding**:
+
+- Executive: Red background with white text
+- VP: Purple background with white text
+- Director: Blue background with white text
+- Manager: Green background with white text
+- Other: Gray background with white text
+
+
+
+
+
+#### 5.3 Interactive Features
+
+- **Click to select** - clicking a contact card highlights it
+- **Hover for details** - hovering shows additional contact information:
+
+- Email address
+- Phone number
+- Reporting relationship
+
+
+
+- **Expandable/collapsible** sections for large hierarchies
+- **Connection lines** showing reporting relationships
+
+
+#### 5.4 Department and Role Legend
+
+- **Department colors**:
+
+- HR: Purple badge
+- IT: Blue badge
+- Marketing: Pink badge
+- Operations: Orange badge
+- Sales: Green badge
+
+
+
+- **Role hierarchy indicators**:
+
+- Crown icon: Executive
+- Settings icon: VP
+- Building icon: Director
+- Briefcase icon: Manager
+- Users icon: Other
+
+
+
+
+
+### 6. Selected Node Details Panel
+
+- **Given** I have selected a node in either view
+- **When** I view the details panel
+- **Then** I should see:
+
+- **Entity name and type**
+- **Relevant metadata** (title, department, role for contacts)
+- **Contact information** (email, phone for contacts)
+- **Relationship information** (reports to, manages)
+- **Associated values** where applicable
+- **Tags and categories**
+
+
+
+
+
+### 7. Customer Selection
+
+- **Given** I want to analyze a different customer
+- **When** I use the customer selection dropdown
+- **Then** I should be able to:
+
+- **Select from available customers** with their names and connection counts
+- **See the network update** to show the selected customer's relationships
+- **Maintain filter settings** when switching customers
+
+
+
+
+
+### 8. Performance and Usability
+
+- **Network rendering** should be smooth and responsive
+- **Large datasets** (30+ contacts) should load efficiently
+- **Filter changes** should update the visualization in real-time
+- **View switching** should be instantaneous
+- **Mobile responsiveness** for smaller screens
+
+
+## Technical Requirements
+
+### Data Structure
+
+- Support for multiple entity types with flexible metadata
+- Hierarchical relationship mapping for org charts
+- Dynamic filtering capabilities
+- Real-time data updates
+
+
+### Visualization Engine
+
+- SVG-based rendering for scalability
+- Interactive pan/zoom functionality
+- Efficient layout algorithms for both network and hierarchical views
+- Responsive design for various screen sizes
+
+
+### Integration Points
+
+- Customer data from reporting system
+- Contact information from CRM
+- Opportunity data from sales pipeline
+- Project information from project management system
+
+
+## Success Metrics
+
+- **User engagement**: Time spent analyzing network relationships
+- **Decision quality**: Improved stakeholder identification accuracy
+- **Efficiency**: Reduced time to understand customer organizational structure
+- **Adoption**: Percentage of users regularly using network visualization features

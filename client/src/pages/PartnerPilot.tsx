@@ -18,6 +18,7 @@ import DataUploadOptions from '@/pages/DataUpload/DataUploadOptions';
 import DeGoudseUploadWizard from '@/pages/DataUpload/DeGoudseUploadWizard';
 import ReportsPage from '@/pages/Reports/ReportsPage';
 import PlatformActivityHub from '@/components/activity/PlatformActivityHub';
+import NetworkVisualization from '@/components/network/NetworkVisualization';
 
 import { 
   MessageSquare, 
@@ -56,7 +57,8 @@ import {
   User,
   UserCheck,
   Phone,
-  Factory
+  Factory,
+  Network
 
 } from 'lucide-react';
 
@@ -381,7 +383,6 @@ export default function PartnerPilot() {
           Inbox
         </Button>
 
-
         <Button 
           variant="ghost"
           className={activeSection === 'data-upload-3' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
@@ -389,6 +390,24 @@ export default function PartnerPilot() {
         >
           <Upload className="h-4 w-4 mr-2" />
           Data
+        </Button>
+
+        <Button 
+          variant="ghost"
+          className={activeSection === 'ecosystem' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
+          onClick={() => setActiveSection('ecosystem')}
+        >
+          <Network className="h-4 w-4 mr-2" />
+          Ecosystem
+        </Button>
+
+        <Button 
+          variant="ghost"
+          className={activeSection === 'ecosystem' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
+          onClick={() => setActiveSection('ecosystem')}
+        >
+          <Network className="h-4 w-4 mr-2" />
+          Ecosystem
         </Button>
       </div>
 
@@ -637,6 +656,11 @@ export default function PartnerPilot() {
         </div>
       )}
 
+      {activeSection === 'ecosystem' && (
+        <div className="w-full">
+          <NetworkVisualization />
+        </div>
+      )}
 
     </div>
   );
