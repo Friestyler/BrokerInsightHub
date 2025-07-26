@@ -400,15 +400,6 @@ export default function PartnerPilot() {
           <Network className="h-4 w-4 mr-2" />
           Ecosystem
         </Button>
-
-        <Button 
-          variant="ghost"
-          className={activeSection === 'ecosystem' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
-          onClick={() => setActiveSection('ecosystem')}
-        >
-          <Network className="h-4 w-4 mr-2" />
-          Ecosystem
-        </Button>
       </div>
 
 {activeSection === 'copilot' && (

@@ -120,7 +120,7 @@ export default function NetworkVisualization() {
     { key: 'partners', label: 'Partners', count: entityCounts.partners, icon: UserCheck },
     { key: 'projects', label: 'Projects', count: entityCounts.projects, icon: Folder },
     { key: 'products', label: 'Products', count: entityCounts.products, icon: Package },
-    { key: 'hierarchy', label: 'Hierarchy', count: entityCounts.hierarchy, icon: Sitemap }
+    { key: 'hierarchy', label: 'Hierarchy', count: entityCounts.hierarchy, icon: GitBranch }
   ];
 
   const toggleFilter = (filterKey: string) => {
@@ -589,7 +589,7 @@ export default function NetworkVisualization() {
                       <span>Network View</span>
                     </TabsTrigger>
                     <TabsTrigger value="orgchart" className="flex items-center space-x-2">
-                      <Sitemap className="h-4 w-4" />
+                      <GitBranch className="h-4 w-4" />
                       <span>Org Chart</span>
                     </TabsTrigger>
                   </TabsList>
