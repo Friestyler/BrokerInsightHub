@@ -824,17 +824,40 @@ export default function NetworkVisualization() {
     setTransform({ x: 0, y: 0, scale: 1 });
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Only start dragging if not clicking on interactive elements
-    if ((e.target as Element).closest('circle, rect, div[data-contact-card]')) {
-      return; // Don't start dragging if clicking on nodes/cards
+  // Simplified node click handler - direct approach
+  const handleNodeClick = (node: any, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
     }
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+    
+    // Log the click with appropriate fields
+    const nodeType = node.type || 'contact';
+    const nodeName = node.name || node.title || node.full_name || 'Unknown';
+    console.log('🔥 Network node clicked:', nodeType, nodeName);
+    
+    // Set selected node
+    setSelectedNode(node);
+    
+    // Handle navigation if entity route exists
+    if (node.entityRoute) {
+      console.log('Navigation route available:', node.entityRoute);
+    }
+  };
+
+  // Pan/zoom handlers - simplified
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Only start panning from background, not nodes
+    if ((e.target as Element).tagName === 'svg' || (e.target as Element).tagName === 'g') {
+      setIsMouseDown(true);
+      setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
+    if (!isMouseDown) return;
     setTransform(prev => ({
       ...prev,
       x: e.clientX - dragStart.x,
@@ -843,7 +866,7 @@ export default function NetworkVisualization() {
   };
 
   const handleMouseUp = () => {
-    setIsDragging(false);
+    setIsMouseDown(false);
     setDragStart({ x: 0, y: 0 });
   };
 
@@ -910,18 +933,7 @@ export default function NetworkVisualization() {
               stroke={entity.type === 'customer' ? '#1E40AF' : 'none'}
               strokeWidth={entity.type === 'customer' ? '2' : '0'}
               className="cursor-pointer hover:opacity-80"
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                console.log('🔥 Network node clicked:', entity.type, entity.name, entity.entityRoute);
-                setSelectedNode(entity);
-                
-                // Navigate to entity-specific page based on type
-                if (entity.entityRoute) {
-                  console.log('Navigating to:', entity.entityRoute);
-                  // Add navigation logic here if needed
-                }
-              }}
+              onClick={(e) => handleNodeClick(entity, e)}
             />
             <text 
               x={entity.cx} 
@@ -1168,12 +1180,7 @@ export default function NetworkVisualization() {
         <div 
           className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)}`}
           data-contact-card="true"
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            console.log('🔥 Org chart card clicked:', person.name, person.role);
-            setSelectedNode(person);
-          }}
+          onClick={(e) => handleNodeClick(person, e)}
         >
           <div className="flex items-center space-x-2 mb-1">
             {getRoleIcon(person.level)}
