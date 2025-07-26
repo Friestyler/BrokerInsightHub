@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
@@ -643,22 +643,7 @@ export default function NetworkVisualization() {
           <p className="text-gray-600 mt-1">Analyze customer relationships and organizational structures</p>
         </div>
         
-        {/* Customer Selection */}
-        <div className="flex items-center space-x-3">
-          <span className="text-sm text-gray-600 font-medium">Focus on:</span>
-          <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-            <SelectTrigger className="w-72 h-10 border-gray-200 rounded-xl">
-              <SelectValue placeholder="Select a customer to analyze" />
-            </SelectTrigger>
-            <SelectContent>
-              {customersArray && Array.isArray(customersArray) && customersArray.map((customer: any) => (
-                <SelectItem key={customer.id} value={customer.name}>
-                  {customer.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+
       </div>
 
       {/* Relationship Overview - Apple/Google Style */}
