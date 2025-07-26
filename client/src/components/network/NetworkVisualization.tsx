@@ -697,7 +697,16 @@ export default function NetworkVisualization() {
 
         {/* Entity nodes */}
         {networkData.entities.map((entity) => (
-          <g key={entity.id}>
+          <g 
+            key={entity.id}
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log('🎯 NODE CLICKED:', entity.name, entity.type, entity.id);
+              setSelectedNode(entity);
+            }}
+            className="cursor-pointer hover:opacity-80"
+            style={{ pointerEvents: 'all' }}
+          >
             {/* Main circle */}
             <circle
               cx={entity.cx}
@@ -706,11 +715,6 @@ export default function NetworkVisualization() {
               fill={entity.color}
               stroke={entity.type === 'customer' ? '#1E40AF' : 'none'}
               strokeWidth={entity.type === 'customer' ? '2' : '0'}
-              className="cursor-pointer hover:opacity-80"
-              onClick={() => {
-                console.log('🎯 NODE CLICKED:', entity.name, entity.type);
-                handleNodeClick(entity);
-              }}
             />
             
             {/* Profile picture placeholder for contacts - show for all contacts */}
@@ -724,11 +728,9 @@ export default function NetworkVisualization() {
                   fill="white"
                   stroke="#d1d5db"
                   strokeWidth="1"
-                  className="cursor-pointer"
-                  onClick={() => handleNodeClick(entity)}
                 />
                 {/* Profile icon - simple person silhouette */}
-                <g onClick={() => handleNodeClick(entity)} className="cursor-pointer">
+                <g>
                   {/* Head */}
                   <circle
                     cx={entity.cx}
