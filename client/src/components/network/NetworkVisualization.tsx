@@ -248,7 +248,8 @@ export default function NetworkVisualization() {
     
     // Auto-filter related entities based on relationships
     filterRelatedEntities(entityType, records);
-    setIsFilterDialogOpen(false);
+    // Keep dialog open for additional changes
+    // setIsFilterDialogOpen(false);
     
     console.log('Filter applied successfully');
   };
@@ -907,8 +908,8 @@ export default function NetworkVisualization() {
       // Apply the filter to the visualization
       applyEntityFilter(selectedEntityType, listData);
       
-      // Close dialog and clear search
-      setIsFilterDialogOpen(false);
+      // Keep dialog open for additional filter changes
+      // setIsFilterDialogOpen(false);
       setSearchQuery('');
     };
 
@@ -1038,7 +1039,7 @@ export default function NetworkVisualization() {
             </div>
             <div className="space-x-2">
               <Button variant="outline" onClick={() => setIsFilterDialogOpen(false)}>
-                Cancel
+                Close
               </Button>
               <Button 
                 onClick={() => {
@@ -1058,26 +1059,13 @@ export default function NetworkVisualization() {
 
   return (
     <div className="space-y-6">
-      {/* Filter Indicators */}
+      {/* Clear All Filters Button - Only show when filters are active */}
       {Object.keys(appliedFilters).length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">Active Filters</span>
-            </div>
-            <Button variant="outline" size="sm" onClick={clearAllFilters}>
-              <X className="h-3 w-3 mr-1" />
-              Clear All
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-3">
-            {Object.entries(appliedFilters).map(([entityType, records]) => (
-              <Badge key={entityType} variant="secondary" className="bg-blue-100 text-blue-800">
-                {entityType}: {records.length} selected
-              </Badge>
-            ))}
-          </div>
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={clearAllFilters} className="text-gray-600">
+            <X className="h-3 w-3 mr-1" />
+            Clear all filters
+          </Button>
         </div>
       )}
 
@@ -1108,7 +1096,9 @@ export default function NetworkVisualization() {
                 }`}>
                   <IconComponent className="h-6 w-6" />
                   {isFiltered && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <div className="absolute -top-2 -right-2 min-w-[20px] h-5 bg-blue-500 text-white text-xs font-medium rounded-full flex items-center justify-center px-1.5">
+                      {appliedFilters[filter.key]?.length || 0}
+                    </div>
                   )}
                 </div>
                 <div className="text-2xl font-bold text-gray-900 mb-1">
