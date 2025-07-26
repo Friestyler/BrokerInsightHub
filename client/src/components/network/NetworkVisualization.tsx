@@ -178,7 +178,12 @@ export default function NetworkVisualization() {
       return {
         customers: appliedFilters.customers?.length || customersArray?.length || 0,
         opportunities: appliedFilters.opportunities?.length || (appliedFilters.customers ? 0 : opportunitiesArray?.length || 0),
-        contacts: appliedFilters.contacts?.length || (appliedFilters.customers ? 0 : contactsArray?.length || 0),
+        contacts: appliedFilters.contacts?.length || (appliedFilters.customers ? 
+          (contactRelationships?.filter((rel: any) => 
+            rel.entity_type === 'customer' && 
+            appliedFilters.customers.some((c: any) => c.id === rel.entity_id)
+          )?.length || 0) : 
+          contactsArray?.length || 0),
         partners: appliedFilters.partners?.length || partnersArray?.length || 0,
         projects: appliedFilters.projects?.length || 8,
         products: appliedFilters.products?.length || productsArray?.length || 0,
@@ -205,8 +210,13 @@ export default function NetworkVisualization() {
       o.customer_id === selectedCustomerData.id || o.clientId === selectedCustomerData.id
     ) || [];
     
+    // Use contact_relationships table for contact counting
+    const customerContactIds = contactRelationships
+      ?.filter((rel: any) => rel.entity_type === 'customer' && rel.entity_id === selectedCustomerData.id)
+      ?.map((rel: any) => rel.contact_id) || [];
+    
     const customerContacts = contactsArray?.filter((c: any) => 
-      c.customer_id === selectedCustomerData.id || c.clientId === selectedCustomerData.id
+      customerContactIds.includes(c.id) || c.customer_id === selectedCustomerData.id || c.clientId === selectedCustomerData.id
     ) || [];
     
     console.log('Entity counts for', selectedCustomer, ':', {
@@ -471,9 +481,13 @@ export default function NetworkVisualization() {
       });
     });
 
-    // Customer contacts (check both field names)
+    // Customer contacts - use contact_relationships table 
+    const customerContactIds = contactRelationships
+      ?.filter((rel: any) => rel.entity_type === 'customer' && rel.entity_id === selectedCustomerData.id)
+      ?.map((rel: any) => rel.contact_id) || [];
+    
     const customerContacts = contactsArray.filter((c: any) => 
-      c.customer_id === selectedCustomerData.id || c.clientId === selectedCustomerData.id
+      customerContactIds.includes(c.id) || c.customer_id === selectedCustomerData.id || c.clientId === selectedCustomerData.id
     );
     customerContacts.slice(0, 5).forEach((contact: any, index: number) => {
       const angle = (index * 72 + 36) * (Math.PI / 180);
