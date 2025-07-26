@@ -56,7 +56,13 @@ interface NetworkRelationship {
   thickness?: number;
 }
 
-export default function NetworkVisualization() {
+interface NetworkVisualizationProps {
+  entityType?: string;
+  entityId?: number;
+  entityName?: string;
+}
+
+export default function NetworkVisualization({ entityType, entityId, entityName }: NetworkVisualizationProps = {}) {
   const { environment } = useEnvironment();
   const [selectedCustomer, setSelectedCustomer] = useState<string>('');
   const [activeView, setActiveView] = useState('network');

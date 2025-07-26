@@ -25,6 +25,7 @@ import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
+import NetworkVisualization from "@/components/network/NetworkVisualization";
 import nnLogo from "@assets/NN.AS_1751813752232.png";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
 import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
@@ -1768,6 +1769,16 @@ export default function PartnerDetail() {
                     }`}
                   >
                     Contacts (0)
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab("network")}
+                    className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                      activeTab === "network" 
+                        ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                        : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                    }`}
+                  >
+                    Network
                   </button>
                 </>
               )}
@@ -5367,6 +5378,16 @@ export default function PartnerDetail() {
                 <p className="text-gray-500">No contacts are currently associated with this partner.</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === "network" && (
+          <div className="space-y-4">
+            <NetworkVisualization 
+              entityType="partner"
+              entityId={parseInt(id || "0")}
+              entityName={partner?.name || "Partner"}
+            />
           </div>
         )}
       </div>

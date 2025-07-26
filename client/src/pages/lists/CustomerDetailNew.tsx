@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
+import NetworkVisualization from "@/components/network/NetworkVisualization";
 
 export default function CustomerDetailNew() {
   const { id } = useParams();
@@ -1222,6 +1223,16 @@ export default function CustomerDetailNew() {
                 Contacts ({relatedContacts?.length || 0})
               </button>
             )}
+            <button 
+              onClick={() => setActiveTab("network")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                activeTab === "network" 
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              Network
+            </button>
 
           </nav>
         </div>
@@ -2095,6 +2106,16 @@ export default function CustomerDetailNew() {
                 <p className="text-gray-500">No contacts associated with this customer</p>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === "network" && (
+          <div className="space-y-4">
+            <NetworkVisualization 
+              entityType="customer"
+              entityId={parseInt(id || "0")}
+              entityName={customer?.name || "Customer"}
+            />
           </div>
         )}
 
