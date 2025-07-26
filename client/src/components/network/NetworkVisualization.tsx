@@ -87,26 +87,33 @@ export default function NetworkVisualization() {
     staleTime: 30000,
   });
 
+  // Extract data arrays from API responses
+  const customersArray = customers?.data || customers || [];
+  const opportunitiesArray = opportunities || [];
+  const partnersArray = partners || [];
+  const contactsArray = contacts || [];
+  const productsArray = products || [];
+
   // Set default customer when data loads
   useEffect(() => {
-    if (customers && Array.isArray(customers) && customers.length > 0 && !selectedCustomer) {
-      setSelectedCustomer(customers[0].name);
+    if (customersArray && Array.isArray(customersArray) && customersArray.length > 0 && !selectedCustomer) {
+      setSelectedCustomer(customersArray[0].name);
     }
-  }, [customers, selectedCustomer]);
+  }, [customersArray, selectedCustomer]);
 
   // Calculate real counts from data
   const getEntityCounts = () => {
-    const selectedCustomerData = customers?.find((c: any) => c.name === selectedCustomer);
-    const customerOpportunities = opportunities?.filter((o: any) => o.customer_id === selectedCustomerData?.id) || [];
-    const customerContacts = contacts?.filter((c: any) => c.customer_id === selectedCustomerData?.id) || [];
+    const selectedCustomerData = customersArray?.find((c: any) => c.name === selectedCustomer);
+    const customerOpportunities = opportunitiesArray?.filter((o: any) => o.customer_id === selectedCustomerData?.id) || [];
+    const customerContacts = contactsArray?.filter((c: any) => c.customer_id === selectedCustomerData?.id) || [];
     
     return {
-      customers: customers?.length || 0,
+      customers: customersArray?.length || 0,
       opportunities: customerOpportunities.length,
       contacts: customerContacts.length,
-      partners: partners?.length || 0,
+      partners: partnersArray?.length || 0,
       projects: 8, // Placeholder as projects not in current schema
-      products: products?.length || 0,
+      products: productsArray?.length || 0,
       hierarchy: 1
     };
   };
@@ -153,9 +160,9 @@ export default function NetworkVisualization() {
 
   // Transform real data for network visualization
   const getNetworkData = () => {
-    if (!customers || !selectedCustomer) return { entities: [], relationships: [] };
+    if (!customersArray || !selectedCustomer) return { entities: [], relationships: [] };
 
-    const selectedCustomerData = customers.find((c: any) => c.name === selectedCustomer);
+    const selectedCustomerData = customersArray.find((c: any) => c.name === selectedCustomer);
     if (!selectedCustomerData) return { entities: [], relationships: [] };
 
     const entities: NetworkEntity[] = [];
@@ -174,7 +181,7 @@ export default function NetworkVisualization() {
     });
 
     // Customer opportunities
-    const customerOpportunities = opportunities?.filter((o: any) => o.customer_id === selectedCustomerData.id) || [];
+    const customerOpportunities = opportunitiesArray?.filter((o: any) => o.customer_id === selectedCustomerData.id) || [];
     customerOpportunities.slice(0, 3).forEach((opp: any, index: number) => {
       const angle = (index * 120) * (Math.PI / 180);
       const x = 400 + Math.cos(angle) * 120;
@@ -366,12 +373,12 @@ export default function NetworkVisualization() {
 
   // Transform contacts data for org chart view
   const getOrgChartData = () => {
-    if (!customers || !selectedCustomer || !contacts) return [];
+    if (!customersArray || !selectedCustomer || !contactsArray) return [];
 
-    const selectedCustomerData = customers.find((c: any) => c.name === selectedCustomer);
+    const selectedCustomerData = customersArray.find((c: any) => c.name === selectedCustomer);
     if (!selectedCustomerData) return [];
 
-    const customerContacts = contacts.filter((c: any) => c.customer_id === selectedCustomerData.id);
+    const customerContacts = contactsArray.filter((c: any) => c.customer_id === selectedCustomerData.id);
     
     return customerContacts.map((contact: any) => {
       const title = (contact.job_title || '').toLowerCase();
@@ -540,7 +547,7 @@ export default function NetworkVisualization() {
             <SelectValue placeholder="Select a customer" />
           </SelectTrigger>
           <SelectContent>
-            {customers && Array.isArray(customers) && customers.map((customer: any) => (
+            {customersArray && Array.isArray(customersArray) && customersArray.map((customer: any) => (
               <SelectItem key={customer.id} value={customer.name}>
                 {customer.name} ({entityCounts.customers > 0 ? 'connections available' : 'no connections'})
               </SelectItem>
