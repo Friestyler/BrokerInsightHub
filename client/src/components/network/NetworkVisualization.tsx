@@ -165,12 +165,28 @@ export default function NetworkVisualization() {
 
   // Calculate real counts from data
   const getEntityCounts = () => {
+    // If filters are applied, show filtered counts instead of total counts
+    const hasFilters = Object.keys(appliedFilters).length > 0;
+    
+    if (hasFilters) {
+      return {
+        customers: appliedFilters.customers?.length || customersArray?.length || 0,
+        opportunities: appliedFilters.opportunities?.length || (appliedFilters.customers ? 0 : opportunitiesArray?.length || 0),
+        contacts: appliedFilters.contacts?.length || (appliedFilters.customers ? 0 : contactsArray?.length || 0),
+        partners: appliedFilters.partners?.length || partnersArray?.length || 0,
+        projects: appliedFilters.projects?.length || 8,
+        products: appliedFilters.products?.length || productsArray?.length || 0,
+        hierarchy: 1
+      };
+    }
+    
+    // No filters applied - show total counts
     const selectedCustomerData = customersArray?.find((c: any) => c.name === selectedCustomer);
     if (!selectedCustomerData) {
       return {
         customers: customersArray?.length || 0,
-        opportunities: 0,
-        contacts: 0,
+        opportunities: opportunitiesArray?.length || 0,
+        contacts: contactsArray?.length || 0,
         partners: partnersArray?.length || 0,
         projects: 8,
         products: productsArray?.length || 0,
@@ -191,16 +207,15 @@ export default function NetworkVisualization() {
       customer: selectedCustomerData,
       opportunities: customerOpportunities.length,
       contacts: customerContacts.length,
-      opportunitySample: customerOpportunities[0],
-      contactSample: customerContacts[0]
+      opportunitySample: customerOpportunities[0]
     });
     
     return {
       customers: customersArray?.length || 0,
-      opportunities: customerOpportunities.length,
-      contacts: customerContacts.length,
+      opportunities: opportunitiesArray?.length || 0,
+      contacts: contactsArray?.length || 0,
       partners: partnersArray?.length || 0,
-      projects: 8, // Placeholder as projects not in current schema
+      projects: 8,
       products: productsArray?.length || 0,
       hierarchy: 1
     };
@@ -235,10 +250,8 @@ export default function NetworkVisualization() {
     setSelectedRecords(currentSelection);
     setSearchQuery('');
     
-    // Only open dialog after state is set
-    setTimeout(() => {
-      setIsFilterDialogOpen(true);
-    }, 50);
+    // Open dialog immediately without timeout to prevent flashing
+    setIsFilterDialogOpen(true);
   };
 
   const applyEntityFilter = (entityType: string, records: any[]) => {
