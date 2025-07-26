@@ -839,9 +839,18 @@ export default function NetworkVisualization() {
     
     const filteredData = entityData.filter((item: any) => {
       const searchFields = [item.name, item.title, item.full_name, item.first_name, item.last_name, item.company].filter(Boolean);
-      return searchFields.some(field => 
+      const matches = searchFields.some(field => 
         field.toLowerCase().includes(searchQuery.toLowerCase())
       );
+      if (searchQuery) {
+        console.log('Search debug:', { 
+          searchQuery, 
+          item: item.name || item.title, 
+          searchFields, 
+          matches 
+        });
+      }
+      return matches;
     });
 
     const handleRecordToggle = (record: any) => {
