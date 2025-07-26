@@ -1,0 +1,206 @@
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ 🎯 AVAILABLE CONSOLE COMMANDS:
+ - testEnvironmentSwitch("nn") - Switch to specific environment
+ - clearAllCaches() - Clear all browser caches
+ - forceEnvironmentUpdate("concordia") - Force update to environment
+ - testAllEnvironments() - Test all environment assets
+ - monitorDOMChanges() - Monitor DOM changes
+ - checkCurrentState() - Check current environment state
+ - window.environmentDiagnostics.runComprehensiveDiagnostic() - Run full diagnostic
+ 🚀 STABLE STARTUP SEQUENCE INITIATED
+ 🔑 STEP 1: AUTOMATIC LOGIN
+ ✅ AUTOMATIC LOGIN COMPLETE
+ 🎯 STEP 2: STABLE ENVIRONMENT INITIALIZATION
+ 🎯 INITIALIZING STABLE ENVIRONMENT: Acme-TechCorp
+ 🔄 STABLE ENVIRONMENT SWITCH TO: Acme-TechCorp
+ 🎯 STABLE ENVIRONMENT SWITCH - Dispatched stableEnvironmentChanged event for: Acme-TechCorp
+ ✅ STABLE ENVIRONMENT SWITCH TO Acme-TechCorp COMPLETE
+ ✅ STABLE ENVIRONMENT INITIALIZED
+ ✅ STABLE ENVIRONMENT INITIALIZED
+ ⏳ STEP 3: DOM STABILIZATION
+ ✅ STABLE STARTUP SEQUENCE COMPLETE
+ 🎯 USER SELECTED ENVIRONMENT: Acme-TechCorp
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/unified-activities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/users
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/partners
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/opportunities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/customers
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-lists?entity_type=partners
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-lists?entity_type=customers
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-lists?entity_type=opportunities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-views?entity_type=partners
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-views?entity_type=customers
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/saved-views?entity_type=opportunities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/okr-metrics
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/okr-tags
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/template-assignments/partner
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/template-assignments/customer
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ Environment URL transformed: Object
+ Fetching from URL: /api/degoudse/template-assignments/opportunity
+ Environment detection: Object
+ ✅ DOM STABILIZATION COMPLETE
+ 🎯 ENVIRONMENT CONTEXT - Updating to saved environment: Acme-TechCorp
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/customers
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/opportunities
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/partners
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/contacts
+ Environment detection: Object
+ Environment detection: Object
+ Environment URL transformation: Object
+ URL already has environment prefix, returning as-is
+ Fetching from URL: /api/degoudse/products
+ Environment detection: Object
+ Selected customer: Object
+ Available opportunities: Array(0)
+ Available contacts: Array(0)
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Filter dialog data: Object
+ Filtered results: Object
+ Selected list: Object
+ Entity IDs in list: Array(0)
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Filter dialog data: Object
+ Filtered results: Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Filter dialog data: Object
+ Filtered results: Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Entity counts for Amazon CS Netherlands B.V : Object
+ Filter dialog data: Object
+ Filtered results: Object
+ Selected list: Object
+ Entity IDs in list: Array(0)
+ Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:940 Selected list: Object
+NetworkVisualization.tsx:941 Entity IDs in list: Array(0)
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:940 Selected list: Object
+NetworkVisualization.tsx:941 Entity IDs in list: Array(0)
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:940 Selected list: Object
+NetworkVisualization.tsx:941 Entity IDs in list: Array(0)
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object
+NetworkVisualization.tsx:843 Filter dialog data: Object
+NetworkVisualization.tsx:870 Filtered results: Object
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : Object

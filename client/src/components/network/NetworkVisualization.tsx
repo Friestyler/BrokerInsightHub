@@ -227,10 +227,15 @@ export default function NetworkVisualization() {
 
   // Advanced filtering functions
   const handleEntityClick = (entityType: string) => {
+    console.log('Entity clicked:', entityType);
     setSelectedEntityType(entityType);
-    setIsFilterDialogOpen(true);
-    setSearchQuery('');
     setSelectedRecords([]);
+    setSearchQuery('');
+    
+    // Only open dialog after state is set
+    setTimeout(() => {
+      setIsFilterDialogOpen(true);
+    }, 50);
   };
 
   const applyEntityFilter = (entityType: string, records: any[]) => {
@@ -832,45 +837,27 @@ export default function NetworkVisualization() {
     );
   };
 
-  // Entity Filter Dialog Component
+  // Entity Filter Dialog Component - Only render when properly initialized
   const EntityFilterDialog = () => {
-    // Only render dialog if we have a valid entity type
+    // Don't render until we have valid data and dialog is open
     if (!selectedEntityType || !isFilterDialogOpen) return null;
     
     const entityData = getEntityData(selectedEntityType);
     const entityLists = getEntityLists(selectedEntityType);
     
-    console.log('Filter dialog data:', {
-      selectedEntityType,
-      entityDataLength: entityData.length,
-      searchQuery,
-      entityData: entityData.slice(0, 3) // First 3 items for debugging
-    });
+    // Don't render dialog until data is loaded
+    if (entityData.length === 0 && entityLists.length === 0) {
+      console.log('Waiting for data to load...', { selectedEntityType, entityData: entityData.length, entityLists: entityLists.length });
+      return null;
+    }
 
     const filteredData = entityData.filter((item: any) => {
       if (!searchQuery.trim()) return true; // Show all when no search
       
       const searchFields = [item.name, item.title, item.full_name, item.first_name, item.last_name, item.company].filter(Boolean);
-      const matches = searchFields.some(field => 
+      return searchFields.some(field => 
         field.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      
-      if (searchQuery.trim()) {
-        console.log('Search debug:', { 
-          searchQuery, 
-          item: item.name || item.title, 
-          searchFields, 
-          matches 
-        });
-      }
-      
-      return matches;
-    });
-
-    console.log('Filtered results:', {
-      originalCount: entityData.length,
-      filteredCount: filteredData.length,
-      searchQuery
     });
 
     const handleRecordToggle = (record: any) => {
@@ -885,28 +872,37 @@ export default function NetworkVisualization() {
     };
 
     const handleListSelect = (list: any) => {
-      // Get entity IDs from list - handle different field names
-      const entityIds = list.entity_ids || list.entityIds || [];
+      // Get entity IDs from list - use 'members' field which is correct
+      const entityIds = list.members || list.entity_ids || list.entityIds || [];
+      
+      console.log('List selection:', {
+        listName: list.name,
+        entityIds: entityIds,
+        entityIdsCount: entityIds.length
+      });
+      
+      if (!Array.isArray(entityIds) || entityIds.length === 0) {
+        console.warn('Selected list has no valid entity IDs');
+        return;
+      }
       
       // Find matching entities from the current entity data
       const listData = entityData.filter((item: any) => 
         entityIds.includes(item.id)
       );
       
-      // Add to selected records (multi-select)
-      setSelectedRecords(prev => {
-        const newIds = listData.map((item: any) => item.id);
-        const existingIds = prev.map((item: any) => item.id);
-        const combinedItems = [...prev];
-        
-        listData.forEach((item: any) => {
-          if (!existingIds.includes(item.id)) {
-            combinedItems.push(item);
-          }
-        });
-        
-        return combinedItems;
+      console.log('Filtered list data:', {
+        totalEntityData: entityData.length,
+        matchedItems: listData.length,
+        matchedSample: listData.slice(0, 3).map(item => ({ id: item.id, name: item.name || item.title }))
       });
+      
+      // Set selected records (replace, not add)
+      setSelectedRecords(listData);
+      
+      // Close dialog and clear search
+      setIsFilterDialogOpen(false);
+      setSearchQuery('');
     };
 
     return (
@@ -937,16 +933,17 @@ export default function NetworkVisualization() {
                       key={list.id}
                       className="p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-blue-50 hover:border-blue-300 mb-2 transition-colors"
                       onClick={() => {
-                        console.log('Selected list:', list);
-                        console.log('Entity IDs in list:', list.entity_ids || list.entityIds || []);
+                        const entityIds = list.members || list.entity_ids || list.entityIds || [];
+                        console.log('Selected list:', list.name, 'with', entityIds.length, 'items');
                         handleListSelect(list);
                       }}
                     >
                       <div className="font-medium text-sm">{list.name}</div>
                       <div className="text-xs text-gray-500">
-                        {(list.entity_ids && Array.isArray(list.entity_ids) ? list.entity_ids.length : 
-                          list.entityIds && Array.isArray(list.entityIds) ? list.entityIds.length :
-                          list.entity_count || 0)} items
+                        {list.members && Array.isArray(list.members) ? list.members.length : 
+                         list.entity_ids && Array.isArray(list.entity_ids) ? list.entity_ids.length : 
+                         list.entityIds && Array.isArray(list.entityIds) ? list.entityIds.length :
+                         list.entity_count || 0} items
                       </div>
                       <div className="text-xs text-blue-600 mt-1">
                         Type: {list.entity_type || list.entityType || 'unknown'}
