@@ -6522,13 +6522,12 @@ Return as JSON in this exact format:
     const entityType = req.query.entity_type as string;
     const partnerId = req.query.partner_id as string;
     
-    // Create cache key based on query parameters
-    const cacheKey = `degoudse_saved_lists_${entityType || 'all'}_${partnerId || 'none'}`;
-    const cached = getCached(cacheKey);
+    // Disable caching for this response to ensure fresh data
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     
-    if (cached) {
-      return res.json(cached);
-    }
+    console.log(`FIXED: De Goudse saved lists: entityType='${entityType}', partnerId='${partnerId}'`);
     
     try {
       const envPool = pool;
@@ -6542,7 +6541,9 @@ Return as JSON in this exact format:
         );
       } else if (entityType) {
         // Filter by entity type only, include general lists (partner_id IS NULL) but exclude partner-specific lists
+        console.log(`FIXED: Executing query: SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC with params: [`, entityType, `]`);
         result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', [entityType]);
+        console.log(`FIXED: Query returned ${result.rows.length} rows`);
         
         // Parse PostgreSQL array strings for opportunities
         if (entityType === 'opportunities') {
@@ -6555,11 +6556,13 @@ Return as JSON in this exact format:
         }
       } else {
         // Return all lists
+        console.log(`FIXED: Executing query: SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC`);
         result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
+        console.log(`FIXED: Query returned ${result.rows.length} rows`);
       }
       
-      setCache(cacheKey, result.rows);
-      return res.json(result.rows);
+      console.log(`FIXED: Returning ${result.rows.length} saved lists for entityType='${entityType}'`);
+      res.json(result.rows);
     } catch (error) {
       console.error('De Goudse saved lists error:', error);
       res.status(500).json({ error: 'Database error' });
