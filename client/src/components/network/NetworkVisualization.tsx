@@ -229,7 +229,10 @@ export default function NetworkVisualization() {
   const handleEntityClick = (entityType: string) => {
     console.log('Entity clicked:', entityType);
     setSelectedEntityType(entityType);
-    setSelectedRecords([]);
+    
+    // Load current selections if any filters are applied
+    const currentSelection = appliedFilters[entityType] || [];
+    setSelectedRecords(currentSelection);
     setSearchQuery('');
     
     // Only open dialog after state is set
@@ -1058,32 +1061,19 @@ export default function NetworkVisualization() {
 
   return (
     <div className="space-y-6">
-      {/* Filter Indicators */}
-      {Object.keys(appliedFilters).length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">Active Filters</span>
-            </div>
+
+
+      {/* Relationship Filters - Apple/Google Style */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Relationship Filters</h3>
+          {Object.keys(appliedFilters).length > 0 && (
             <Button variant="outline" size="sm" onClick={clearAllFilters}>
               <X className="h-3 w-3 mr-1" />
               Clear All
             </Button>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-3">
-            {Object.entries(appliedFilters).map(([entityType, records]) => (
-              <Badge key={entityType} variant="secondary" className="bg-blue-100 text-blue-800">
-                {entityType}: {records.length} selected
-              </Badge>
-            ))}
-          </div>
+          )}
         </div>
-      )}
-
-      {/* Relationship Filters - Apple/Google Style */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Relationship Filters</h3>
         <div className="grid grid-cols-7 gap-6">
           {filterOptions.map((filter) => {
             const IconComponent = filter.icon;
@@ -1117,6 +1107,11 @@ export default function NetworkVisualization() {
                 <div className="text-sm text-gray-600 font-medium">
                   {filter.label}
                 </div>
+                {appliedFilters[filter.key]?.length > 0 && (
+                  <div className="text-xs text-blue-600 font-semibold mt-1">
+                    {appliedFilters[filter.key].length} selected
+                  </div>
+                )}
               </div>
             );
           })}
