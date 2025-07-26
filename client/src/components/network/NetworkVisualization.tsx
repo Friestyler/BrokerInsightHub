@@ -73,6 +73,11 @@ export default function NetworkVisualization() {
   
   // Advanced filtering state
   const [appliedFilters, setAppliedFilters] = useState<{[key: string]: any[]}>({});
+  
+  // Zoom and pan state
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [selectedEntityType, setSelectedEntityType] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -806,9 +811,70 @@ export default function NetworkVisualization() {
 
   const networkData = getNetworkData();
 
+  // Zoom and pan functions
+  const handleZoomIn = () => {
+    setTransform(prev => ({ ...prev, scale: Math.min(prev.scale * 1.2, 3) }));
+  };
+
+  const handleZoomOut = () => {
+    setTransform(prev => ({ ...prev, scale: Math.max(prev.scale / 1.2, 0.3) }));
+  };
+
+  const handleResetView = () => {
+    setTransform({ x: 0, y: 0, scale: 1 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setTransform(prev => ({
+      ...prev,
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    }));
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newScale = Math.max(0.3, Math.min(3, transform.scale * delta));
+    
+    // Calculate zoom point to zoom into cursor position
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (rect) {
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      setTransform(prev => ({
+        x: x - (x - prev.x) * (newScale / prev.scale),
+        y: y - (y - prev.y) * (newScale / prev.scale),
+        scale: newScale
+      }));
+    }
+  };
+
   const NetworkViewContent = () => (
     <div className="relative h-96 bg-gray-50 rounded-lg border overflow-hidden">
-      <svg ref={svgRef} className="w-full h-full" viewBox="0 0 800 400">
+      <svg 
+        ref={svgRef} 
+        className="w-full h-full cursor-move" 
+        viewBox="0 0 800 400"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onWheel={handleWheel}
+        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+      >
+        <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
         {/* Relationship lines */}
         {networkData.relationships.map((rel, index) => {
           const fromEntity = networkData.entities.find(e => e.id === rel.from);
@@ -871,17 +937,18 @@ export default function NetworkVisualization() {
             )}
           </g>
         ))}
+        </g>
       </svg>
 
       {/* Network controls */}
       <div className="absolute top-4 right-4 flex space-x-2">
-        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+        <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={handleZoomIn}>
           <ZoomIn className="h-4 w-4" />
         </Button>
-        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+        <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={handleZoomOut}>
           <ZoomOut className="h-4 w-4" />
         </Button>
-        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+        <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={handleResetView}>
           <RotateCcw className="h-4 w-4" />
         </Button>
       </div>
@@ -1160,24 +1227,53 @@ export default function NetworkVisualization() {
     }
 
     return (
-      <ScrollArea className="h-full w-full">
-        <div className="p-6 min-w-fit">
-          <div className="text-center mb-8">
-            <div className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-center space-x-2">
-              <GitBranch className="h-5 w-5 text-blue-500" />
-              <span>Organizational Hierarchy</span>
+      <div className="relative h-96 bg-gray-50 rounded-lg border overflow-hidden">
+        <div 
+          className="w-full h-full"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+          style={{ 
+            cursor: isDragging ? 'grabbing' : 'grab',
+            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+            transformOrigin: '0 0',
+            minWidth: 'max-content',
+            minHeight: 'max-content'
+          }}
+        >
+          <div className="p-6 min-w-fit">
+            <div className="text-center mb-8">
+              <div className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-center space-x-2">
+                <GitBranch className="h-5 w-5 text-blue-500" />
+                <span>Organizational Hierarchy</span>
+              </div>
+              <p className="text-sm text-gray-600">{orgContacts.length} contacts • Showing reporting relationships</p>
             </div>
-            <p className="text-sm text-gray-600">{orgContacts.length} contacts • Showing reporting relationships</p>
-          </div>
-          
-          {/* Render hierarchical structure */}
-          <div className="flex justify-center space-x-12">
-            {hierarchicalContacts.map((rootNode: any) => (
-              <HierarchyNode key={rootNode.id} node={rootNode} />
-            ))}
+            
+            {/* Render hierarchical structure */}
+            <div className="flex justify-center space-x-12">
+              {hierarchicalContacts.map((rootNode: any) => (
+                <HierarchyNode key={rootNode.id} node={rootNode} />
+              ))}
+            </div>
           </div>
         </div>
-      </ScrollArea>
+
+        {/* Org Chart controls */}
+        <div className="absolute top-4 right-4 flex space-x-2">
+          <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={handleZoomIn}>
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={handleZoomOut}>
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={handleResetView}>
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     );
   };
 
