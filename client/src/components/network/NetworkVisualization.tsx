@@ -590,15 +590,17 @@ export default function NetworkVisualization() {
   // Enhanced click handler to properly handle node data for details panel
   const handleNodeClick = (node: any) => {
     console.log('🔥 Network node clicked:', node.name || node.title || node.full_name, node.type || 'contact');
+    console.log('Raw node data received:', node);
     
     // Enhance node data with entityData for details panel
     const enhancedNode = {
       ...node,
-      ...node.entityData, // Merge in the actual entity data
-      type: node.type || 'contact' // Ensure type is set
+      ...(node.entityData || {}), // Merge in the actual entity data if it exists
+      type: node.type || 'contact', // Ensure type is set
+      name: node.name || node.title || node.full_name || 'Unknown' // Ensure name is set
     };
     
-    console.log('Enhanced node data:', enhancedNode);
+    console.log('Enhanced node data for details panel:', enhancedNode);
     setSelectedNode(enhancedNode);
   };
 
