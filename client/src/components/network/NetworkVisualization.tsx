@@ -897,6 +897,39 @@ export default function NetworkVisualization() {
 
   // Transform contacts data for org chart view
   const getOrgChartData = () => {
+    // Check if we have filtered contacts
+    const hasContactFilters = appliedFilters.contacts && appliedFilters.contacts.length > 0;
+    
+    if (hasContactFilters) {
+      // Use filtered contacts for org chart
+      console.log('Building org chart from filtered contacts:', appliedFilters.contacts.length);
+      return appliedFilters.contacts.map((contact: any) => {
+        const title = (contact.job_title || '').toLowerCase();
+        let level = 'other';
+
+        if (title.includes('ceo') || title.includes('executive') || title.includes('president')) {
+          level = 'executive';
+        } else if (title.includes('vp') || title.includes('vice president')) {
+          level = 'vp';
+        } else if (title.includes('director')) {
+          level = 'director';
+        } else if (title.includes('manager')) {
+          level = 'manager';
+        }
+
+        return {
+          id: contact.id,
+          name: contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : contact.company_name,
+          role: contact.job_title || 'No title',
+          department: contact.department || 'General',
+          level: level,
+          email: contact.email,
+          phone: contact.phone
+        };
+      });
+    }
+
+    // Default behavior - use selected customer contacts
     if (!customersArray || !selectedCustomer || !contactsArray) return [];
 
     const selectedCustomerData = customersArray.find((c: any) => c.name === selectedCustomer);
