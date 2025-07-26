@@ -377,7 +377,14 @@ export default function NetworkVisualization() {
       return { entities: [], relationships: [] };
     } else {
       // FILTERS APPLIED - Show filtered network visualization
-      console.log('Generating filtered network with filters:', appliedFilters);
+      console.log('🌐 Generating filtered network with filters:', appliedFilters);
+      console.log('📊 Available data arrays:', {
+        customers: customersArray?.length || 0, 
+        opportunities: opportunitiesArray?.length || 0,
+        contacts: contactsArray?.length || 0,
+        partners: partnersArray?.length || 0,
+        products: productsArray?.length || 0
+      });
       
       // Get filtered entities
       const filteredCustomers = appliedFilters.customers || [];
@@ -569,10 +576,17 @@ export default function NetworkVisualization() {
       });
     }
 
+    console.log('✅ Network generation complete:', { entitiesCount: entities.length, relationshipsCount: relationships.length });
+    console.log('🔍 Entity details:', entities.map(e => ({ id: e.id, name: e.name, type: e.type })));
+    
     return { entities, relationships };
   };
 
   const networkData = getNetworkData();
+  console.log('🎯 Final networkData for rendering:', { 
+    entities: networkData.entities.length, 
+    relationships: networkData.relationships.length 
+  });
 
   // Zoom and pan functions
   const handleZoomIn = () => {
@@ -694,7 +708,7 @@ export default function NetworkVisualization() {
               strokeWidth={entity.type === 'customer' ? '2' : '0'}
               className="cursor-pointer hover:opacity-80"
               onClick={() => {
-                console.log('🎯 CLICK EVENT FIRED for entity:', entity.name, entity.type);
+                console.log('🎯 NODE CLICKED:', entity.name, entity.type);
                 handleNodeClick(entity);
               }}
             />
