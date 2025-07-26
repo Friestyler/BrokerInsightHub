@@ -88,12 +88,12 @@ export default function NetworkVisualization() {
     staleTime: 30000,
   });
 
-  // Extract data arrays from API responses
-  const customersArray = customers?.data || customers || [];
-  const opportunitiesArray = opportunities || [];
-  const partnersArray = partners || [];
-  const contactsArray = contacts || [];
-  const productsArray = products || [];
+  // Extract data arrays from API responses with proper type checking
+  const customersArray = Array.isArray(customers?.data) ? customers.data : Array.isArray(customers) ? customers : [];
+  const opportunitiesArray = Array.isArray(opportunities) ? opportunities : [];
+  const partnersArray = Array.isArray(partners) ? partners : [];
+  const contactsArray = Array.isArray(contacts) ? contacts : [];
+  const productsArray = Array.isArray(products) ? products : [];
 
   // Set default customer when data loads
   useEffect(() => {
@@ -214,7 +214,7 @@ export default function NetworkVisualization() {
     });
 
     // Customer contacts
-    const customerContacts = contacts?.filter((c: any) => c.customer_id === selectedCustomerData.id) || [];
+    const customerContacts = contactsArray.filter((c: any) => c.customer_id === selectedCustomerData.id);
     customerContacts.slice(0, 5).forEach((contact: any, index: number) => {
       const angle = (index * 72 + 36) * (Math.PI / 180);
       const x = 400 + Math.cos(angle) * 80;
@@ -265,6 +265,63 @@ export default function NetworkVisualization() {
         type: 'employs',
         color: '#6366F1'
       });
+    });
+
+    // Add partner relationships (via opportunities)
+    const customerPartners = new Set();
+    customerOpportunities.forEach((opp: any) => {
+      if (opp.partner_id) {
+        const partner = partnersArray.find((p: any) => p.id === opp.partner_id);
+        if (partner && !customerPartners.has(partner.id)) {
+          customerPartners.add(partner.id);
+          
+          entities.push({
+            id: `partner-${partner.id}`,
+            name: partner.name,
+            type: 'partner',
+            color: '#8B5CF6',
+            size: 30,
+            cx: 600,
+            cy: 150 + Array.from(customerPartners).length * 60
+          });
+
+          relationships.push({
+            from: `customer-${selectedCustomerData.id}`,
+            to: `partner-${partner.id}`,
+            type: 'managed_by',
+            color: '#8B5CF6'
+          });
+        }
+      }
+    });
+
+    // Add product connections (via opportunities)
+    customerOpportunities.forEach((opp: any, index: number) => {
+      if (opp.product_id) {
+        const product = productsArray.find((p: any) => p.id === opp.product_id);
+        if (product) {
+          const angle = (180 + index * 30) * (Math.PI / 180);
+          const x = 400 + Math.cos(angle) * 150;
+          const y = 200 + Math.sin(angle) * 150;
+
+          entities.push({
+            id: `product-${product.id}`,
+            name: product.name,
+            type: 'product',
+            color: '#F59E0B',
+            size: 20,
+            cx: x,
+            cy: y
+          });
+
+          relationships.push({
+            from: `opportunity-${opp.id}`,
+            to: `product-${product.id}`,
+            type: 'involves',
+            color: '#F59E0B'
+          });
+        }
+      }
     });
 
     return { entities, relationships };
@@ -646,10 +703,21 @@ export default function NetworkVisualization() {
               {selectedNode ? (
                 <div className="space-y-4">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <User className="h-8 w-8 text-blue-600" />
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
+                      selectedNode.type === 'customer' ? 'bg-blue-100' :
+                      selectedNode.type === 'opportunity' ? 'bg-yellow-100' :
+                      selectedNode.type === 'contact' ? 'bg-indigo-100' :
+                      selectedNode.type === 'partner' ? 'bg-purple-100' :
+                      selectedNode.type === 'product' ? 'bg-orange-100' : 'bg-gray-100'
+                    }`}>
+                      {selectedNode.type === 'customer' && <Building className="h-8 w-8 text-blue-600" />}
+                      {selectedNode.type === 'opportunity' && <Target className="h-8 w-8 text-yellow-600" />}
+                      {selectedNode.type === 'contact' && <User className="h-8 w-8 text-indigo-600" />}
+                      {selectedNode.type === 'partner' && <UserCheck className="h-8 w-8 text-purple-600" />}
+                      {selectedNode.type === 'product' && <Package className="h-8 w-8 text-orange-600" />}
                     </div>
                     <div className="font-semibold text-gray-900 text-lg">{selectedNode.name}</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">{selectedNode.type}</div>
                     {selectedNode.role && (
                       <div className="text-sm text-gray-600 mt-1">{selectedNode.role}</div>
                     )}
@@ -661,7 +729,8 @@ export default function NetworkVisualization() {
                   </div>
                   
                   <div className="space-y-3 mt-6">
-                    {selectedNode.email && (
+                    {/* Contact-specific information */}
+                    {selectedNode.type === 'contact' && selectedNode.email && (
                       <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                         <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                           <Mail className="h-4 w-4 text-blue-600" />
@@ -670,7 +739,7 @@ export default function NetworkVisualization() {
                       </div>
                     )}
                     
-                    {selectedNode.phone && (
+                    {selectedNode.type === 'contact' && selectedNode.phone && (
                       <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                         <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                           <Phone className="h-4 w-4 text-green-600" />
@@ -679,25 +748,44 @@ export default function NetworkVisualization() {
                       </div>
                     )}
                     
-                    {selectedNode.value && (
+                    {/* Opportunity value */}
+                    {selectedNode.type === 'opportunity' && selectedNode.value && (
                       <div className="p-3 bg-green-50 rounded-xl">
+                        <div className="text-sm text-gray-600 text-center mb-1">Estimated Value</div>
                         <div className="text-lg font-semibold text-green-700 text-center">
                           {selectedNode.value}
                         </div>
                       </div>
                     )}
                     
-                    {selectedNode.status && (
+                    {/* Opportunity status */}
+                    {selectedNode.type === 'opportunity' && selectedNode.status && (
                       <div className="text-center">
+                        <div className="text-sm text-gray-600 mb-2">Assessment Status</div>
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                           selectedNode.status === 'accepted' 
                             ? 'bg-green-100 text-green-700' 
-                            : 'bg-gray-100 text-gray-700'
+                            : selectedNode.status === 'withheld'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-yellow-100 text-yellow-700'
                         }`}>
-                          {selectedNode.status}
+                          {selectedNode.status.charAt(0).toUpperCase() + selectedNode.status.slice(1)}
                         </span>
                       </div>
                     )}
+                    
+                    {/* Entity type badge */}
+                    <div className="flex justify-center">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                        selectedNode.type === 'customer' ? 'bg-blue-100 text-blue-700' :
+                        selectedNode.type === 'opportunity' ? 'bg-yellow-100 text-yellow-700' :
+                        selectedNode.type === 'contact' ? 'bg-indigo-100 text-indigo-700' :
+                        selectedNode.type === 'partner' ? 'bg-purple-100 text-purple-700' :
+                        selectedNode.type === 'product' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {selectedNode.type === 'contact' && selectedNode.level ? selectedNode.level.toUpperCase() : 'ENTITY'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ) : (
