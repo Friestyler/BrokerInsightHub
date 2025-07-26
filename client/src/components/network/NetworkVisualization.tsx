@@ -107,39 +107,39 @@ export default function NetworkVisualization() {
     staleTime: 30000,
   });
 
-  // Fetch saved lists for each entity type with proper API endpoints
+  // Fetch saved lists for each entity type with correct plural entity types
   const { data: customerLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'customer' }],
-    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=customer').then(res => res.json()),
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'customers' }],
+    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=customers').then(res => res.json()),
     staleTime: 30000,
   });
 
   const { data: opportunityLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'opportunity' }],
-    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=opportunity').then(res => res.json()),
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'opportunities' }],
+    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=opportunities').then(res => res.json()),
     staleTime: 30000,
   });
 
   const { data: partnerLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'partner' }],
-    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=partner').then(res => res.json()),
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'partners' }],
+    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=partners').then(res => res.json()),
     staleTime: 30000,
   });
 
   const { data: contactLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'contact' }],
-    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=contact').then(res => res.json()),
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'contacts' }],
+    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=contacts').then(res => res.json()),
     staleTime: 30000,
   });
 
   const { data: productLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'product' }],
-    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=product').then(res => res.json()),
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'products' }],
+    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=products').then(res => res.json()),
     staleTime: 30000,
   });
 
   // Extract data arrays from API responses with proper type checking
-  const customersArray = customers?.data ? customers.data : Array.isArray(customers) ? customers : [];
+  const customersArray = (customers as any)?.data ? (customers as any).data : Array.isArray(customers) ? customers : [];
   const opportunitiesArray = Array.isArray(opportunities) ? opportunities : [];
   const partnersArray = Array.isArray(partners) ? partners : [];
   const contactsArray = Array.isArray(contacts) ? contacts : [];
@@ -866,11 +866,11 @@ export default function NetworkVisualization() {
       
       // Add to selected records (multi-select)
       setSelectedRecords(prev => {
-        const newIds = listData.map(item => item.id);
-        const existingIds = prev.map(item => item.id);
+        const newIds = listData.map((item: any) => item.id);
+        const existingIds = prev.map((item: any) => item.id);
         const combinedItems = [...prev];
         
-        listData.forEach(item => {
+        listData.forEach((item: any) => {
           if (!existingIds.includes(item.id)) {
             combinedItems.push(item);
           }
