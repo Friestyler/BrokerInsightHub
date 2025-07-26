@@ -1,0 +1,185 @@
+chunk-276SZO74.js?v=8755a362:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+consoleCommands.ts:189 🎯 AVAILABLE CONSOLE COMMANDS:
+consoleCommands.ts:190 - testEnvironmentSwitch("nn") - Switch to specific environment
+consoleCommands.ts:191 - clearAllCaches() - Clear all browser caches
+consoleCommands.ts:192 - forceEnvironmentUpdate("concordia") - Force update to environment
+consoleCommands.ts:193 - testAllEnvironments() - Test all environment assets
+consoleCommands.ts:194 - monitorDOMChanges() - Monitor DOM changes
+consoleCommands.ts:195 - checkCurrentState() - Check current environment state
+consoleCommands.ts:196 - window.environmentDiagnostics.runComprehensiveDiagnostic() - Run full diagnostic
+stableStartupSequence.ts:10 🚀 STABLE STARTUP SEQUENCE INITIATED
+stableStartupSequence.ts:13 🔑 STEP 1: AUTOMATIC LOGIN
+stableStartupSequence.ts:18 ✅ AUTOMATIC LOGIN COMPLETE
+stableStartupSequence.ts:21 🎯 STEP 2: STABLE ENVIRONMENT INITIALIZATION
+stableEnvironmentSwitch.ts:89 🎯 INITIALIZING STABLE ENVIRONMENT: Acme-TechCorp
+stableEnvironmentSwitch.ts:37 🔄 STABLE ENVIRONMENT SWITCH TO: Acme-TechCorp
+stableEnvironmentSwitch.ts:80 🎯 STABLE ENVIRONMENT SWITCH - Dispatched stableEnvironmentChanged event for: Acme-TechCorp
+stableEnvironmentSwitch.ts:82 ✅ STABLE ENVIRONMENT SWITCH TO Acme-TechCorp COMPLETE
+stableEnvironmentSwitch.ts:95 ✅ STABLE ENVIRONMENT INITIALIZED
+stableStartupSequence.ts:24 ✅ STABLE ENVIRONMENT INITIALIZED
+stableStartupSequence.ts:27 ⏳ STEP 3: DOM STABILIZATION
+stableStartupSequence.ts:32 ✅ STABLE STARTUP SEQUENCE COMPLETE
+stableStartupSequence.ts:33 🎯 USER SELECTED ENVIRONMENT: Acme-TechCorp
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'Acme-TechCorp', originalUrl: '/api/unified-activities'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/unified-activities', to: '/api/degoudse/unified-activities', targetEnv: 'degoudse', envId: 'Acme-TechCorp'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/unified-activities
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'Acme-TechCorp', originalUrl: '/api/users'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/users', to: '/api/degoudse/users', targetEnv: 'degoudse', envId: 'Acme-TechCorp'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/users
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'Acme-TechCorp', originalUrl: '/api/partners'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/partners', to: '/api/degoudse/partners', targetEnv: 'degoudse', envId: 'Acme-TechCorp'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/partners
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'Acme-TechCorp', originalUrl: '/api/opportunities'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/opportunities', to: '/api/degoudse/opportunities', targetEnv: 'degoudse', envId: 'Acme-TechCorp'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/opportunities
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'Acme-TechCorp', originalUrl: '/api/customers'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/customers', to: '/api/degoudse/customers', targetEnv: 'degoudse', envId: 'Acme-TechCorp'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/customers
+queryClient.ts:18 Environment detection: {envFromWindow: undefined, envFromStorage: 'Acme-TechCorp'}
+ Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+ Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-lists?entity_type=partners'}
+ Environment URL transformed: {from: '/api/saved-lists?entity_type=partners', to: '/api/degoudse/saved-lists?entity_type=partners', targetEnv: 'degoudse', envId: 'degoudse'}
+ Fetching from URL: /api/degoudse/saved-lists?entity_type=partners
+ Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+ Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+ Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-lists?entity_type=customers'}
+ Environment URL transformed: {from: '/api/saved-lists?entity_type=customers', to: '/api/degoudse/saved-lists?entity_type=customers', targetEnv: 'degoudse', envId: 'degoudse'}
+ Fetching from URL: /api/degoudse/saved-lists?entity_type=customers
+ Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-lists?entity_type=opportunities'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/saved-lists?entity_type=opportunities', to: '/api/degoudse/saved-lists?entity_type=opportunities', targetEnv: 'degoudse', envId: 'degoudse'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/saved-lists?entity_type=opportunities
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-views?entity_type=partners'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/saved-views?entity_type=partners', to: '/api/degoudse/saved-views?entity_type=partners', targetEnv: 'degoudse', envId: 'degoudse'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/saved-views?entity_type=partners
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-views?entity_type=customers'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/saved-views?entity_type=customers', to: '/api/degoudse/saved-views?entity_type=customers', targetEnv: 'degoudse', envId: 'degoudse'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/saved-views?entity_type=customers
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/saved-views?entity_type=opportunities'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/saved-views?entity_type=opportunities', to: '/api/degoudse/saved-views?entity_type=opportunities', targetEnv: 'degoudse', envId: 'degoudse'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/saved-views?entity_type=opportunities
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/okr-metrics'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/okr-metrics', to: '/api/degoudse/okr-metrics', targetEnv: 'degoudse', envId: 'degoudse'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/okr-metrics
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/okr-tags'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/okr-tags', to: '/api/degoudse/okr-tags', targetEnv: 'degoudse', envId: 'degoudse'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/okr-tags
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/template-assignments/partner'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/template-assignments/partner', to: '/api/degoudse/template-assignments/partner', targetEnv: 'degoudse', envId: 'degoudse'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/template-assignments/partner
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/template-assignments/customer'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/template-assignments/customer', to: '/api/degoudse/template-assignments/customer', targetEnv: 'degoudse', envId: 'degoudse'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/template-assignments/customer
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'degoudse', originalUrl: '/api/template-assignments/opportunity'}
+queryClient.ts:52 Environment URL transformed: {from: '/api/template-assignments/opportunity', to: '/api/degoudse/template-assignments/opportunity', targetEnv: 'degoudse', envId: 'degoudse'}
+queryClient.ts:127 Fetching from URL: /api/degoudse/template-assignments/opportunity
+queryClient.ts:18 Environment detection: {envFromWindow: 'degoudse', envFromStorage: 'Acme-TechCorp'}
+stableStartupSequence.ts:29 ✅ DOM STABILIZATION COMPLETE
+EnvironmentContext.tsx:117 🎯 ENVIRONMENT CONTEXT - Updating to saved environment: Acme-TechCorp
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+queryClient.ts:18 Environment detection: {envFromWindow: 'Acme-TechCorp', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'Acme-TechCorp', originalUrl: '/api/degoudse/customers'}
+queryClient.ts:42 URL already has environment prefix, returning as-is
+queryClient.ts:127 Fetching from URL: /api/degoudse/customers
+queryClient.ts:18 Environment detection: {envFromWindow: 'Acme-TechCorp', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'Acme-TechCorp', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'Acme-TechCorp', originalUrl: '/api/degoudse/opportunities'}
+queryClient.ts:42 URL already has environment prefix, returning as-is
+queryClient.ts:127 Fetching from URL: /api/degoudse/opportunities
+queryClient.ts:18 Environment detection: {envFromWindow: 'Acme-TechCorp', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'Acme-TechCorp', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'Acme-TechCorp', originalUrl: '/api/degoudse/partners'}
+queryClient.ts:42 URL already has environment prefix, returning as-is
+queryClient.ts:127 Fetching from URL: /api/degoudse/partners
+queryClient.ts:18 Environment detection: {envFromWindow: 'Acme-TechCorp', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'Acme-TechCorp', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'Acme-TechCorp', originalUrl: '/api/degoudse/contacts'}
+queryClient.ts:42 URL already has environment prefix, returning as-is
+queryClient.ts:127 Fetching from URL: /api/degoudse/contacts
+queryClient.ts:18 Environment detection: {envFromWindow: 'Acme-TechCorp', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:18 Environment detection: {envFromWindow: 'Acme-TechCorp', envFromStorage: 'Acme-TechCorp'}
+queryClient.ts:32 Environment URL transformation: {envId: 'Acme-TechCorp', originalUrl: '/api/degoudse/products'}
+queryClient.ts:42 URL already has environment prefix, returning as-is
+queryClient.ts:127 Fetching from URL: /api/degoudse/products
+queryClient.ts:18 Environment detection: {envFromWindow: 'Acme-TechCorp', envFromStorage: 'Acme-TechCorp'}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:160 Selected customer: {id: 18, name: 'Amazon CS Netherlands B.V', description: 'Customer created from Excel import', initials: 'AC', ownerId: null, …}
+NetworkVisualization.tsx:161 Available opportunities: []
+NetworkVisualization.tsx:162 Available contacts: []
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 0, contacts: 0, opportunitySample: undefined, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 0, contacts: 0, opportunitySample: undefined, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 0, contacts: 0, opportunitySample: undefined, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 0, contacts: 0, opportunitySample: undefined, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 0, contacts: 0, opportunitySample: undefined, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 0, contacts: 0, opportunitySample: undefined, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 2, contacts: 0, opportunitySample: {…}, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 2, contacts: 0, opportunitySample: {…}, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 2, contacts: 0, opportunitySample: {…}, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 2, contacts: 0, opportunitySample: {…}, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: '', entityDataLength: 0, searchQuery: '', entityData: Array(0)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 0, filteredCount: 0, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 2, contacts: 0, opportunitySample: {…}, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: 'partners', entityDataLength: 37, searchQuery: '', entityData: Array(3)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 37, filteredCount: 37, searchQuery: ''}
+NetworkVisualization.tsx:935 Selected list: {id: 47, name: 'Insurance Partners', description: 'Major insurance companies', type: 'selection', entity_type: 'partners', …}
+NetworkVisualization.tsx:936 Entity IDs in list: []
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 2, contacts: 0, opportunitySample: {…}, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: 'partners', entityDataLength: 37, searchQuery: '', entityData: Array(3)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 37, filteredCount: 37, searchQuery: ''}
+NetworkVisualization.tsx:935 Selected list: {id: 48, name: 'Concordia Offices', description: '', type: 'selection', entity_type: 'partners', …}
+NetworkVisualization.tsx:936 Entity IDs in list: []
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 2, contacts: 0, opportunitySample: {…}, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: 'partners', entityDataLength: 37, searchQuery: '', entityData: Array(3)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 37, filteredCount: 37, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 2, contacts: 0, opportunitySample: {…}, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: 'partners', entityDataLength: 37, searchQuery: '', entityData: Array(3)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 37, filteredCount: 37, searchQuery: ''}
+NetworkVisualization.tsx:190 Entity counts for Amazon CS Netherlands B.V : {customer: {…}, opportunities: 2, contacts: 0, opportunitySample: {…}, contactSample: undefined}
+NetworkVisualization.tsx:840 Filter dialog data: {selectedEntityType: 'partners', entityDataLength: 37, searchQuery: '', entityData: Array(3)}
+NetworkVisualization.tsx:865 Filtered results: {originalCount: 37, filteredCount: 37, searchQuery: ''}

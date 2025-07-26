@@ -8,6 +8,7 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
+  DialogDescription,
   DialogClose
 } from "@/components/ui/dialog";
 import {
@@ -420,11 +421,7 @@ export function ShareModal({
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-6" aria-describedby="share-modal-description">
-        <div id="share-modal-description" className="sr-only">
-          Share {itemName} with others by adding their email addresses or copying a shareable link
-        </div>
-        
+      <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-6">
         <DialogHeader className="pb-4">
           <div className="flex items-center space-x-2">
             {(currentView === 'compose' || currentView === 'partners') && (
@@ -443,6 +440,9 @@ export function ShareModal({
               {currentView === 'partners' ? `Share with Partners - "${itemName}"` : `Share "${itemName}"`}
             </DialogTitle>
           </div>
+          <DialogDescription>
+            Share {itemName} with others by adding their email addresses or copying a shareable link
+          </DialogDescription>
         </DialogHeader>
         
         {currentView === 'main' ? (

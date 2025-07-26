@@ -834,6 +834,9 @@ export default function NetworkVisualization() {
 
   // Entity Filter Dialog Component
   const EntityFilterDialog = () => {
+    // Only render dialog if we have a valid entity type
+    if (!selectedEntityType || !isFilterDialogOpen) return null;
+    
     const entityData = getEntityData(selectedEntityType);
     const entityLists = getEntityLists(selectedEntityType);
     
@@ -852,12 +855,14 @@ export default function NetworkVisualization() {
         field.toLowerCase().includes(searchQuery.toLowerCase())
       );
       
-      console.log('Search debug:', { 
-        searchQuery, 
-        item: item.name || item.title, 
-        searchFields, 
-        matches 
-      });
+      if (searchQuery.trim()) {
+        console.log('Search debug:', { 
+          searchQuery, 
+          item: item.name || item.title, 
+          searchFields, 
+          matches 
+        });
+      }
       
       return matches;
     });
