@@ -825,21 +825,35 @@ export default function NetworkVisualization() {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
+    // Don't start dragging immediately, wait for mouse movement
     setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setTransform(prev => ({
-      ...prev,
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    }));
+    if (!dragStart.x && !dragStart.y) return;
+    
+    // Only start dragging after mouse moves a minimum distance
+    const distance = Math.sqrt(
+      Math.pow(e.clientX - (dragStart.x + transform.x), 2) + 
+      Math.pow(e.clientY - (dragStart.y + transform.y), 2)
+    );
+    
+    if (distance > 5) { // 5px threshold before dragging starts
+      setIsDragging(true);
+    }
+    
+    if (isDragging) {
+      setTransform(prev => ({
+        ...prev,
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      }));
+    }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    setDragStart({ x: 0, y: 0 }); // Reset drag start position
   };
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -908,7 +922,8 @@ export default function NetworkVisualization() {
               className="cursor-pointer hover:opacity-80"
               onClick={(e) => {
                 e.stopPropagation();
-                console.log('Clicked entity:', entity.type, entity.name, entity.entityRoute);
+                e.preventDefault();
+                console.log('🔥 Network node clicked:', entity.type, entity.name, entity.entityRoute);
                 setSelectedNode(entity);
                 
                 // Navigate to entity-specific page based on type
@@ -1164,6 +1179,8 @@ export default function NetworkVisualization() {
           className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)}`}
           onClick={(e) => {
             e.stopPropagation();
+            e.preventDefault();
+            console.log('🔥 Org chart card clicked:', person.name, person.role);
             setSelectedNode(person);
           }}
         >
