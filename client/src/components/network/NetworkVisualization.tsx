@@ -935,6 +935,10 @@ export default function NetworkVisualization() {
           level = 'executive';
         } else if (title.includes('vp') || title.includes('vice president')) {
           level = 'vp';
+        } else if (title.includes('cfo')) {
+          level = 'executive';
+        } else if (title.includes('cto')) {
+          level = 'executive';
         } else if (title.includes('director')) {
           level = 'director';
         } else if (title.includes('manager')) {
@@ -953,6 +957,7 @@ export default function NetworkVisualization() {
           level: level,
           email: contact.email,
           phone: contact.phone,
+          reportsTo: contact.reports_to,
           customerId: customerId,
           relationshipRole: relationship?.role || 'Contact'
         };
@@ -970,6 +975,10 @@ export default function NetworkVisualization() {
           level = 'executive';
         } else if (title.includes('vp') || title.includes('vice president')) {
           level = 'vp';
+        } else if (title.includes('cfo')) {
+          level = 'executive';
+        } else if (title.includes('cto')) {
+          level = 'executive';
         } else if (title.includes('director')) {
           level = 'director';
         } else if (title.includes('manager')) {
@@ -984,6 +993,7 @@ export default function NetworkVisualization() {
           level: level,
           email: contact.email,
           phone: contact.phone,
+          reportsTo: contact.reports_to,
           customerId: contact.customer_id || contact.clientId
         };
       });
@@ -1005,6 +1015,10 @@ export default function NetworkVisualization() {
         level = 'executive';
       } else if (title.includes('vp') || title.includes('vice president')) {
         level = 'vp';
+      } else if (title.includes('cfo')) {
+        level = 'executive';
+      } else if (title.includes('cto')) {
+        level = 'executive';
       } else if (title.includes('director')) {
         level = 'director';
       } else if (title.includes('manager')) {
@@ -1018,18 +1032,39 @@ export default function NetworkVisualization() {
         department: contact.department || 'General',
         level: level,
         email: contact.email,
-        phone: contact.phone
+        phone: contact.phone,
+        reportsTo: contact.reports_to
       };
     });
   };
 
   const OrgChartContent = () => {
     const orgContacts = getOrgChartData();
-    const executives = orgContacts.filter(person => person.level === 'executive');
-    const vps = orgContacts.filter(person => person.level === 'vp');
-    const directors = orgContacts.filter(person => person.level === 'director');
-    const managers = orgContacts.filter(person => person.level === 'manager');
-    const others = orgContacts.filter(person => person.level === 'other');
+    
+    // Build hierarchical structure based on reports_to relationships
+    const buildHierarchy = (contacts: any[]) => {
+      const contactMap = new Map();
+      contacts.forEach(contact => {
+        contactMap.set(contact.id, { ...contact, children: [] });
+      });
+
+      const hierarchy: any[] = [];
+      
+      contacts.forEach(contact => {
+        const contactNode = contactMap.get(contact.id);
+        if (contact.reportsTo && contactMap.has(contact.reportsTo)) {
+          const supervisor = contactMap.get(contact.reportsTo);
+          supervisor.children.push(contactNode);
+        } else {
+          // This is a top-level contact (CEO or no supervisor)
+          hierarchy.push(contactNode);
+        }
+      });
+
+      return hierarchy;
+    };
+
+    const hierarchicalContacts = buildHierarchy(orgContacts);
 
     const ContactCard = ({ person }: { person: any }) => {
       const getRoleIcon = (level: string) => {
@@ -1044,7 +1079,7 @@ export default function NetworkVisualization() {
 
       return (
         <div 
-          className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${getRoleColor(person.level)}`}
+          className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)}`}
           onClick={() => setSelectedNode(person)}
         >
           <div className="flex items-center space-x-2 mb-1">
@@ -1055,6 +1090,47 @@ export default function NetworkVisualization() {
           <Badge className={`mt-2 text-xs ${getDepartmentColor(person.department)}`}>
             {person.department}
           </Badge>
+        </div>
+      );
+    };
+
+    const HierarchyNode = ({ node, depth = 0 }: { node: any, depth?: number }) => {
+      const hasChildren = node.children && node.children.length > 0;
+      
+      return (
+        <div className="flex flex-col items-center">
+          {/* Current person */}
+          <ContactCard person={node} />
+          
+          {/* Connecting lines and children */}
+          {hasChildren && (
+            <div className="flex flex-col items-center mt-4">
+              {/* Vertical line down */}
+              <div className="w-px h-6 bg-gray-300"></div>
+              
+              {/* Horizontal line across children */}
+              {node.children.length > 1 && (
+                <div className="relative">
+                  <div className="h-px bg-gray-300" style={{ width: `${(node.children.length - 1) * 200}px` }}></div>
+                  {/* Vertical lines to each child */}
+                  {node.children.map((_: any, index: number) => (
+                    <div 
+                      key={index}
+                      className="absolute top-0 w-px h-6 bg-gray-300"
+                      style={{ left: `${index * 200}px` }}
+                    ></div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Children */}
+              <div className="flex justify-center space-x-8 mt-6">
+                {node.children.map((child: any) => (
+                  <HierarchyNode key={child.id} node={child} depth={depth + 1} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       );
     };
@@ -1070,82 +1146,24 @@ export default function NetworkVisualization() {
     }
 
     return (
-      <div className="space-y-6">
-        {/* Executive Level */}
-        {executives.length > 0 && (
-          <div className="text-center">
-            <div className="text-sm font-semibold text-gray-600 mb-3 flex items-center justify-center space-x-2">
-              <Crown className="h-4 w-4 text-red-500" />
-              <span>Executive Level</span>
+      <ScrollArea className="h-full w-full">
+        <div className="p-6 min-w-fit">
+          <div className="text-center mb-8">
+            <div className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-center space-x-2">
+              <GitBranch className="h-5 w-5 text-blue-500" />
+              <span>Organizational Hierarchy</span>
             </div>
-            <div className="flex justify-center space-x-4 flex-wrap">
-              {executives.map(person => (
-                <ContactCard key={person.id} person={person} />
-              ))}
-            </div>
+            <p className="text-sm text-gray-600">{orgContacts.length} contacts • Showing reporting relationships</p>
           </div>
-        )}
-
-        {/* VP Level */}
-        {vps.length > 0 && (
-          <div className="text-center">
-            <div className="text-sm font-semibold text-gray-600 mb-3 flex items-center justify-center space-x-2">
-              <Settings className="h-4 w-4 text-purple-500" />
-              <span>VP Level</span>
-            </div>
-            <div className="flex justify-center space-x-4 flex-wrap">
-              {vps.map(person => (
-                <ContactCard key={person.id} person={person} />
-              ))}
-            </div>
+          
+          {/* Render hierarchical structure */}
+          <div className="flex justify-center space-x-12">
+            {hierarchicalContacts.map((rootNode: any) => (
+              <HierarchyNode key={rootNode.id} node={rootNode} />
+            ))}
           </div>
-        )}
-
-        {/* Director Level */}
-        {directors.length > 0 && (
-          <div className="text-center">
-            <div className="text-sm font-semibold text-gray-600 mb-3 flex items-center justify-center space-x-2">
-              <Building className="h-4 w-4 text-blue-500" />
-              <span>Director Level</span>
-            </div>
-            <div className="flex justify-center space-x-4 flex-wrap">
-              {directors.map(person => (
-                <ContactCard key={person.id} person={person} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Manager Level */}
-        {managers.length > 0 && (
-          <div className="text-center">
-            <div className="text-sm font-semibold text-gray-600 mb-3 flex items-center justify-center space-x-2">
-              <Briefcase className="h-4 w-4 text-green-500" />
-              <span>Manager Level</span>
-            </div>
-            <div className="flex justify-center space-x-4 flex-wrap">
-              {managers.map(person => (
-                <ContactCard key={person.id} person={person} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Other Roles */}
-        {others.length > 0 && (
-          <div className="text-center">
-            <div className="text-sm font-semibold text-gray-600 mb-3 flex items-center justify-center space-x-2">
-              <Users className="h-4 w-4 text-gray-500" />
-              <span>Other Roles</span>
-            </div>
-            <div className="flex justify-center space-x-4 flex-wrap">
-              {others.map(person => (
-                <ContactCard key={person.id} person={person} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      </ScrollArea>
     );
   };
 
