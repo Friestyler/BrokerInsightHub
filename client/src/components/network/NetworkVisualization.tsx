@@ -33,7 +33,13 @@ import {
   Filter,
   ChevronDown,
   Check,
-  AlertCircle
+  AlertCircle,
+  Move,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  Home
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
@@ -73,6 +79,13 @@ export default function NetworkVisualization() {
   
   // Advanced filtering state
   const [appliedFilters, setAppliedFilters] = useState<{[key: string]: any[]}>({});
+  
+  // Zoom and navigation state
+  const [zoom, setZoom] = useState(1);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [selectedEntityType, setSelectedEntityType] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -806,85 +819,207 @@ export default function NetworkVisualization() {
 
   const networkData = getNetworkData();
 
+  // Zoom and navigation functions
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev * 1.2, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev / 1.2, 0.3));
+  };
+
+  const handleResetView = () => {
+    setZoom(1);
+    setPanX(0);
+    setPanY(0);
+  };
+
+  const handlePan = (deltaX: number, deltaY: number) => {
+    setPanX(prev => prev + deltaX);
+    setPanY(prev => prev + deltaY);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setLastMousePos({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      const deltaX = e.clientX - lastMousePos.x;
+      const deltaY = e.clientY - lastMousePos.y;
+      handlePan(deltaX / zoom, deltaY / zoom);
+      setLastMousePos({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      handleZoomIn();
+    } else {
+      handleZoomOut();
+    }
+  };
+
   const NetworkViewContent = () => (
     <div className="relative h-96 bg-gray-50 rounded-lg border overflow-hidden">
-      <svg ref={svgRef} className="w-full h-full" viewBox="0 0 800 400">
-        {/* Relationship lines */}
-        {networkData.relationships.map((rel, index) => {
-          const fromEntity = networkData.entities.find(e => e.id === rel.from);
-          const toEntity = networkData.entities.find(e => e.id === rel.to);
-          if (!fromEntity || !toEntity) return null;
+      {/* Navigation Controls */}
+      <div className="absolute top-2 right-2 z-10 bg-white rounded-lg shadow-md border p-2 space-y-1">
+        <div className="flex space-x-1">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleZoomIn}
+            className="h-8 w-8 p-0"
+            title="Zoom In"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleZoomOut}
+            className="h-8 w-8 p-0"
+            title="Zoom Out"
+          >
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleResetView}
+            className="h-8 w-8 p-0"
+            title="Reset View"
+          >
+            <Home className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="grid grid-cols-3 gap-1">
+          <div></div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handlePan(0, -20)}
+            className="h-8 w-8 p-0"
+            title="Pan Up"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </Button>
+          <div></div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handlePan(-20, 0)}
+            className="h-8 w-8 p-0"
+            title="Pan Left"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handlePan(20, 0)}
+            className="h-8 w-8 p-0"
+            title="Pan Right"
+          >
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+          <div></div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handlePan(0, 20)}
+            className="h-8 w-8 p-0"
+            title="Pan Down"
+          >
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+          <div></div>
+        </div>
+      </div>
 
-          return (
-            <line
-              key={index}
-              x1={fromEntity.cx}
-              y1={fromEntity.cy}
-              x2={toEntity.cx}
-              y2={toEntity.cy}
-              stroke={rel.color}
-              strokeWidth={rel.thickness || 2}
-              className="opacity-60"
-            />
-          );
-        })}
+      <svg 
+        ref={svgRef} 
+        className="w-full h-full cursor-move" 
+        viewBox="0 0 800 400"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onWheel={handleWheel}
+      >
+        <g transform={`translate(${panX}, ${panY}) scale(${zoom})`}>
+          {/* Relationship lines */}
+          {networkData.relationships.map((rel, index) => {
+            const fromEntity = networkData.entities.find(e => e.id === rel.from);
+            const toEntity = networkData.entities.find(e => e.id === rel.to);
+            if (!fromEntity || !toEntity) return null;
 
-        {/* Entity nodes */}
-        {networkData.entities.map((entity) => (
-          <g key={entity.id}>
-            <circle
-              cx={entity.cx}
-              cy={entity.cy}
-              r={entity.size / 2}
-              fill={entity.color}
-              stroke={entity.type === 'customer' ? '#1E40AF' : 'none'}
-              strokeWidth={entity.type === 'customer' ? '2' : '0'}
-              className="cursor-pointer hover:opacity-80"
-              onClick={() => {
-                console.log('Clicked entity:', entity.type, entity.name, entity.entityRoute);
-                setSelectedNode(entity);
-                
-                // Navigate to entity-specific page based on type
-                if (entity.entityRoute) {
-                  console.log('Navigating to:', entity.entityRoute);
-                  // Add navigation logic here if needed
-                }
-              }}
-            />
-            <text 
-              x={entity.cx} 
-              y={entity.cy + (entity.type === 'customer' ? 45 : 25)} 
-              textAnchor="middle" 
-              className="fill-gray-700 text-xs font-medium"
-            >
-              {entity.name.length > 12 ? entity.name.substring(0, 12) + '...' : entity.name}
-            </text>
-            {entity.value && (
+            return (
+              <line
+                key={index}
+                x1={fromEntity.cx}
+                y1={fromEntity.cy}
+                x2={toEntity.cx}
+                y2={toEntity.cy}
+                stroke={rel.color}
+                strokeWidth={rel.thickness || 2}
+                className="opacity-60"
+              />
+            );
+          })}
+
+          {/* Entity nodes */}
+          {networkData.entities.map((entity) => (
+            <g key={entity.id}>
+              <circle
+                cx={entity.cx}
+                cy={entity.cy}
+                r={entity.size / 2}
+                fill={entity.color}
+                stroke={entity.type === 'customer' ? '#1E40AF' : 'none'}
+                strokeWidth={entity.type === 'customer' ? '2' : '0'}
+                className="cursor-pointer hover:opacity-80"
+                onClick={() => {
+                  console.log('Clicked entity:', entity.type, entity.name, entity.entityRoute);
+                  setSelectedNode(entity);
+                  
+                  // Navigate to entity-specific page based on type
+                  if (entity.entityRoute) {
+                    console.log('Navigating to:', entity.entityRoute);
+                    // Add navigation logic here if needed
+                  }
+                }}
+              />
               <text 
                 x={entity.cx} 
-                y={entity.cy + 35} 
+                y={entity.cy + (entity.type === 'customer' ? 45 : 25)} 
                 textAnchor="middle" 
-                className="fill-gray-500 text-xs"
+                className="fill-gray-700 text-xs font-medium"
               >
-                {entity.value}
+                {entity.name.length > 12 ? entity.name.substring(0, 12) + '...' : entity.name}
               </text>
-            )}
-          </g>
-        ))}
+              {entity.value && (
+                <text 
+                  x={entity.cx} 
+                  y={entity.cy + 35} 
+                  textAnchor="middle" 
+                  className="fill-gray-500 text-xs"
+                >
+                  {entity.value}
+                </text>
+              )}
+            </g>
+          ))}
+        </g>
       </svg>
 
-      {/* Network controls */}
-      <div className="absolute top-4 right-4 flex space-x-2">
-        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-          <RotateCcw className="h-4 w-4" />
-        </Button>
-      </div>
+
 
       {/* Legend */}
       <div className="absolute bottom-4 left-4 bg-white rounded-lg p-3 shadow-md border">
@@ -1160,24 +1295,116 @@ export default function NetworkVisualization() {
     }
 
     return (
-      <ScrollArea className="h-full w-full">
-        <div className="p-6 min-w-fit">
-          <div className="text-center mb-8">
-            <div className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-center space-x-2">
-              <GitBranch className="h-5 w-5 text-blue-500" />
-              <span>Organizational Hierarchy</span>
-            </div>
-            <p className="text-sm text-gray-600">{orgContacts.length} contacts • Showing reporting relationships</p>
+      <div className="relative h-96 bg-gray-50 rounded-lg border overflow-hidden">
+        {/* Navigation Controls */}
+        <div className="absolute top-2 right-2 z-10 bg-white rounded-lg shadow-md border p-2 space-y-1">
+          <div className="flex space-x-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleZoomIn}
+              className="h-8 w-8 p-0"
+              title="Zoom In"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleZoomOut}
+              className="h-8 w-8 p-0"
+              title="Zoom Out"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleResetView}
+              className="h-8 w-8 p-0"
+              title="Reset View"
+            >
+              <Home className="h-4 w-4" />
+            </Button>
           </div>
-          
-          {/* Render hierarchical structure */}
-          <div className="flex justify-center space-x-12">
-            {hierarchicalContacts.map((rootNode: any) => (
-              <HierarchyNode key={rootNode.id} node={rootNode} />
-            ))}
+          <div className="grid grid-cols-3 gap-1">
+            <div></div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePan(0, -20)}
+              className="h-8 w-8 p-0"
+              title="Pan Up"
+            >
+              <ArrowUp className="h-4 w-4" />
+            </Button>
+            <div></div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePan(-20, 0)}
+              className="h-8 w-8 p-0"
+              title="Pan Left"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePan(20, 0)}
+              className="h-8 w-8 p-0"
+              title="Pan Right"
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <div></div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePan(0, 20)}
+              className="h-8 w-8 p-0"
+              title="Pan Down"
+            >
+              <ArrowDown className="h-4 w-4" />
+            </Button>
+            <div></div>
           </div>
         </div>
-      </ScrollArea>
+
+        <div 
+          className="h-full w-full overflow-hidden cursor-move"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+        >
+          <div 
+            className="transition-transform duration-200 min-w-fit min-h-fit"
+            style={{ 
+              transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
+              transformOrigin: '0 0'
+            }}
+          >
+            <div className="p-6">
+              <div className="text-center mb-8">
+                <div className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-center space-x-2">
+                  <GitBranch className="h-5 w-5 text-blue-500" />
+                  <span>Organizational Hierarchy</span>
+                </div>
+                <p className="text-sm text-gray-600">{orgContacts.length} contacts • Showing reporting relationships</p>
+              </div>
+              
+              {/* Render hierarchical structure */}
+              <div className="flex justify-center space-x-12">
+                {hierarchicalContacts.map((rootNode: any) => (
+                  <HierarchyNode key={rootNode.id} node={rootNode} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   };
 
