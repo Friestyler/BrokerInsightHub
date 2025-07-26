@@ -621,6 +621,7 @@ export default function NetworkVisualization() {
   // Drag functionality for mouse navigation
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
     setLastMousePos({ x: e.clientX, y: e.clientY });
   };
 
@@ -699,10 +700,21 @@ export default function NetworkVisualization() {
         {networkData.entities.map((entity) => (
           <g 
             key={entity.id}
-            onClick={(e) => {
-              e.stopPropagation();
-              console.log('🎯 NODE CLICKED:', entity.name, entity.type, entity.id);
-              setSelectedNode(entity);
+            onMouseDown={(e) => {
+              // Store initial position for drag detection
+              setDragStart({ x: e.clientX, y: e.clientY });
+            }}
+            onMouseUp={(e) => {
+              // Only trigger click if mouse hasn't moved much (not a drag)
+              const dragDistance = Math.sqrt(
+                Math.pow(e.clientX - dragStart.x, 2) + Math.pow(e.clientY - dragStart.y, 2)
+              );
+              
+              if (dragDistance < 5) { // Threshold for click vs drag
+                e.stopPropagation();
+                console.log('🎯 NODE CLICKED:', entity.name, entity.type, entity.id);
+                setSelectedNode(entity);
+              }
             }}
             className="cursor-pointer hover:opacity-80"
             style={{ pointerEvents: 'all' }}
