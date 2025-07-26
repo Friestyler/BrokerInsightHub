@@ -73,9 +73,10 @@ export default function NetworkVisualization() {
   // Advanced filtering state
   const [appliedFilters, setAppliedFilters] = useState<{[key: string]: any[]}>({});
   
-  // Zoom and pan state
+  // Navigation state
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [isDragging, setIsDragging] = useState(false);
+  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [selectedEntityType, setSelectedEntityType] = useState<string>('');
@@ -592,6 +593,31 @@ export default function NetworkVisualization() {
     setSelectedNode(node);
   };
 
+  // Drag functionality for mouse navigation
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setLastMousePos({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const deltaX = e.clientX - lastMousePos.x;
+    const deltaY = e.clientY - lastMousePos.y;
+    
+    setTransform(prev => ({
+      ...prev,
+      x: prev.x + deltaX,
+      y: prev.y + deltaY
+    }));
+    
+    setLastMousePos({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   const handleWheel = (e: React.WheelEvent) => {
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     const newScale = Math.max(0.3, Math.min(3, transform.scale * delta));
@@ -616,8 +642,11 @@ export default function NetworkVisualization() {
         ref={svgRef} 
         className="w-full h-full cursor-move" 
         viewBox="0 0 800 400"
-
         onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       >
         <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
