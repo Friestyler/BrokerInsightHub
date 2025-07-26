@@ -666,15 +666,22 @@ export default function NetworkVisualization() {
     <div className="relative h-96 bg-gray-50 rounded-lg border overflow-hidden">
       <svg 
         ref={svgRef} 
-        className="w-full h-full cursor-move" 
+        className="w-full h-full" 
         viewBox="0 0 800 400"
         onWheel={handleWheel}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        style={{ cursor: 'default' }}
       >
+        {/* Background for drag events */}
+        <rect 
+          width="100%" 
+          height="100%" 
+          fill="transparent"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        />
         <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
         {/* Relationship lines */}
         {networkData.relationships.map((rel, index) => {
@@ -700,24 +707,40 @@ export default function NetworkVisualization() {
         {networkData.entities.map((entity) => (
           <g 
             key={entity.id}
-            onMouseDown={(e) => {
-              // Store initial position for drag detection
+            onPointerDown={(e) => {
+              console.log('🔥 POINTER DOWN on node:', entity.name);
+              e.stopPropagation();
+              e.preventDefault();
               setDragStart({ x: e.clientX, y: e.clientY });
             }}
-            onMouseUp={(e) => {
-              // Only trigger click if mouse hasn't moved much (not a drag)
+            onPointerUp={(e) => {
+              console.log('🔥 POINTER UP on node:', entity.name);
+              e.stopPropagation();
+              e.preventDefault();
+              
               const dragDistance = Math.sqrt(
                 Math.pow(e.clientX - dragStart.x, 2) + Math.pow(e.clientY - dragStart.y, 2)
               );
               
-              if (dragDistance < 5) { // Threshold for click vs drag
-                e.stopPropagation();
+              console.log('🔥 Drag distance:', dragDistance);
+              
+              if (dragDistance < 10) {
                 console.log('🎯 NODE CLICKED:', entity.name, entity.type, entity.id);
                 setSelectedNode(entity);
               }
             }}
+            onClick={(e) => {
+              console.log('🔥 DIRECT CLICK EVENT:', entity.name);
+              e.stopPropagation();
+              e.preventDefault();
+              setSelectedNode(entity);
+            }}
             className="cursor-pointer hover:opacity-80"
-            style={{ pointerEvents: 'all' }}
+            style={{ 
+              pointerEvents: 'all',
+              zIndex: 1000,
+              isolation: 'isolate'
+            }}
           >
             {/* Main circle */}
             <circle
@@ -727,6 +750,16 @@ export default function NetworkVisualization() {
               fill={entity.color}
               stroke={entity.type === 'customer' ? '#1E40AF' : 'none'}
               strokeWidth={entity.type === 'customer' ? '2' : '0'}
+              onClick={(e) => {
+                console.log('🔥 CIRCLE DIRECT CLICK:', entity.name);
+                e.stopPropagation();
+                setSelectedNode(entity);
+              }}
+              onPointerDown={(e) => {
+                console.log('🔥 CIRCLE POINTER DOWN:', entity.name);
+                e.stopPropagation();
+              }}
+              style={{ cursor: 'pointer', pointerEvents: 'all' }}
             />
             
             {/* Profile picture placeholder for contacts - show for all contacts */}
