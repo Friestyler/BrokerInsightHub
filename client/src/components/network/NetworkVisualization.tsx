@@ -636,18 +636,11 @@ export default function NetworkVisualization() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Network Visualization</h2>
-          <p className="text-gray-600 mt-1">Analyze customer relationships and organizational structures</p>
-        </div>
-        
 
-      </div>
 
-      {/* Relationship Overview - Apple/Google Style */}
+      {/* Relationship Filters - Apple/Google Style */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Relationship Filters</h3>
         <div className="grid grid-cols-7 gap-6">
           {filterOptions.map((filter) => {
             const IconComponent = filter.icon;
