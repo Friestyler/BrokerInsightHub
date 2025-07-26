@@ -837,20 +837,35 @@ export default function NetworkVisualization() {
     const entityData = getEntityData(selectedEntityType);
     const entityLists = getEntityLists(selectedEntityType);
     
+    console.log('Filter dialog data:', {
+      selectedEntityType,
+      entityDataLength: entityData.length,
+      searchQuery,
+      entityData: entityData.slice(0, 3) // First 3 items for debugging
+    });
+
     const filteredData = entityData.filter((item: any) => {
+      if (!searchQuery.trim()) return true; // Show all when no search
+      
       const searchFields = [item.name, item.title, item.full_name, item.first_name, item.last_name, item.company].filter(Boolean);
       const matches = searchFields.some(field => 
         field.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      if (searchQuery) {
-        console.log('Search debug:', { 
-          searchQuery, 
-          item: item.name || item.title, 
-          searchFields, 
-          matches 
-        });
-      }
+      
+      console.log('Search debug:', { 
+        searchQuery, 
+        item: item.name || item.title, 
+        searchFields, 
+        matches 
+      });
+      
       return matches;
+    });
+
+    console.log('Filtered results:', {
+      originalCount: entityData.length,
+      filteredCount: filteredData.length,
+      searchQuery
     });
 
     const handleRecordToggle = (record: any) => {
