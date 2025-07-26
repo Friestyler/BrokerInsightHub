@@ -108,13 +108,38 @@ export default function NetworkVisualization() {
   });
 
   // Fetch saved lists for each entity type with proper API endpoints
-  const { data: allSavedLists } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists'],
+  const { data: customerLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'customer' }],
+    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=customer').then(res => res.json()),
+    staleTime: 30000,
+  });
+
+  const { data: opportunityLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'opportunity' }],
+    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=opportunity').then(res => res.json()),
+    staleTime: 30000,
+  });
+
+  const { data: partnerLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'partner' }],
+    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=partner').then(res => res.json()),
+    staleTime: 30000,
+  });
+
+  const { data: contactLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'contact' }],
+    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=contact').then(res => res.json()),
+    staleTime: 30000,
+  });
+
+  const { data: productLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'product' }],
+    queryFn: () => fetch('/api/degoudse/saved-lists?entity_type=product').then(res => res.json()),
     staleTime: 30000,
   });
 
   // Extract data arrays from API responses with proper type checking
-  const customersArray = Array.isArray(customers?.data) ? customers.data : Array.isArray(customers) ? customers : [];
+  const customersArray = customers?.data ? customers.data : Array.isArray(customers) ? customers : [];
   const opportunitiesArray = Array.isArray(opportunities) ? opportunities : [];
   const partnersArray = Array.isArray(partners) ? partners : [];
   const contactsArray = Array.isArray(contacts) ? contacts : [];
@@ -246,13 +271,13 @@ export default function NetworkVisualization() {
         
       case 'opportunities':
         // Filter customers for selected opportunities
-        const customerIds = [...new Set(primaryRecords.map((opp: any) => opp.customer_id || opp.clientId))];
+        const customerIds = Array.from(new Set(primaryRecords.map((opp: any) => opp.customer_id || opp.clientId)));
         const relatedCustomers = customersArray?.filter((customer: any) => 
           customerIds.includes(customer.id)
         ) || [];
         
         // Filter partners for selected opportunities
-        const partnerIds = [...new Set(primaryRecords.map((opp: any) => opp.partnerId))];
+        const partnerIds = Array.from(new Set(primaryRecords.map((opp: any) => opp.partnerId)));
         const relatedPartners = partnersArray?.filter((partner: any) => 
           partnerIds.includes(partner.id)
         ) || [];
@@ -274,7 +299,7 @@ export default function NetworkVisualization() {
         if (partnerOpportunities.length) {
           setAppliedFilters(prev => ({ ...prev, opportunities: partnerOpportunities }));
           // Also filter customers of those opportunities
-          const oppCustomerIds = [...new Set(partnerOpportunities.map((opp: any) => opp.customer_id || opp.clientId))];
+          const oppCustomerIds = Array.from(new Set(partnerOpportunities.map((opp: any) => opp.customer_id || opp.clientId)));
           const partnerCustomers = customersArray?.filter((customer: any) => 
             oppCustomerIds.includes(customer.id)
           ) || [];
@@ -311,22 +336,14 @@ export default function NetworkVisualization() {
   };
 
   const getEntityLists = (entityType: string) => {
-    if (!allSavedLists || !Array.isArray(allSavedLists)) return [];
-    
-    // Filter lists by entity type
-    const entityTypeMap = {
-      'customers': 'customer',
-      'opportunities': 'opportunity', 
-      'partners': 'partner',
-      'contacts': 'contact',
-      'products': 'product'
-    };
-    
-    const targetEntityType = entityTypeMap[entityType as keyof typeof entityTypeMap];
-    return allSavedLists.filter((list: any) => 
-      list.entity_type === targetEntityType || 
-      list.entityType === targetEntityType
-    );
+    switch (entityType) {
+      case 'customers': return customerLists || [];
+      case 'opportunities': return opportunityLists || [];
+      case 'partners': return partnerLists || [];
+      case 'contacts': return contactLists || [];
+      case 'products': return productLists || [];
+      default: return [];
+    }
   };
 
   const getFilteredEntityData = (entityType: string) => {
@@ -923,6 +940,35 @@ export default function NetworkVisualization() {
                 />
               </div>
               
+              {/* Select All/None Controls */}
+              <div className="flex items-center justify-between text-sm">
+                <div className="text-gray-600">
+                  {filteredData.length} {selectedEntityType} available
+                </div>
+                <div className="space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setSelectedRecords(filteredData);
+                    }}
+                    disabled={selectedRecords.length === filteredData.length}
+                  >
+                    Select All
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setSelectedRecords([]);
+                    }}
+                    disabled={selectedRecords.length === 0}
+                  >
+                    Clear All
+                  </Button>
+                </div>
+              </div>
+              
               <ScrollArea className="h-60">
                 {filteredData.map((item: any) => {
                   const isSelected = selectedRecords.find(r => r.id === item.id);
@@ -938,7 +984,7 @@ export default function NetworkVisualization() {
                       onClick={() => handleRecordToggle(item)}
                     >
                       <div className="flex items-center space-x-3">
-                        <Checkbox checked={!!isSelected} readOnly />
+                        <Checkbox checked={!!isSelected} disabled />
                         <div className="flex-1">
                           <div className="font-medium text-sm">{displayName}</div>
                           {item.description && (
