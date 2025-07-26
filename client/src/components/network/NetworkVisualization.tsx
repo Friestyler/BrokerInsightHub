@@ -693,7 +693,10 @@ export default function NetworkVisualization() {
               stroke={entity.type === 'customer' ? '#1E40AF' : 'none'}
               strokeWidth={entity.type === 'customer' ? '2' : '0'}
               className="cursor-pointer hover:opacity-80"
-              onClick={() => handleNodeClick(entity)}
+              onClick={() => {
+                console.log('🎯 CLICK EVENT FIRED for entity:', entity.name, entity.type);
+                handleNodeClick(entity);
+              }}
             />
             
             {/* Profile picture placeholder for contacts - show for all contacts */}
@@ -1167,7 +1170,7 @@ export default function NetworkVisualization() {
       console.log('Filtered list data:', {
         totalEntityData: entityData.length,
         matchedItems: listData.length,
-        matchedSample: listData.slice(0, 3).map(item => ({ id: item.id, name: item.name || item.title }))
+        matchedSample: listData.slice(0, 3).map((item: any) => ({ id: item.id, name: item.name || item.title }))
       });
       
       // Set selected records (replace, not add) but keep modal open
