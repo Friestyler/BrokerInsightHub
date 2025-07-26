@@ -239,6 +239,8 @@ export default function NetworkVisualization() {
   };
 
   const applyEntityFilter = (entityType: string, records: any[]) => {
+    console.log('Applying filter for', entityType, 'with', records.length, 'records');
+    
     setAppliedFilters(prev => ({
       ...prev,
       [entityType]: records
@@ -247,6 +249,8 @@ export default function NetworkVisualization() {
     // Auto-filter related entities based on relationships
     filterRelatedEntities(entityType, records);
     setIsFilterDialogOpen(false);
+    
+    console.log('Filter applied successfully');
   };
 
   const filterRelatedEntities = (entityType: string, primaryRecords: any[]) => {
@@ -900,6 +904,9 @@ export default function NetworkVisualization() {
       // Set selected records (replace, not add)
       setSelectedRecords(listData);
       
+      // Apply the filter to the visualization
+      applyEntityFilter(selectedEntityType, listData);
+      
       // Close dialog and clear search
       setIsFilterDialogOpen(false);
       setSearchQuery('');
@@ -1033,8 +1040,14 @@ export default function NetworkVisualization() {
               <Button variant="outline" onClick={() => setIsFilterDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={() => applyEntityFilter(selectedEntityType, selectedRecords)}>
-                Apply Filter
+              <Button 
+                onClick={() => {
+                  console.log('Apply button clicked with records:', selectedRecords.length);
+                  applyEntityFilter(selectedEntityType, selectedRecords);
+                }}
+                disabled={selectedRecords.length === 0}
+              >
+                Apply Filter ({selectedRecords.length})
               </Button>
             </div>
           </div>
