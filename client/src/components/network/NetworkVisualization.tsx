@@ -173,70 +173,15 @@ export default function NetworkVisualization() {
     }
   }, [customersArray, selectedCustomer, opportunitiesArray, contactsArray]);
 
-  // Calculate real counts from data
+  // Show counts of currently selected/filtered entities only
   const getEntityCounts = () => {
-    // If filters are applied, show filtered counts instead of total counts
-    const hasFilters = Object.keys(appliedFilters).length > 0;
-    
-    if (hasFilters) {
-      return {
-        customers: appliedFilters.customers?.length || customersArray?.length || 0,
-        opportunities: appliedFilters.opportunities?.length || (appliedFilters.customers ? 0 : opportunitiesArray?.length || 0),
-        contacts: appliedFilters.contacts?.length || (appliedFilters.customers ? 
-          (contactRelationships?.filter((rel: any) => 
-            rel.entity_type === 'customer' && 
-            appliedFilters.customers.some((c: any) => c.id === rel.entity_id)
-          )?.length || 0) : 
-          contactsArray?.length || 0),
-        partners: appliedFilters.partners?.length || partnersArray?.length || 0,
-        projects: appliedFilters.projects?.length || 8,
-        products: appliedFilters.products?.length || productsArray?.length || 0,
-        hierarchy: 1
-      };
-    }
-    
-    // No filters applied - show total counts
-    const selectedCustomerData = customersArray?.find((c: any) => c.name === selectedCustomer);
-    if (!selectedCustomerData) {
-      return {
-        customers: customersArray?.length || 0,
-        opportunities: opportunitiesArray?.length || 0,
-        contacts: contactsArray?.length || 0,
-        partners: partnersArray?.length || 0,
-        projects: 8,
-        products: productsArray?.length || 0,
-        hierarchy: 1
-      };
-    }
-    
-    // Check both customer_id and clientId field names
-    const customerOpportunities = opportunitiesArray?.filter((o: any) => 
-      o.customer_id === selectedCustomerData.id || o.clientId === selectedCustomerData.id
-    ) || [];
-    
-    // Use contact_relationships table for contact counting
-    const customerContactIds = contactRelationships
-      ?.filter((rel: any) => rel.entity_type === 'customer' && rel.entity_id === selectedCustomerData.id)
-      ?.map((rel: any) => rel.contact_id) || [];
-    
-    const customerContacts = contactsArray?.filter((c: any) => 
-      customerContactIds.includes(c.id) || c.customer_id === selectedCustomerData.id || c.clientId === selectedCustomerData.id
-    ) || [];
-    
-    console.log('Entity counts for', selectedCustomer, ':', {
-      customer: selectedCustomerData,
-      opportunities: customerOpportunities.length,
-      contacts: customerContacts.length,
-      opportunitySample: customerOpportunities[0]
-    });
-    
     return {
-      customers: customersArray?.length || 0,
-      opportunities: opportunitiesArray?.length || 0,
-      contacts: contactsArray?.length || 0,
-      partners: partnersArray?.length || 0,
-      projects: 8,
-      products: productsArray?.length || 0
+      customers: appliedFilters.customers?.length || 0,
+      opportunities: appliedFilters.opportunities?.length || 0,
+      contacts: appliedFilters.contacts?.length || 0,
+      partners: appliedFilters.partners?.length || 0,
+      projects: appliedFilters.projects?.length || 0,
+      products: appliedFilters.products?.length || 0
     };
   };
 
@@ -427,188 +372,8 @@ export default function NetworkVisualization() {
     const hasFilters = Object.keys(appliedFilters).length > 0;
     
     if (!hasFilters) {
-      // No filters - show default single customer view
-      if (!customersArray || !selectedCustomer) return { entities: [], relationships: [] };
-
-      const selectedCustomerData = customersArray.find((c: any) => c.name === selectedCustomer);
-      if (!selectedCustomerData) return { entities: [], relationships: [] };
-
-      // Primary customer (large blue circle)
-      entities.push({
-        id: `customer-${selectedCustomerData.id}`,
-        name: selectedCustomerData.name,
-        type: 'customer',
-        role: 'primary',
-        color: '#3B82F6',
-        size: 60,
-        cx: 400,
-        cy: 200,
-        entityData: selectedCustomerData,
-        entityRoute: `/customers/${selectedCustomerData.id}`
-      });
-
-      // Customer opportunities (check both field names)
-      const customerOpportunities = opportunitiesArray?.filter((o: any) => 
-        o.customer_id === selectedCustomerData.id || o.clientId === selectedCustomerData.id
-      ) || [];
-      customerOpportunities.slice(0, 3).forEach((opp: any, index: number) => {
-      const angle = (index * 120) * (Math.PI / 180);
-      const x = 400 + Math.cos(angle) * 120;
-      const y = 200 + Math.sin(angle) * 120;
-      
-      const status = opp.assessment_status || 'pending';
-      let color = '#EAB308'; // yellow for pending
-      if (status === 'accepted') color = '#10B981'; // green
-      if (status === 'withheld') color = '#EF4444'; // red
-
-      entities.push({
-        id: `opportunity-${opp.id}`,
-        name: opp.title,
-        type: 'opportunity',
-        status: status,
-        value: opp.estimated_value ? `€${Math.round(opp.estimated_value / 1000)}k` : '',
-        color: color,
-        size: 35,
-        cx: x,
-        cy: y,
-        entityData: opp,
-        entityRoute: `/opportunities/${opp.id}`
-      });
-
-      relationships.push({
-        from: `customer-${selectedCustomerData.id}`,
-        to: `opportunity-${opp.id}`,
-        type: 'has_opportunity',
-        color: '#10B981'
-      });
-    });
-
-    // Customer contacts - use contact_relationships table 
-    const customerContactIds = contactRelationships
-      ?.filter((rel: any) => rel.entity_type === 'customer' && rel.entity_id === selectedCustomerData.id)
-      ?.map((rel: any) => rel.contact_id) || [];
-    
-    const customerContacts = contactsArray.filter((c: any) => 
-      customerContactIds.includes(c.id) || c.customer_id === selectedCustomerData.id || c.clientId === selectedCustomerData.id
-    );
-    customerContacts.slice(0, 5).forEach((contact: any, index: number) => {
-      const angle = (index * 72 + 36) * (Math.PI / 180);
-      const x = 400 + Math.cos(angle) * 80;
-      const y = 200 + Math.sin(angle) * 80;
-
-      // Determine role level from job title
-      const title = (contact.job_title || '').toLowerCase();
-      let level = 'other';
-      let color = '#6B7280';
-      let size = 15;
-
-      if (title.includes('ceo') || title.includes('executive') || title.includes('president')) {
-        level = 'executive';
-        color = '#EF4444';
-        size = 25;
-      } else if (title.includes('vp') || title.includes('vice president')) {
-        level = 'vp';
-        color = '#8B5CF6';
-        size = 22;
-      } else if (title.includes('director')) {
-        level = 'director';
-        color = '#3B82F6';
-        size = 20;
-      } else if (title.includes('manager')) {
-        level = 'manager';
-        color = '#10B981';
-        size = 18;
-      }
-
-      entities.push({
-        id: `contact-${contact.id}`,
-        name: contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : contact.company_name,
-        type: 'contact',
-        level: level,
-        role: contact.job_title,
-        department: contact.department,
-        email: contact.email,
-        phone: contact.phone,
-        color: color,
-        size: size,
-        cx: x,
-        cy: y,
-        entityData: contact,
-        entityRoute: `/contacts/${contact.id}`
-      });
-
-      relationships.push({
-        from: `customer-${selectedCustomerData.id}`,
-        to: `contact-${contact.id}`,
-        type: 'employs',
-        color: '#6366F1'
-      });
-    });
-
-    // Add partner relationships (via opportunities)
-    const customerPartners = new Set();
-    customerOpportunities.forEach((opp: any) => {
-      const partnerId = opp.partner_id || opp.partnerId;
-      if (partnerId) {
-        const partner = partnersArray.find((p: any) => p.id === partnerId);
-        if (partner && !customerPartners.has(partner.id)) {
-          customerPartners.add(partner.id);
-          
-          entities.push({
-            id: `partner-${partner.id}`,
-            name: partner.name,
-            type: 'partner',
-            color: '#8B5CF6',
-            size: 30,
-            cx: 600,
-            cy: 150 + Array.from(customerPartners).length * 60,
-            entityData: partner,
-            entityRoute: `/partners/${partner.id}`
-          });
-
-          relationships.push({
-            from: `customer-${selectedCustomerData.id}`,
-            to: `partner-${partner.id}`,
-            type: 'managed_by',
-            color: '#8B5CF6'
-          });
-        }
-      }
-    });
-
-    // Add product connections (via opportunities)
-    customerOpportunities.forEach((opp: any, index: number) => {
-      const productId = opp.product_id || opp.productId;
-      if (productId) {
-        const product = productsArray.find((p: any) => p.id === productId);
-        if (product) {
-          const angle = (180 + index * 30) * (Math.PI / 180);
-          const x = 400 + Math.cos(angle) * 150;
-          const y = 200 + Math.sin(angle) * 150;
-
-          const productNodeId = `product-${product.id}-opp-${opp.id}`;
-          entities.push({
-            id: productNodeId,
-            name: product.name,
-            type: 'product',
-            color: '#F59E0B',
-            size: 20,
-            cx: x,
-            cy: y,
-            entityData: product,
-            entityRoute: `/products/${product.id}`
-          });
-
-          relationships.push({
-            from: `opportunity-${opp.id}`,
-            to: productNodeId,
-            type: 'involves',
-            color: '#F59E0B'
-          });
-        }
-      }
-    });
-
+      // No filters applied - show empty state
+      return { entities: [], relationships: [] };
     } else {
       // FILTERS APPLIED - Show filtered network visualization
       console.log('Generating filtered network with filters:', appliedFilters);
@@ -879,6 +644,7 @@ export default function NetworkVisualization() {
         {/* Entity nodes */}
         {networkData.entities.map((entity) => (
           <g key={entity.id}>
+            {/* Main circle */}
             <circle
               cx={entity.cx}
               cy={entity.cy}
@@ -889,6 +655,42 @@ export default function NetworkVisualization() {
               className="cursor-pointer hover:opacity-80"
               onClick={() => handleNodeClick(entity)}
             />
+            
+            {/* Profile picture placeholder for contacts */}
+            {entity.type === 'contact' && (
+              <>
+                {/* Profile circle background */}
+                <circle
+                  cx={entity.cx}
+                  cy={entity.cy}
+                  r={(entity.size / 2) - 2}
+                  fill="#f3f4f6"
+                  stroke="#d1d5db"
+                  strokeWidth="1"
+                  className="cursor-pointer"
+                  onClick={() => handleNodeClick(entity)}
+                />
+                {/* Profile icon - simple person silhouette */}
+                <g onClick={() => handleNodeClick(entity)} className="cursor-pointer">
+                  {/* Head */}
+                  <circle
+                    cx={entity.cx}
+                    cy={entity.cy - (entity.size / 8)}
+                    r={entity.size / 10}
+                    fill="#9ca3af"
+                  />
+                  {/* Body */}
+                  <ellipse
+                    cx={entity.cx}
+                    cy={entity.cy + (entity.size / 6)}
+                    rx={entity.size / 6}
+                    ry={entity.size / 8}
+                    fill="#9ca3af"
+                  />
+                </g>
+              </>
+            )}
+            
             <text 
               x={entity.cx} 
               y={entity.cy + (entity.type === 'customer' ? 45 : 25)} 
@@ -1135,11 +937,22 @@ export default function NetworkVisualization() {
           className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)}`}
           onClick={() => handleNodeClick(person)}
         >
-          <div className="flex items-center space-x-2 mb-1">
-            {getRoleIcon(person.level)}
-            <div className="font-semibold text-sm">{person.name}</div>
+          <div className="flex items-center space-x-3 mb-1">
+            {/* Profile picture placeholder */}
+            <div className="w-8 h-8 rounded-full bg-gray-200 border flex items-center justify-center flex-shrink-0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-gray-500">
+                <circle cx="12" cy="8" r="3" fill="currentColor"/>
+                <path d="M12 14c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center space-x-1">
+                {getRoleIcon(person.level)}
+                <div className="font-semibold text-sm truncate">{person.name}</div>
+              </div>
+              <div className="text-xs opacity-90">{person.role}</div>
+            </div>
           </div>
-          <div className="text-xs opacity-90 mt-1">{person.role}</div>
           <Badge className={`mt-2 text-xs ${getDepartmentColor(person.department)}`}>
             {person.department}
           </Badge>
