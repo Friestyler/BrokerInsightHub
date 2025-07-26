@@ -845,19 +845,17 @@ export default function NetworkVisualization() {
     }
   };
 
-  // Pan/zoom handlers - simplified
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Only start panning from background, not nodes
-    if ((e.target as Element).tagName === 'svg' || (e.target as Element).tagName === 'g') {
-      setIsMouseDown(true);
+  // Pan/zoom handlers - basic approach
+  const handleSVGMouseDown = (e: React.MouseEvent) => {
+    // Only pan from empty SVG areas, not nodes
+    if ((e.target as Element).tagName === 'svg') {
+      setIsDragging(true);
       setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isMouseDown) return;
+  const handleSVGMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
     setTransform(prev => ({
       ...prev,
       x: e.clientX - dragStart.x,
@@ -865,8 +863,8 @@ export default function NetworkVisualization() {
     }));
   };
 
-  const handleMouseUp = () => {
-    setIsMouseDown(false);
+  const handleSVGMouseUp = () => {
+    setIsDragging(false);
     setDragStart({ x: 0, y: 0 });
   };
 
@@ -894,10 +892,10 @@ export default function NetworkVisualization() {
         ref={svgRef} 
         className="w-full h-full cursor-move" 
         viewBox="0 0 800 400"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseDown={handleSVGMouseDown}
+        onMouseMove={handleSVGMouseMove}
+        onMouseUp={handleSVGMouseUp}
+        onMouseLeave={handleSVGMouseUp}
         onWheel={handleWheel}
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       >
@@ -933,7 +931,11 @@ export default function NetworkVisualization() {
               stroke={entity.type === 'customer' ? '#1E40AF' : 'none'}
               strokeWidth={entity.type === 'customer' ? '2' : '0'}
               className="cursor-pointer hover:opacity-80"
-              onClick={(e) => handleNodeClick(entity, e)}
+              style={{ pointerEvents: 'all' }}
+              onClick={(e) => {
+                console.log('🔥 Circle element clicked directly');
+                handleNodeClick(entity, e);
+              }}
             />
             <text 
               x={entity.cx} 
@@ -1180,7 +1182,11 @@ export default function NetworkVisualization() {
         <div 
           className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)}`}
           data-contact-card="true"
-          onClick={(e) => handleNodeClick(person, e)}
+          style={{ pointerEvents: 'all' }}
+          onClick={(e) => {
+            console.log('🔥 Contact card clicked directly');
+            handleNodeClick(person, e);
+          }}
         >
           <div className="flex items-center space-x-2 mb-1">
             {getRoleIcon(person.level)}
@@ -1249,10 +1255,10 @@ export default function NetworkVisualization() {
       <div className="relative h-96 bg-gray-50 rounded-lg border overflow-hidden">
         <div 
           className="w-full h-full"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          onMouseDown={handleSVGMouseDown}
+          onMouseMove={handleSVGMouseMove}
+          onMouseUp={handleSVGMouseUp}
+          onMouseLeave={handleSVGMouseUp}
           onWheel={(e) => {
             const delta = e.deltaY > 0 ? 0.9 : 1.1;
             const newScale = Math.max(0.3, Math.min(3, transform.scale * delta));
