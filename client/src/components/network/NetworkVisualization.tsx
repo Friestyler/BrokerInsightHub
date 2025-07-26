@@ -906,7 +906,8 @@ export default function NetworkVisualization() {
               stroke={entity.type === 'customer' ? '#1E40AF' : 'none'}
               strokeWidth={entity.type === 'customer' ? '2' : '0'}
               className="cursor-pointer hover:opacity-80"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 console.log('Clicked entity:', entity.type, entity.name, entity.entityRoute);
                 setSelectedNode(entity);
                 
@@ -1161,7 +1162,10 @@ export default function NetworkVisualization() {
       return (
         <div 
           className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)}`}
-          onClick={() => setSelectedNode(person)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedNode(person);
+          }}
         >
           <div className="flex items-center space-x-2 mb-1">
             {getRoleIcon(person.level)}
@@ -1234,7 +1238,23 @@ export default function NetworkVisualization() {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
+          onWheel={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const newScale = Math.max(0.3, Math.min(3, transform.scale * delta));
+            
+            // Calculate zoom point to zoom into cursor position
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            setTransform(prev => ({
+              x: x - (x - prev.x) * (newScale / prev.scale),
+              y: y - (y - prev.y) * (newScale / prev.scale),
+              scale: newScale
+            }));
+          }}
           style={{ 
             cursor: isDragging ? 'grabbing' : 'grab',
             transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
@@ -1244,14 +1264,6 @@ export default function NetworkVisualization() {
           }}
         >
           <div className="p-6 min-w-fit">
-            <div className="text-center mb-8">
-              <div className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-center space-x-2">
-                <GitBranch className="h-5 w-5 text-blue-500" />
-                <span>Organizational Hierarchy</span>
-              </div>
-              <p className="text-sm text-gray-600">{orgContacts.length} contacts • Showing reporting relationships</p>
-            </div>
-            
             {/* Render hierarchical structure */}
             <div className="flex justify-center space-x-12">
               {hierarchicalContacts.map((rootNode: any) => (
