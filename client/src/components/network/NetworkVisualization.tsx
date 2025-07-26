@@ -236,8 +236,7 @@ export default function NetworkVisualization() {
       contacts: contactsArray?.length || 0,
       partners: partnersArray?.length || 0,
       projects: 8,
-      products: productsArray?.length || 0,
-      hierarchy: 1
+      products: productsArray?.length || 0
     };
   };
 
@@ -249,8 +248,7 @@ export default function NetworkVisualization() {
     { key: 'contacts', label: 'Contacts', count: entityCounts.contacts, icon: Users },
     { key: 'partners', label: 'Partners', count: entityCounts.partners, icon: UserCheck },
     { key: 'projects', label: 'Projects', count: entityCounts.projects, icon: Folder },
-    { key: 'products', label: 'Products', count: entityCounts.products, icon: Package },
-    { key: 'hierarchy', label: 'Hierarchy', count: entityCounts.hierarchy, icon: GitBranch }
+    { key: 'products', label: 'Products', count: entityCounts.products, icon: Package }
   ];
 
   const toggleFilter = (filterKey: string) => {
@@ -1503,7 +1501,7 @@ export default function NetworkVisualization() {
             </Button>
           )}
         </div>
-        <div className="grid grid-cols-7 gap-6">
+        <div className="grid grid-cols-6 gap-6">
           {filterOptions.map((filter) => {
             const IconComponent = filter.icon;
             const isFiltered = appliedFilters[filter.key]?.length > 0;
@@ -1513,8 +1511,7 @@ export default function NetworkVisualization() {
               contacts: 'bg-blue-100 text-blue-600',
               partners: 'bg-purple-100 text-purple-600',
               projects: 'bg-pink-100 text-pink-600',
-              products: 'bg-indigo-100 text-indigo-600',
-              hierarchy: 'bg-gray-100 text-gray-600'
+              products: 'bg-indigo-100 text-indigo-600'
             };
             return (
               <div 
