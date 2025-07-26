@@ -107,6 +107,11 @@ export default function NetworkVisualization() {
     staleTime: 30000,
   });
 
+  const { data: contactRelationships } = useQuery({
+    queryKey: ['/api/degoudse/contact-relationships'],
+    staleTime: 30000,
+  });
+
   // Fetch saved lists for each entity type with correct plural entity types
   const { data: customerLists } = useQuery({
     queryKey: ['/api/degoudse/saved-lists', { entity_type: 'customers' }],
@@ -144,6 +149,7 @@ export default function NetworkVisualization() {
   const partnersArray = Array.isArray(partners) ? partners : [];
   const contactsArray = Array.isArray(contacts) ? contacts : [];
   const productsArray = Array.isArray(products) ? products : [];
+  const contactRelationshipsArray = Array.isArray(contactRelationships) ? contactRelationships : [];
 
   // Set default customer when data loads
   useEffect(() => {
@@ -902,17 +908,24 @@ export default function NetworkVisualization() {
     const hasContactFilters = appliedFilters.contacts && appliedFilters.contacts.length > 0;
     
     if (hasCustomerFilters) {
-      // Show contacts for filtered customers only
+      // Show contacts for filtered customers only using contact_relationships table
       console.log('Building org chart from filtered customers contacts');
       const filteredCustomerIds = appliedFilters.customers.map((c: any) => c.id);
       
-      // Find contacts that belong to filtered customers
-      const customerContacts = contactsArray?.filter((contact: any) => {
-        const customerId = contact.customer_id || contact.clientId;
-        return customerId && filteredCustomerIds.includes(customerId);
-      }) || [];
+      // Get contact relationships for filtered customers
+      const contactRelationships = contactRelationshipsArray?.filter((rel: any) => 
+        rel.entity_type === 'customer' && filteredCustomerIds.includes(rel.entity_id)
+      ) || [];
       
-      console.log('Found', customerContacts.length, 'contacts for', filteredCustomerIds.length, 'filtered customers');
+      console.log('Found', contactRelationships.length, 'contact relationships for', filteredCustomerIds.length, 'filtered customers');
+      
+      // Get the actual contacts from the relationships
+      const contactIds = contactRelationships.map((rel: any) => rel.contact_id);
+      const customerContacts = contactsArray?.filter((contact: any) => 
+        contactIds.includes(contact.id)
+      ) || [];
+      
+      console.log('Found', customerContacts.length, 'actual contacts from relationships');
       
       return customerContacts.map((contact: any) => {
         const title = (contact.job_title || '').toLowerCase();
@@ -928,15 +941,20 @@ export default function NetworkVisualization() {
           level = 'manager';
         }
 
+        // Find the customer relationship for this contact
+        const relationship = contactRelationships.find((rel: any) => rel.contact_id === contact.id);
+        const customerId = relationship?.entity_id;
+
         return {
           id: contact.id,
-          name: contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : contact.company_name,
+          name: contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : contact.company,
           role: contact.job_title || 'No title',
           department: contact.department || 'General',
           level: level,
           email: contact.email,
           phone: contact.phone,
-          customerId: contact.customer_id || contact.clientId
+          customerId: customerId,
+          relationshipRole: relationship?.role || 'Contact'
         };
       });
     }

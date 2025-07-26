@@ -2894,6 +2894,24 @@ Prioritize actions that:
 
   // Contact Relationships API endpoints
   
+  // Get all contact relationships
+  app.get('/api/:envId/contact-relationships', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = pool;
+
+      const result = await envPool.query(`
+        SELECT * FROM ${envId}.contact_relationships 
+        ORDER BY created_at DESC
+      `);
+
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching contact relationships:', error);
+      res.status(500).json({ error: 'Failed to fetch contact relationships' });
+    }
+  });
+  
   // Get all relationships for a specific contact
   app.get('/api/:envId/contacts/:contactId/relationships', async (req, res) => {
     try {
