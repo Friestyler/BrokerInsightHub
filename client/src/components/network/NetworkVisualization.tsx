@@ -9,6 +9,7 @@ import {
   Building, 
   Target, 
   Users, 
+  User,
   UserCheck, 
   Folder, 
   Package, 
@@ -535,137 +536,180 @@ export default function NetworkVisualization() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Network Visualization</h2>
-          <p className="text-gray-600">Analyze customer relationships and organizational structures</p>
+          <p className="text-gray-600 mt-1">Analyze customer relationships and organizational structures</p>
         </div>
         
         {/* Customer Selection */}
-        <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="Select a customer" />
-          </SelectTrigger>
-          <SelectContent>
-            {customersArray && Array.isArray(customersArray) && customersArray.map((customer: any) => (
-              <SelectItem key={customer.id} value={customer.name}>
-                {customer.name} ({entityCounts.customers > 0 ? 'connections available' : 'no connections'})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center space-x-3">
+          <span className="text-sm text-gray-600 font-medium">Focus on:</span>
+          <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+            <SelectTrigger className="w-72 h-10 border-gray-200 rounded-xl">
+              <SelectValue placeholder="Select a customer to analyze" />
+            </SelectTrigger>
+            <SelectContent>
+              {customersArray && Array.isArray(customersArray) && customersArray.map((customer: any) => (
+                <SelectItem key={customer.id} value={customer.name}>
+                  {customer.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Relationship Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-4 md:grid-cols-7 gap-3">
-            {filterOptions.map((filter) => {
-              const IconComponent = filter.icon;
-              return (
-                <Button
-                  key={filter.key}
-                  variant={activeFilters[filter.key as keyof typeof activeFilters] ? "default" : "outline"}
-                  className="flex flex-col h-auto py-3 px-2"
-                  onClick={() => toggleFilter(filter.key)}
-                >
-                  <IconComponent className="h-4 w-4 mb-1" />
-                  <span className="text-xs font-medium">{filter.label}</span>
-                  <span className="text-xs opacity-70">({filter.count})</span>
-                </Button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Relationship Overview - Apple/Google Style */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <div className="grid grid-cols-7 gap-6">
+          {filterOptions.map((filter) => {
+            const IconComponent = filter.icon;
+            const colors = {
+              customers: 'bg-green-100 text-green-600',
+              opportunities: 'bg-orange-100 text-orange-600', 
+              contacts: 'bg-blue-100 text-blue-600',
+              partners: 'bg-purple-100 text-purple-600',
+              projects: 'bg-pink-100 text-pink-600',
+              products: 'bg-indigo-100 text-indigo-600',
+              hierarchy: 'bg-gray-100 text-gray-600'
+            };
+            return (
+              <div 
+                key={filter.key}
+                className="flex flex-col items-center text-center cursor-pointer group transition-all duration-200 hover:scale-105"
+                onClick={() => toggleFilter(filter.key)}
+              >
+                <div className={`w-12 h-12 rounded-2xl ${colors[filter.key as keyof typeof colors]} flex items-center justify-center mb-3 group-hover:shadow-md transition-shadow`}>
+                  <IconComponent className="h-6 w-6" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {filter.count}
+                </div>
+                <div className="text-sm text-gray-600 font-medium">
+                  {filter.label}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main Visualization Area */}
         <div className="lg:col-span-3">
-          <Card>
-            <CardHeader>
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Relationship Network</CardTitle>
-                <Tabs value={activeView} onValueChange={setActiveView} className="w-auto">
-                  <TabsList>
-                    <TabsTrigger value="network" className="flex items-center space-x-2">
-                      <Network className="h-4 w-4" />
-                      <span>Network View</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="orgchart" className="flex items-center space-x-2">
-                      <GitBranch className="h-4 w-4" />
-                      <span>Org Chart</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <h3 className="text-lg font-semibold text-gray-900">Relationship Network</h3>
+                <div className="flex bg-gray-100 rounded-xl p-1">
+                  <button
+                    onClick={() => setActiveView('network')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      activeView === 'network' 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <Network className="h-4 w-4 inline mr-2" />
+                    Network View
+                  </button>
+                  <button
+                    onClick={() => setActiveView('orgchart')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      activeView === 'orgchart' 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <GitBranch className="h-4 w-4 inline mr-2" />
+                    Org Chart
+                  </button>
+                </div>
               </div>
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div className="p-6">
               {activeView === 'network' ? <NetworkViewContent /> : <OrgChartContent />}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Details Panel */}
         <div className="lg:col-span-1">
-          <Card className="h-fit">
-            <CardHeader>
-              <CardTitle className="text-lg">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">
                 {selectedNode ? 'Node Details' : 'Select a Node'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
+            </div>
+            <div className="p-6">
               {selectedNode ? (
                 <div className="space-y-4">
-                  <div>
-                    <div className="font-semibold text-gray-900">{selectedNode.name}</div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <User className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div className="font-semibold text-gray-900 text-lg">{selectedNode.name}</div>
                     {selectedNode.role && (
                       <div className="text-sm text-gray-600 mt-1">{selectedNode.role}</div>
                     )}
                     {selectedNode.department && (
-                      <Badge className={`mt-2 ${getDepartmentColor(selectedNode.department)}`}>
+                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mt-2 ${getDepartmentColor(selectedNode.department)}`}>
                         {selectedNode.department}
-                      </Badge>
+                      </div>
                     )}
                   </div>
                   
-                  {selectedNode.email && (
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Mail className="h-4 w-4" />
-                      <span>{selectedNode.email}</span>
-                    </div>
-                  )}
-                  
-                  {selectedNode.phone && (
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Phone className="h-4 w-4" />
-                      <span>{selectedNode.phone}</span>
-                    </div>
-                  )}
-                  
-                  {selectedNode.value && (
-                    <div className="text-lg font-semibold text-green-600">
-                      {selectedNode.value}
-                    </div>
-                  )}
-                  
-                  {selectedNode.status && (
-                    <Badge variant={selectedNode.status === 'accepted' ? 'default' : 'secondary'}>
-                      {selectedNode.status}
-                    </Badge>
-                  )}
+                  <div className="space-y-3 mt-6">
+                    {selectedNode.email && (
+                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Mail className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <span className="text-sm text-gray-700">{selectedNode.email}</span>
+                      </div>
+                    )}
+                    
+                    {selectedNode.phone && (
+                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                          <Phone className="h-4 w-4 text-green-600" />
+                        </div>
+                        <span className="text-sm text-gray-700">{selectedNode.phone}</span>
+                      </div>
+                    )}
+                    
+                    {selectedNode.value && (
+                      <div className="p-3 bg-green-50 rounded-xl">
+                        <div className="text-lg font-semibold text-green-700 text-center">
+                          {selectedNode.value}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {selectedNode.status && (
+                      <div className="text-center">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                          selectedNode.status === 'accepted' 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {selectedNode.status}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-8">
-                  <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Click on any node in the visualization to see details</p>
+                <div className="text-center text-gray-500 py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Network className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-sm">Click on any node in the visualization to see details</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>
