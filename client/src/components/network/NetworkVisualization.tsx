@@ -402,33 +402,38 @@ export default function NetworkVisualization() {
 
   // Transform real data for network visualization
   const getNetworkData = () => {
-    if (!customersArray || !selectedCustomer) return { entities: [], relationships: [] };
-
-    const selectedCustomerData = customersArray.find((c: any) => c.name === selectedCustomer);
-    if (!selectedCustomerData) return { entities: [], relationships: [] };
-
     const entities: NetworkEntity[] = [];
     const relationships: NetworkRelationship[] = [];
 
-    // Primary customer (large blue circle)
-    entities.push({
-      id: `customer-${selectedCustomerData.id}`,
-      name: selectedCustomerData.name,
-      type: 'customer',
-      role: 'primary',
-      color: '#3B82F6',
-      size: 60,
-      cx: 400,
-      cy: 200,
-      entityData: selectedCustomerData,
-      entityRoute: `/customers/${selectedCustomerData.id}`
-    });
+    // Check if we have any filters applied
+    const hasFilters = Object.keys(appliedFilters).length > 0;
+    
+    if (!hasFilters) {
+      // No filters - show default single customer view
+      if (!customersArray || !selectedCustomer) return { entities: [], relationships: [] };
 
-    // Customer opportunities (check both field names)
-    const customerOpportunities = opportunitiesArray?.filter((o: any) => 
-      o.customer_id === selectedCustomerData.id || o.clientId === selectedCustomerData.id
-    ) || [];
-    customerOpportunities.slice(0, 3).forEach((opp: any, index: number) => {
+      const selectedCustomerData = customersArray.find((c: any) => c.name === selectedCustomer);
+      if (!selectedCustomerData) return { entities: [], relationships: [] };
+
+      // Primary customer (large blue circle)
+      entities.push({
+        id: `customer-${selectedCustomerData.id}`,
+        name: selectedCustomerData.name,
+        type: 'customer',
+        role: 'primary',
+        color: '#3B82F6',
+        size: 60,
+        cx: 400,
+        cy: 200,
+        entityData: selectedCustomerData,
+        entityRoute: `/customers/${selectedCustomerData.id}`
+      });
+
+      // Customer opportunities (check both field names)
+      const customerOpportunities = opportunitiesArray?.filter((o: any) => 
+        o.customer_id === selectedCustomerData.id || o.clientId === selectedCustomerData.id
+      ) || [];
+      customerOpportunities.slice(0, 3).forEach((opp: any, index: number) => {
       const angle = (index * 120) * (Math.PI / 180);
       const x = 400 + Math.cos(angle) * 120;
       const y = 200 + Math.sin(angle) * 120;
@@ -581,6 +586,200 @@ export default function NetworkVisualization() {
         }
       }
     });
+
+    } else {
+      // FILTERS APPLIED - Show filtered network visualization
+      console.log('Generating filtered network with filters:', appliedFilters);
+      
+      // Get filtered entities
+      const filteredCustomers = appliedFilters.customers || [];
+      const filteredOpportunities = appliedFilters.opportunities || [];
+      const filteredPartners = appliedFilters.partners || [];
+      const filteredContacts = appliedFilters.contacts || [];
+      const filteredProducts = appliedFilters.products || [];
+
+      // Add filtered customers
+      filteredCustomers.slice(0, 10).forEach((customer: any, index: number) => {
+        const angle = (index * 36) * (Math.PI / 180);
+        const radius = 150;
+        const x = 400 + Math.cos(angle) * radius;
+        const y = 200 + Math.sin(angle) * radius;
+
+        entities.push({
+          id: `customer-${customer.id}`,
+          name: customer.name,
+          type: 'customer',
+          color: '#3B82F6',
+          size: 40,
+          cx: x,
+          cy: y,
+          entityData: customer,
+          entityRoute: `/customers/${customer.id}`
+        });
+      });
+
+      // Add filtered opportunities
+      filteredOpportunities.slice(0, 15).forEach((opp: any, index: number) => {
+        const angle = (index * 24) * (Math.PI / 180);
+        const radius = 100;
+        const x = 400 + Math.cos(angle) * radius;
+        const y = 200 + Math.sin(angle) * radius;
+
+        const status = opp.assessment_status || 'pending';
+        let color = '#EAB308'; // yellow for pending
+        if (status === 'accepted') color = '#10B981'; // green
+        if (status === 'withheld') color = '#EF4444'; // red
+
+        entities.push({
+          id: `opportunity-${opp.id}`,
+          name: opp.title || opp.name,
+          type: 'opportunity',
+          status: status,
+          value: opp.estimated_value ? `€${Math.round(opp.estimated_value / 1000)}k` : '',
+          color: color,
+          size: 30,
+          cx: x,
+          cy: y,
+          entityData: opp,
+          entityRoute: `/opportunities/${opp.id}`
+        });
+
+        // Connect opportunities to their customers
+        const customerId = opp.customer_id || opp.clientId;
+        if (customerId && filteredCustomers.find((c: any) => c.id === customerId)) {
+          relationships.push({
+            from: `customer-${customerId}`,
+            to: `opportunity-${opp.id}`,
+            type: 'has_opportunity',
+            color: '#10B981'
+          });
+        }
+      });
+
+      // Add filtered partners
+      filteredPartners.slice(0, 8).forEach((partner: any, index: number) => {
+        const angle = (index * 45) * (Math.PI / 180);
+        const radius = 200;
+        const x = 400 + Math.cos(angle) * radius;
+        const y = 200 + Math.sin(angle) * radius;
+
+        entities.push({
+          id: `partner-${partner.id}`,
+          name: partner.name,
+          type: 'partner',
+          color: '#8B5CF6',
+          size: 35,
+          cx: x,
+          cy: y,
+          entityData: partner,
+          entityRoute: `/partners/${partner.id}`
+        });
+
+        // Connect partners to their opportunities
+        const partnerOpportunities = filteredOpportunities.filter((opp: any) => opp.partnerId === partner.id);
+        partnerOpportunities.forEach((opp: any) => {
+          relationships.push({
+            from: `partner-${partner.id}`,
+            to: `opportunity-${opp.id}`,
+            type: 'manages',
+            color: '#8B5CF6'
+          });
+        });
+      });
+
+      // Add filtered contacts
+      filteredContacts.slice(0, 12).forEach((contact: any, index: number) => {
+        const angle = (index * 30) * (Math.PI / 180);
+        const radius = 80;
+        const x = 400 + Math.cos(angle) * radius;
+        const y = 200 + Math.sin(angle) * radius;
+
+        // Determine role level from job title
+        const title = (contact.job_title || '').toLowerCase();
+        let level = 'other';
+        let color = '#6B7280';
+        let size = 15;
+
+        if (title.includes('ceo') || title.includes('executive') || title.includes('president')) {
+          level = 'executive';
+          color = '#EF4444';
+          size = 25;
+        } else if (title.includes('vp') || title.includes('vice president')) {
+          level = 'vp';
+          color = '#8B5CF6';
+          size = 22;
+        } else if (title.includes('director')) {
+          level = 'director';
+          color = '#3B82F6';
+          size = 20;
+        } else if (title.includes('manager')) {
+          level = 'manager';
+          color = '#10B981';
+          size = 18;
+        }
+
+        entities.push({
+          id: `contact-${contact.id}`,
+          name: contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : contact.company_name,
+          type: 'contact',
+          level: level,
+          role: contact.job_title,
+          department: contact.department,
+          email: contact.email,
+          phone: contact.phone,
+          color: color,
+          size: size,
+          cx: x,
+          cy: y,
+          entityData: contact,
+          entityRoute: `/contacts/${contact.id}`
+        });
+
+        // Connect contacts to their customers
+        const customerId = contact.customer_id || contact.clientId;
+        if (customerId && filteredCustomers.find((c: any) => c.id === customerId)) {
+          relationships.push({
+            from: `customer-${customerId}`,
+            to: `contact-${contact.id}`,
+            type: 'employs',
+            color: '#6366F1'
+          });
+        }
+      });
+
+      // Add filtered products
+      filteredProducts.slice(0, 10).forEach((product: any, index: number) => {
+        const angle = (index * 36 + 180) * (Math.PI / 180);
+        const radius = 120;
+        const x = 400 + Math.cos(angle) * radius;
+        const y = 200 + Math.sin(angle) * radius;
+
+        entities.push({
+          id: `product-${product.id}`,
+          name: product.name,
+          type: 'product',
+          color: '#F59E0B',
+          size: 25,
+          cx: x,
+          cy: y,
+          entityData: product,
+          entityRoute: `/products/${product.id}`
+        });
+
+        // Connect products to opportunities
+        const productOpportunities = filteredOpportunities.filter((opp: any) => 
+          (opp.product_id === product.id || opp.productId === product.id)
+        );
+        productOpportunities.forEach((opp: any) => {
+          relationships.push({
+            from: `opportunity-${opp.id}`,
+            to: `product-${product.id}`,
+            type: 'involves',
+            color: '#F59E0B'
+          });
+        });
+      });
+    }
 
     return { entities, relationships };
   };
