@@ -5,6 +5,11 @@ import { Badge } from '@/components/ui/badge';
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   Building, 
   Target, 
@@ -22,7 +27,13 @@ import {
   Settings,
   Briefcase,
   Mail,
-  Phone
+  Phone,
+  Search,
+  X,
+  Filter,
+  ChevronDown,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
@@ -59,6 +70,14 @@ export default function NetworkVisualization() {
     products: true,
     hierarchy: true
   });
+  
+  // Advanced filtering state
+  const [appliedFilters, setAppliedFilters] = useState<{[key: string]: any[]}>({});
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+  const [selectedEntityType, setSelectedEntityType] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRecords, setSelectedRecords] = useState<any[]>([]);
+  const [isListSelectorOpen, setIsListSelectorOpen] = useState(false);
 
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -85,6 +104,32 @@ export default function NetworkVisualization() {
 
   const { data: products } = useQuery({
     queryKey: ['/api/degoudse/products'],
+    staleTime: 30000,
+  });
+
+  // Fetch saved lists for each entity type
+  const { data: customerLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', 'customers'],
+    staleTime: 30000,
+  });
+
+  const { data: opportunityLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', 'opportunities'],
+    staleTime: 30000,
+  });
+
+  const { data: partnerLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', 'partners'],
+    staleTime: 30000,
+  });
+
+  const { data: contactLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', 'contacts'],
+    staleTime: 30000,
+  });
+
+  const { data: productLists } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', 'products'],
     staleTime: 30000,
   });
 
@@ -173,6 +218,135 @@ export default function NetworkVisualization() {
       ...prev,
       [filterKey]: !prev[filterKey as keyof typeof prev]
     }));
+  };
+
+  // Advanced filtering functions
+  const handleEntityClick = (entityType: string) => {
+    setSelectedEntityType(entityType);
+    setIsFilterDialogOpen(true);
+    setSearchQuery('');
+    setSelectedRecords([]);
+  };
+
+  const applyEntityFilter = (entityType: string, records: any[]) => {
+    setAppliedFilters(prev => ({
+      ...prev,
+      [entityType]: records
+    }));
+    
+    // Auto-filter related entities based on relationships
+    filterRelatedEntities(entityType, records);
+    setIsFilterDialogOpen(false);
+  };
+
+  const filterRelatedEntities = (entityType: string, primaryRecords: any[]) => {
+    if (!primaryRecords.length) return;
+
+    const primaryIds = primaryRecords.map(r => r.id);
+    
+    switch (entityType) {
+      case 'customers':
+        // Filter opportunities for selected customers
+        const relatedOpportunities = opportunitiesArray?.filter((opp: any) => 
+          primaryIds.includes(opp.customer_id) || primaryIds.includes(opp.clientId)
+        ) || [];
+        
+        // Filter contacts for selected customers
+        const relatedContacts = contactsArray?.filter((contact: any) => 
+          primaryIds.includes(contact.customer_id)
+        ) || [];
+        
+        if (relatedOpportunities.length) {
+          setAppliedFilters(prev => ({ ...prev, opportunities: relatedOpportunities }));
+        }
+        if (relatedContacts.length) {
+          setAppliedFilters(prev => ({ ...prev, contacts: relatedContacts }));
+        }
+        break;
+        
+      case 'opportunities':
+        // Filter customers for selected opportunities
+        const customerIds = [...new Set(primaryRecords.map((opp: any) => opp.customer_id || opp.clientId))];
+        const relatedCustomers = customersArray?.filter((customer: any) => 
+          customerIds.includes(customer.id)
+        ) || [];
+        
+        // Filter partners for selected opportunities
+        const partnerIds = [...new Set(primaryRecords.map((opp: any) => opp.partnerId))];
+        const relatedPartners = partnersArray?.filter((partner: any) => 
+          partnerIds.includes(partner.id)
+        ) || [];
+        
+        if (relatedCustomers.length) {
+          setAppliedFilters(prev => ({ ...prev, customers: relatedCustomers }));
+        }
+        if (relatedPartners.length) {
+          setAppliedFilters(prev => ({ ...prev, partners: relatedPartners }));
+        }
+        break;
+        
+      case 'partners':
+        // Filter opportunities for selected partners
+        const partnerOpportunities = opportunitiesArray?.filter((opp: any) => 
+          primaryIds.includes(opp.partnerId)
+        ) || [];
+        
+        if (partnerOpportunities.length) {
+          setAppliedFilters(prev => ({ ...prev, opportunities: partnerOpportunities }));
+          // Also filter customers of those opportunities
+          const oppCustomerIds = [...new Set(partnerOpportunities.map((opp: any) => opp.customer_id || opp.clientId))];
+          const partnerCustomers = customersArray?.filter((customer: any) => 
+            oppCustomerIds.includes(customer.id)
+          ) || [];
+          if (partnerCustomers.length) {
+            setAppliedFilters(prev => ({ ...prev, customers: partnerCustomers }));
+          }
+        }
+        break;
+    }
+  };
+
+  const clearAllFilters = () => {
+    setAppliedFilters({});
+    setSelectedCustomer('');
+    // Reset to default view
+    if (customersArray && customersArray.length > 0) {
+      const defaultCustomer = customersArray.find((customer: any) => {
+        const custOpps = opportunitiesArray?.filter((o: any) => o.customer_id === customer.id || o.clientId === customer.id);
+        return custOpps && custOpps.length > 0;
+      }) || customersArray[0];
+      setSelectedCustomer(defaultCustomer.name);
+    }
+  };
+
+  const getEntityData = (entityType: string) => {
+    switch (entityType) {
+      case 'customers': return customersArray || [];
+      case 'opportunities': return opportunitiesArray || [];
+      case 'partners': return partnersArray || [];
+      case 'contacts': return contactsArray || [];
+      case 'products': return productsArray || [];
+      default: return [];
+    }
+  };
+
+  const getEntityLists = (entityType: string) => {
+    switch (entityType) {
+      case 'customers': return customerLists || [];
+      case 'opportunities': return opportunityLists || [];
+      case 'partners': return partnerLists || [];
+      case 'contacts': return contactLists || [];
+      case 'products': return productLists || [];
+      default: return [];
+    }
+  };
+
+  const getFilteredEntityData = (entityType: string) => {
+    const appliedFilter = appliedFilters[entityType];
+    if (appliedFilter && appliedFilter.length > 0) {
+      return appliedFilter;
+    }
+    return getEntityData(entityType);
   };
 
   const getRoleColor = (level: string) => {
@@ -634,9 +808,149 @@ export default function NetworkVisualization() {
     );
   };
 
+  // Entity Filter Dialog Component
+  const EntityFilterDialog = () => {
+    const entityData = getEntityData(selectedEntityType);
+    const entityLists = getEntityLists(selectedEntityType);
+    
+    const filteredData = entityData.filter((item: any) => {
+      const searchFields = [item.name, item.title, item.full_name, item.first_name, item.last_name, item.company].filter(Boolean);
+      return searchFields.some(field => 
+        field.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+
+    const handleRecordToggle = (record: any) => {
+      setSelectedRecords(prev => {
+        const exists = prev.find(r => r.id === record.id);
+        if (exists) {
+          return prev.filter(r => r.id !== record.id);
+        } else {
+          return [...prev, record];
+        }
+      });
+    };
+
+    const handleListSelect = (list: any) => {
+      // Apply list filter logic here
+      const listData = entityData.filter((item: any) => 
+        list.entity_ids?.includes(item.id) || false
+      );
+      setSelectedRecords(listData);
+    };
+
+    return (
+      <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Filter className="h-5 w-5" />
+              <span>Filter {selectedEntityType}</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-3 gap-6">
+            {/* Saved Lists */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-gray-900">Saved Lists</h4>
+              <ScrollArea className="h-60">
+                {entityLists.map((list: any) => (
+                  <div
+                    key={list.id}
+                    className="p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 mb-2"
+                    onClick={() => handleListSelect(list)}
+                  >
+                    <div className="font-medium text-sm">{list.name}</div>
+                    <div className="text-xs text-gray-500">{list.entity_count || 0} items</div>
+                  </div>
+                ))}
+              </ScrollArea>
+            </div>
+            
+            {/* Search & Select */}
+            <div className="col-span-2 space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder={`Search ${selectedEntityType}...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <ScrollArea className="h-60">
+                {filteredData.map((item: any) => {
+                  const isSelected = selectedRecords.find(r => r.id === item.id);
+                  const displayName = item.name || item.title || item.full_name || 
+                    (item.first_name && item.last_name ? `${item.first_name} ${item.last_name}` : 'Unnamed');
+                  
+                  return (
+                    <div
+                      key={item.id}
+                      className={`p-3 rounded-lg border cursor-pointer mb-2 transition-all ${
+                        isSelected ? 'bg-blue-50 border-blue-200' : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                      onClick={() => handleRecordToggle(item)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Checkbox checked={!!isSelected} readOnly />
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{displayName}</div>
+                          {item.description && (
+                            <div className="text-xs text-gray-500">{item.description}</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </ScrollArea>
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-center pt-4 border-t">
+            <div className="text-sm text-gray-600">
+              {selectedRecords.length} selected
+            </div>
+            <div className="space-x-2">
+              <Button variant="outline" onClick={() => setIsFilterDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => applyEntityFilter(selectedEntityType, selectedRecords)}>
+                Apply Filter
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <div className="space-y-6">
-
+      {/* Filter Indicators */}
+      {Object.keys(appliedFilters).length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-900">Active Filters</span>
+            </div>
+            <Button variant="outline" size="sm" onClick={clearAllFilters}>
+              <X className="h-3 w-3 mr-1" />
+              Clear All
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-3">
+            {Object.entries(appliedFilters).map(([entityType, records]) => (
+              <Badge key={entityType} variant="secondary" className="bg-blue-100 text-blue-800">
+                {entityType}: {records.length} selected
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Relationship Filters - Apple/Google Style */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
@@ -644,6 +958,7 @@ export default function NetworkVisualization() {
         <div className="grid grid-cols-7 gap-6">
           {filterOptions.map((filter) => {
             const IconComponent = filter.icon;
+            const isFiltered = appliedFilters[filter.key]?.length > 0;
             const colors = {
               customers: 'bg-green-100 text-green-600',
               opportunities: 'bg-orange-100 text-orange-600', 
@@ -657,10 +972,15 @@ export default function NetworkVisualization() {
               <div 
                 key={filter.key}
                 className="flex flex-col items-center text-center cursor-pointer group transition-all duration-200 hover:scale-105"
-                onClick={() => toggleFilter(filter.key)}
+                onClick={() => handleEntityClick(filter.key)}
               >
-                <div className={`w-12 h-12 rounded-2xl ${colors[filter.key as keyof typeof colors]} flex items-center justify-center mb-3 group-hover:shadow-md transition-shadow`}>
+                <div className={`relative w-12 h-12 rounded-2xl ${colors[filter.key as keyof typeof colors]} flex items-center justify-center mb-3 group-hover:shadow-md transition-shadow ${
+                  isFiltered ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                }`}>
                   <IconComponent className="h-6 w-6" />
+                  {isFiltered && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full"></div>
+                  )}
                 </div>
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {filter.count}
@@ -673,6 +993,8 @@ export default function NetworkVisualization() {
           })}
         </div>
       </div>
+
+      <EntityFilterDialog />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main Visualization Area */}
