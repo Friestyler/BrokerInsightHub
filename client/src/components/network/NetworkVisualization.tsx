@@ -897,11 +897,52 @@ export default function NetworkVisualization() {
 
   // Transform contacts data for org chart view
   const getOrgChartData = () => {
-    // Check if we have filtered contacts
+    // Check if we have filtered customers - prioritize customer-contact relationships
+    const hasCustomerFilters = appliedFilters.customers && appliedFilters.customers.length > 0;
     const hasContactFilters = appliedFilters.contacts && appliedFilters.contacts.length > 0;
     
+    if (hasCustomerFilters) {
+      // Show contacts for filtered customers only
+      console.log('Building org chart from filtered customers contacts');
+      const filteredCustomerIds = appliedFilters.customers.map((c: any) => c.id);
+      
+      // Find contacts that belong to filtered customers
+      const customerContacts = contactsArray?.filter((contact: any) => {
+        const customerId = contact.customer_id || contact.clientId;
+        return customerId && filteredCustomerIds.includes(customerId);
+      }) || [];
+      
+      console.log('Found', customerContacts.length, 'contacts for', filteredCustomerIds.length, 'filtered customers');
+      
+      return customerContacts.map((contact: any) => {
+        const title = (contact.job_title || '').toLowerCase();
+        let level = 'other';
+
+        if (title.includes('ceo') || title.includes('executive') || title.includes('president')) {
+          level = 'executive';
+        } else if (title.includes('vp') || title.includes('vice president')) {
+          level = 'vp';
+        } else if (title.includes('director')) {
+          level = 'director';
+        } else if (title.includes('manager')) {
+          level = 'manager';
+        }
+
+        return {
+          id: contact.id,
+          name: contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : contact.company_name,
+          role: contact.job_title || 'No title',
+          department: contact.department || 'General',
+          level: level,
+          email: contact.email,
+          phone: contact.phone,
+          customerId: contact.customer_id || contact.clientId
+        };
+      });
+    }
+    
     if (hasContactFilters) {
-      // Use filtered contacts for org chart
+      // Use filtered contacts but also check if they belong to any customers
       console.log('Building org chart from filtered contacts:', appliedFilters.contacts.length);
       return appliedFilters.contacts.map((contact: any) => {
         const title = (contact.job_title || '').toLowerCase();
@@ -924,7 +965,8 @@ export default function NetworkVisualization() {
           department: contact.department || 'General',
           level: level,
           email: contact.email,
-          phone: contact.phone
+          phone: contact.phone,
+          customerId: contact.customer_id || contact.clientId
         };
       });
     }
