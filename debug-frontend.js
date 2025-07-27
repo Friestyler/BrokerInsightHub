@@ -1,63 +1,149 @@
-// Debug script to test frontend data expectations vs API reality
-const BASE_URL = 'http://localhost:5000';
+// Comprehensive frontend debugging script
+// Run this in browser console to diagnose React rendering issues
 
-async function debugFrontendDataMismatch() {
-  console.log('=== FRONTEND-API DATA STRUCTURE DEBUG ===\n');
+console.log('=== FRONTEND DEBUGGING SCRIPT ===');
+
+// Test 1: Direct API calls
+async function testAPICalls() {
+  console.log('\n1. TESTING API CALLS DIRECTLY');
   
   try {
-    const response = await fetch(`${BASE_URL}/api/degoudse/opportunities`);
-    const opportunities = await response.json();
+    const campaignsResponse = await fetch('/api/degoudse/campaigns');
+    const campaigns = await campaignsResponse.json();
+    console.log(`✅ Campaigns API: ${campaigns.length} items`);
+    console.log('Sample campaign:', campaigns[0]);
     
-    if (opportunities.length === 0) {
-      console.log('ERROR: No opportunities returned');
-      return;
-    }
+    const oppsResponse = await fetch('/api/degoudse/opportunities');
+    const opportunities = await oppsResponse.json();
+    console.log(`✅ Opportunities API: ${opportunities.length} items`);
+    console.log('Sample opportunity:', opportunities[0]);
     
-    const sample = opportunities[0];
-    console.log('API provides these fields:');
-    Object.keys(sample).forEach(key => {
-      console.log(`  ${key}: ${typeof sample[key]} = ${sample[key]}`);
-    });
-    
-    console.log('\n=== FRONTEND EXPECTATIONS vs API REALITY ===');
-    
-    // Test fields the frontend expects
-    const frontendExpectations = [
-      'value', // Frontend expects this but API provides 'estimatedValue'
-      'customerName', // Frontend expects this but API provides 'clientName'
-      'partnerName', // Frontend expects this but API provides 'partnerNames'
-    ];
-    
-    frontendExpectations.forEach(field => {
-      console.log(`Frontend expects '${field}': ${sample[field] !== undefined ? 'FOUND' : 'MISSING'}`);
-    });
-    
-    console.log('\n=== MAPPING SUGGESTIONS ===');
-    console.log('To fix frontend issues:');
-    console.log('1. Map estimatedValue -> value');
-    console.log('2. Map clientName -> customerName');
-    console.log('3. Map partnerNames -> partnerName');
-    
-    // Test calculateOpportunityStats function
-    console.log('\n=== STATS CALCULATION TEST ===');
-    const totalOpportunities = opportunities.length;
-    
-    // Current broken approach (what frontend tries to do)
-    let brokenValue = 0;
-    let workingValue = 0;
-    
-    opportunities.forEach(opp => {
-      brokenValue += (opp.value || 0); // This will be 0 because 'value' doesn't exist
-      workingValue += (opp.estimatedValue || 0); // This will work
-    });
-    
-    console.log(`Total opportunities: ${totalOpportunities}`);
-    console.log(`Broken calculation (using 'value'): $${brokenValue}`);
-    console.log(`Working calculation (using 'estimatedValue'): $${workingValue}`);
-    
+    return { campaigns, opportunities };
   } catch (error) {
-    console.error('ERROR:', error);
+    console.error('❌ API Error:', error);
+    return null;
   }
 }
 
-debugFrontendDataMismatch();
+// Test 2: Check React Query cache
+function checkReactQueryCache() {
+  console.log('\n2. CHECKING REACT QUERY CACHE');
+  
+  // Access React Query DevTools cache
+  if (window.__REACT_QUERY_CLIENT__) {
+    const queryClient = window.__REACT_QUERY_CLIENT__;
+    const cache = queryClient.getQueryCache();
+    
+    console.log('Query Cache Queries:', cache.getAll().length);
+    
+    // Check specific queries
+    const campaignQueries = cache.getAll().filter(q => 
+      q.queryKey.some(key => typeof key === 'string' && key.includes('campaigns'))
+    );
+    const oppQueries = cache.getAll().filter(q => 
+      q.queryKey.some(key => typeof key === 'string' && key.includes('opportunities'))
+    );
+    
+    console.log(`Campaign queries: ${campaignQueries.length}`);
+    campaignQueries.forEach(q => {
+      console.log('  Campaign query:', q.queryKey, 'State:', q.state.status, 'Data:', q.state.data?.length);
+    });
+    
+    console.log(`Opportunity queries: ${oppQueries.length}`);
+    oppQueries.forEach(q => {
+      console.log('  Opportunity query:', q.queryKey, 'State:', q.state.status, 'Data:', q.state.data?.length);
+    });
+  } else {
+    console.log('❌ React Query client not found');
+  }
+}
+
+// Test 3: Check Environment Context
+function checkEnvironmentContext() {
+  console.log('\n3. CHECKING ENVIRONMENT CONTEXT');
+  
+  // Check localStorage
+  const storedEnv = localStorage.getItem('selectedEnvironment');
+  console.log('Stored environment:', storedEnv);
+  
+  // Check if environment context is accessible
+  const envElements = document.querySelectorAll('[data-environment]');
+  console.log('Environment elements found:', envElements.length);
+  
+  // Check current page
+  const currentPath = window.location.pathname;
+  console.log('Current path:', currentPath);
+}
+
+// Test 4: Check for React errors
+function checkReactErrors() {
+  console.log('\n4. CHECKING FOR REACT ERRORS');
+  
+  // Check console errors
+  const errors = console.error.toString();
+  console.log('Console error method:', typeof console.error);
+  
+  // Check for React error boundaries
+  const errorElements = document.querySelectorAll('[class*="error"], [class*="Error"]');
+  console.log('Error elements found:', errorElements.length);
+  
+  // Check for loading states
+  const loadingElements = document.querySelectorAll('[class*="loading"], [class*="Loading"], [class*="spin"]');
+  console.log('Loading elements found:', loadingElements.length);
+}
+
+// Test 5: Simulate data
+function testDataStructures() {
+  console.log('\n5. TESTING DATA STRUCTURES');
+  
+  // Test campaign data structure expected by components
+  const mockCampaign = {
+    id: 1,
+    name: "Test Campaign",
+    emails_sent: 100,
+    emails_opened: 50,
+    total_clicks: 25,
+    open_rate: "50.00",
+    recipients: [{}, {}],
+    target_entity_type: "opportunities",
+    status: "active"
+  };
+  
+  console.log('Mock campaign structure:', mockCampaign);
+  
+  // Test opportunity data structure
+  const mockOpportunity = {
+    id: 1,
+    title: "Test Opportunity",
+    clientName: "Test Client",
+    stage: "qualified",
+    status: "open",
+    estimated_value: 50000
+  };
+  
+  console.log('Mock opportunity structure:', mockOpportunity);
+}
+
+// Run all tests
+async function runAllTests() {
+  console.clear();
+  console.log('🔍 STARTING COMPREHENSIVE FRONTEND DEBUG');
+  
+  const apiData = await testAPICalls();
+  checkReactQueryCache();
+  checkEnvironmentContext();
+  checkReactErrors();
+  testDataStructures();
+  
+  console.log('\n=== DEBUG COMPLETE ===');
+  console.log('Next steps:');
+  console.log('1. Check if API data matches component expectations');
+  console.log('2. Verify React Query keys are correct');  
+  console.log('3. Ensure environment context is properly set');
+  console.log('4. Look for infinite re-render loops');
+  
+  return apiData;
+}
+
+// Auto-run
+runAllTests();

@@ -1,49 +1,42 @@
-// Final test to verify opportunities page data mapping fixes
-const BASE_URL = 'http://localhost:5000';
+// CRITICAL TEST - Direct React Query key inspection
+const environments = ['degoudse', 'Qollabi-Test'];
 
-async function testFinalOpportunitiesMapping() {
-  console.log('=== FINAL OPPORTUNITIES MAPPING TEST ===\n');
+console.log('=== REACT QUERY KEY INSPECTION ===');
+
+for (const env of environments) {
+  console.log(`\n--- Environment: ${env} ---`);
   
+  // Test the exact query keys being used
+  const campaignsKey = `/api/${env}/campaigns`;
+  const opportunitiesKey = `/api/${env}/opportunities`;
+  
+  console.log('Campaigns query key:', campaignsKey);
+  console.log('Opportunities query key:', opportunitiesKey);
+  
+  // Test direct API access
   try {
-    const response = await fetch(`${BASE_URL}/api/degoudse/opportunities`);
-    const opportunities = await response.json();
+    const response1 = await fetch(campaignsKey);
+    const data1 = await response1.json();
+    console.log(`✅ ${campaignsKey} returns ${data1.length} items`);
     
-    if (opportunities.length === 0) {
-      console.log('ERROR: No opportunities returned');
-      return;
-    }
-    
-    const sample = opportunities[0];
-    console.log('✓ API returns', opportunities.length, 'opportunities');
-    console.log('✓ First opportunity has all required fields:');
-    
-    // Test the mappings the frontend now uses
-    const mappings = [
-      { frontend: 'estimatedValue', api: sample.estimatedValue, description: 'Value field' },
-      { frontend: 'clientName', api: sample.clientName, description: 'Customer name field' },
-      { frontend: 'partnerNames', api: sample.partnerNames, description: 'Partner name field' },
-      { frontend: 'title', api: sample.title, description: 'Title field' },
-      { frontend: 'status', api: sample.status, description: 'Status field' },
-      { frontend: 'probability', api: sample.probability, description: 'Probability field' }
-    ];
-    
-    mappings.forEach(mapping => {
-      const status = mapping.api !== undefined ? '✓' : '✗';
-      console.log(`  ${status} ${mapping.description}: ${mapping.api}`);
-    });
-    
-    // Test stats calculation with correct field
-    const totalValue = opportunities.reduce((sum, opp) => sum + (opp.estimatedValue || 0), 0);
-    console.log('\n✓ Stats calculation test:');
-    console.log(`  Total value using estimatedValue: $${totalValue.toLocaleString()}`);
-    
-    console.log('\n=== TEST RESULT ===');
-    console.log('✓ All data mapping issues have been resolved');
-    console.log('✓ Frontend should now display opportunities correctly');
-    
+    const response2 = await fetch(opportunitiesKey); 
+    const data2 = await response2.json();
+    console.log(`✅ ${opportunitiesKey} returns ${data2.length} items`);
   } catch (error) {
-    console.error('ERROR:', error);
+    console.error(`❌ Error for ${env}:`, error.message);
   }
 }
 
-testFinalOpportunitiesMapping();
+// Test environment context extraction
+console.log('\n--- Environment Context Test ---');
+const mockEnvironment1 = { id: 'degoudse' };
+const mockEnvironment2 = { id: 'Qollabi-Test' };
+const mockEnvironment3 = null;
+const mockEnvironment4 = undefined;
+
+console.log('Test 1:', mockEnvironment1?.id || 'degoudse');
+console.log('Test 2:', mockEnvironment2?.id || 'degoudse'); 
+console.log('Test 3:', mockEnvironment3?.id || 'degoudse');
+console.log('Test 4:', mockEnvironment4?.id || 'degoudse');
+
+console.log('\n=== END TEST ===');

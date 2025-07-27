@@ -5,7 +5,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Table,
@@ -29,24 +29,12 @@ interface Campaign {
   status: string;
   created_by_name: string;
   created_at: string;
-  engagement_summary: {
-    email1: {
-      sent: number;
-      opened: number;
-      clicked: number;
-      replied: number;
-      bounced: number;
-    };
-    email2: {
-      sent: number;
-      opened: number;
-      clicked: number;
-      replied: number;
-      bounced: number;
-    };
-  };
+  emails_sent?: number;
+  emails_opened?: number;
+  total_clicks?: number;
+  open_rate?: string;
   recipients: any[];
-  icon: string;
+  icon?: string;
   objective?: string;
 }
 
@@ -76,12 +64,12 @@ export default function CampaignsPage() {
   const { environment } = useEnvironment();
   const currentEnvironment = environment?.id || 'degoudse';
 
-  const { data: campaigns = [], isLoading } = useQuery({
+  const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
     queryKey: [`/api/${currentEnvironment}/campaigns`],
   });
 
   // Calculate aggregate statistics
-  const totalStats = campaigns.reduce((acc, campaign) => {
+  const totalStats = campaigns.reduce((acc: any, campaign: Campaign) => {
     return {
       sent: acc.sent + (campaign.emails_sent || 0),
       opened: acc.opened + (campaign.emails_opened || 0),
@@ -91,7 +79,7 @@ export default function CampaignsPage() {
     };
   }, { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 });
 
-  const filteredCampaigns = campaigns.filter(campaign => {
+  const filteredCampaigns = campaigns.filter((campaign: Campaign) => {
     if (activeFilter === "all") return true;
     return campaign.target_entity_type === activeFilter;
   });
@@ -228,7 +216,7 @@ export default function CampaignsPage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredCampaigns.map((campaign) => (
+              {filteredCampaigns.map((campaign: Campaign) => (
                 <Card key={campaign.id} className="hover:shadow-md transition-shadow cursor-pointer">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
