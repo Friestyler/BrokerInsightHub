@@ -63,6 +63,7 @@ export default function CustomersPage() {
   
   // State management
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<CustomerFilters>({
@@ -132,9 +133,33 @@ export default function CustomersPage() {
     { id: 3, name: 'Young Professionals', description: 'Early career professionals', members: [] }
   ];
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // API calls
   const { data: customersResponse, isLoading, error } = useQuery({
-    queryKey: ['/api/customers', { search: searchTerm, page: currentPage, filters }],
+    queryKey: ['/api/customers', { search: debouncedSearchTerm, page: currentPage, filters }],
+    queryFn: async () => {
+      const searchParams = new URLSearchParams();
+      if (debouncedSearchTerm) searchParams.append('search', debouncedSearchTerm);
+      if (currentPage) searchParams.append('page', currentPage.toString());
+      if (filters.status !== 'All') searchParams.append('status', filters.status);
+      if (filters.industry !== 'All') searchParams.append('industry', filters.industry);
+      if (filters.size !== 'All') searchParams.append('size', filters.size);
+      
+      const url = `/api/customers${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch customers');
+      }
+      return response.json();
+    },
     enabled: true
   });
 
@@ -451,7 +476,7 @@ export default function CustomersPage() {
               {showViewsDropdown && (
                 <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
                   <div className="p-2 border-b">
-                    {customerSavedViewsData?.map((view: any) => (
+                    {(customerSavedViewsData || []).map((view: any) => (
                       <div 
                         key={view.id}
                         className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id.toString() ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
@@ -487,7 +512,7 @@ export default function CustomersPage() {
                         )}
                       </div>
                     ))}
-                    {(!customerSavedViewsData || customerSavedViewsData.length === 0) && (
+                    {(!customerSavedViewsData || (customerSavedViewsData as any[]).length === 0) && (
                       <div className="p-2 text-sm text-gray-500 italic">No saved views</div>
                     )}
                   </div>
@@ -795,7 +820,7 @@ export default function CustomersPage() {
                     onClick={() => window.location.href = `/lists/customers/${customer.id}`}
                   >
                     <div className="flex items-center gap-3">
-                      <EntityAvatar entity={{ name: customer.name, id: customer.id }} />
+                      <EntityAvatar entityName={customer.name} entityId={customer.id} />
                       <div>
                         <div className="font-medium text-[#282A3F] text-sm">{customer.name}</div>
                       </div>
