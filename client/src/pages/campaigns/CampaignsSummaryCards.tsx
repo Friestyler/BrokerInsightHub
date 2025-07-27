@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Users, Target, TrendingUp, Clock } from "lucide-react";
 
 export default function CampaignsSummaryCards() {
-  const { currentEnvironment } = useEnvironment();
+  const { environment } = useEnvironment();
+  const currentEnvironment = environment?.id || 'degoudse';
   
   const { data: campaigns = [] } = useQuery({
     queryKey: [`/api/${currentEnvironment}/campaigns`],

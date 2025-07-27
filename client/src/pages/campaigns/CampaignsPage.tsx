@@ -73,7 +73,8 @@ const getStatusColor = (status: string) => {
 
 export default function CampaignsPage() {
   const [activeFilter, setActiveFilter] = useState("all");
-  const { currentEnvironment } = useEnvironment();
+  const { environment } = useEnvironment();
+  const currentEnvironment = environment?.id || 'degoudse';
 
   const { data: campaigns = [], isLoading } = useQuery({
     queryKey: [`/api/${currentEnvironment}/campaigns`],
