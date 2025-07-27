@@ -82,15 +82,12 @@ export default function CampaignsPage() {
 
   // Calculate aggregate statistics
   const totalStats = campaigns.reduce((acc, campaign) => {
-    const email1 = campaign.engagement_summary?.email1 || {};
-    const email2 = campaign.engagement_summary?.email2 || {};
-    
     return {
-      sent: acc.sent + (email1.sent || 0) + (email2.sent || 0),
-      opened: acc.opened + (email1.opened || 0) + (email2.opened || 0),
-      clicked: acc.clicked + (email1.clicked || 0) + (email2.clicked || 0),
-      replied: acc.replied + (email1.replied || 0) + (email2.replied || 0),
-      bounced: acc.bounced + (email1.bounced || 0) + (email2.bounced || 0),
+      sent: acc.sent + (campaign.emails_sent || 0),
+      opened: acc.opened + (campaign.emails_opened || 0),
+      clicked: acc.clicked + (campaign.total_clicks || 0),
+      replied: acc.replied + 0, // Not available in current data structure
+      bounced: acc.bounced + 0, // Not available in current data structure
     };
   }, { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 });
 
@@ -281,59 +278,28 @@ export default function CampaignsPage() {
 
                     {/* Email Engagement Stats */}
                     <div className="space-y-2">
-                      {campaign.engagement_summary?.email1?.sent > 0 && (
+                      {(campaign.emails_sent > 0 || campaign.emails_opened > 0 || campaign.total_clicks > 0) && (
                         <div className="bg-gray-50 rounded-lg p-2">
-                          <div className="text-xs font-medium text-gray-700 mb-1">Email 1 Performance</div>
-                          <div className="grid grid-cols-5 gap-1 text-xs">
+                          <div className="text-xs font-medium text-gray-700 mb-1">Campaign Performance</div>
+                          <div className="grid grid-cols-3 gap-1 text-xs">
                             <div className="text-center">
-                              <div className="font-medium">{campaign.engagement_summary.email1.sent}</div>
+                              <div className="font-medium">{campaign.emails_sent || 0}</div>
                               <div className="text-gray-500">Sent</div>
                             </div>
                             <div className="text-center">
-                              <div className="font-medium">{campaign.engagement_summary.email1.opened}</div>
+                              <div className="font-medium">{campaign.emails_opened || 0}</div>
                               <div className="text-gray-500">Opened</div>
                             </div>
                             <div className="text-center">
-                              <div className="font-medium">{campaign.engagement_summary.email1.clicked}</div>
+                              <div className="font-medium">{campaign.total_clicks || 0}</div>
                               <div className="text-gray-500">Clicked</div>
                             </div>
-                            <div className="text-center">
-                              <div className="font-medium">{campaign.engagement_summary.email1.replied}</div>
-                              <div className="text-gray-500">Replied</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="font-medium">{campaign.engagement_summary.email1.bounced}</div>
-                              <div className="text-gray-500">Bounced</div>
-                            </div>
                           </div>
-                        </div>
-                      )}
-                      
-                      {campaign.engagement_summary?.email2?.sent > 0 && (
-                        <div className="bg-gray-50 rounded-lg p-2">
-                          <div className="text-xs font-medium text-gray-700 mb-1">Email 2 Performance</div>
-                          <div className="grid grid-cols-5 gap-1 text-xs">
-                            <div className="text-center">
-                              <div className="font-medium">{campaign.engagement_summary.email2.sent}</div>
-                              <div className="text-gray-500">Sent</div>
+                          {campaign.open_rate && (
+                            <div className="text-center mt-1 text-xs text-gray-600">
+                              {campaign.open_rate} open rate
                             </div>
-                            <div className="text-center">
-                              <div className="font-medium">{campaign.engagement_summary.email2.opened}</div>
-                              <div className="text-gray-500">Opened</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="font-medium">{campaign.engagement_summary.email2.clicked}</div>
-                              <div className="text-gray-500">Clicked</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="font-medium">{campaign.engagement_summary.email2.replied}</div>
-                              <div className="text-gray-500">Replied</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="font-medium">{campaign.engagement_summary.email2.bounced}</div>
-                              <div className="text-gray-500">Bounced</div>
-                            </div>
-                          </div>
+                          )}
                         </div>
                       )}
                     </div>

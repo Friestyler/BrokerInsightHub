@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Test</title>
+</head>
+<body>
+    <h1>Testing Campaigns API Response</h1>
+    <div id="result"></div>
+    
+    <script>
+        fetch('/api/degoudse/campaigns')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = 
+                    `<p>Status: Success</p>
+                     <p>Campaigns: ${data.length}</p>
+                     <pre>${JSON.stringify(data[0], null, 2)}</pre>`;
+            })
+            .catch(err => {
+                document.getElementById('result').innerHTML = 
+                    `<p>Error: ${err.message}</p>`;
+            });
+    </script>
+</body>
+</html>
