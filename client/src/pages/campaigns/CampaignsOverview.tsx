@@ -38,7 +38,8 @@ export default function CampaignsOverview() {
   const { toast } = useToast();
 
   const { data: campaigns, isLoading, error } = useQuery({
-    queryKey: [`/api/${environment.id}/campaigns`],
+    queryKey: ['/api/campaigns'],
+    queryFn: () => apiRequest('GET', '/api/campaigns'),
     enabled: activeTab === 'campaigns'
   });
 
@@ -53,10 +54,10 @@ export default function CampaignsOverview() {
     if (selectedCampaigns.length === 0) return;
     
     try {
-      await apiRequest('DELETE', `/api/${environment.id}/campaigns/bulk-delete`, { campaignIds: selectedCampaigns });
+      await apiRequest('DELETE', `/api/campaigns/bulk-delete`, { campaignIds: selectedCampaigns });
       
       // Invalidate campaigns query to refresh the list
-      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
       
       toast({
         title: "Success",
@@ -251,7 +252,7 @@ export default function CampaignsOverview() {
         })}
         onSuccess={() => {
           setSelectedCampaigns([]);
-          queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
+          queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
         }}
       />
     </div>

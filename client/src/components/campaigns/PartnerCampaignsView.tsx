@@ -45,7 +45,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
 
   // Fetch partner-specific campaigns
   const { data: campaigns, isLoading, error } = useQuery({
-    queryKey: [`/api/${environment.id}/campaigns`, 'partner', partnerId],
+    queryKey: ['/api/campaigns', 'partner', partnerId],
     queryFn: () => apiRequest('GET', `/api/campaigns?partner_id=${partnerId}`),
     enabled: !!partnerId
   });
@@ -147,7 +147,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
       );
       
       // Invalidate and refetch campaigns
-      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
       
       toast({
         title: "Access Removed",
@@ -341,7 +341,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
         partnerName={partnerName}
         onSuccess={() => {
           setSelectedCampaigns([]);
-          queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
+          queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
         }}
       />
     </div>
