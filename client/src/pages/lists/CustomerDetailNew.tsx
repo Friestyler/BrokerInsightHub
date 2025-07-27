@@ -1231,7 +1231,7 @@ export default function CustomerDetailNew() {
                   : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
               }`}
             >
-              Network
+              Ecosystem
             </button>
 
           </nav>

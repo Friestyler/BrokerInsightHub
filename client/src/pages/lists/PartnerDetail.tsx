@@ -1772,7 +1772,7 @@ export default function PartnerDetail() {
                   </button>
                 </>
               )}
-              {/* Network tab available for ALL partners */}
+              {/* Ecosystem tab available for ALL partners */}
               <button 
                 onClick={() => setActiveTab("network")}
                 className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
@@ -1781,7 +1781,7 @@ export default function PartnerDetail() {
                     : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
                 }`}
               >
-                Network
+                Ecosystem
               </button>
             </nav>
           </div>
