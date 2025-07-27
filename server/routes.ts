@@ -11337,26 +11337,30 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const { envId } = req.params;
       const { partner_id } = req.query;
       
-      // For degoudse environment, check for shared templates
-      if (envId === 'degoudse') {
-        // Get user info from session/headers (for demo, we'll simulate John Smith as partner user)
-        // In a real app, this would come from authentication
-        const userId = 1; // John Smith's user ID
-        
-        try {
-          let query = `
-            SELECT c.*, u.name as created_by_name 
-            FROM ${envId}.campaigns c
-            LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
-            WHERE c.is_template = false AND c.status != 'archived'
-          `;
+      // ALL ENVIRONMENTS USE DEGOUDSE DATABASE - no exceptions
+      // This ensures all environments (baloise, nn, concordia, custom) share the same data
+      console.log(`Campaigns request for envId: ${envId} - using degoudse database`);
+      
+      // Use degoudse database for all environments
+      const targetSchema = 'degoudse';
+      // Get user info from session/headers (for demo, we'll simulate John Smith as partner user)
+      // In a real app, this would come from authentication
+      const userId = 1; // John Smith's user ID
+      
+      try {
+        let query = `
+          SELECT c.*, u.name as created_by_name 
+          FROM ${targetSchema}.campaigns c
+          LEFT JOIN ${targetSchema}.users u ON c.created_by_id = u.id
+          WHERE c.is_template = false AND c.status != 'archived'
+        `;
           
           const queryParams = [];
           
           // If partner_id is specified, filter campaigns linked to that partner
           if (partner_id) {
             // Get the partner name first to search by name in recipients
-            const partnerResult = await pool.query(`SELECT name FROM ${envId}.partners WHERE id = $1`, [partner_id]);
+            const partnerResult = await pool.query(`SELECT name FROM ${targetSchema}.partners WHERE id = $1`, [partner_id]);
             if (partnerResult.rows.length > 0) {
               const partnerName = partnerResult.rows[0].name;
               
@@ -11364,8 +11368,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
               query = `
                 WITH campaign_matches AS (
                   SELECT DISTINCT c.id
-                  FROM ${envId}.campaigns c
-                  LEFT JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
+                  FROM ${targetSchema}.campaigns c
+                  LEFT JOIN ${targetSchema}.campaign_shares cs ON c.id = cs.campaign_id
                   WHERE c.is_template = false AND c.status != 'archived'
                   AND (
                     (c.recipients::text LIKE '%"name": "' || $1 || '"%' 
@@ -11387,9 +11391,9 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
                        c.button_color, c.follow_up_emails, c.target_entity_type, c.recipients,
                        c.emails_sent, c.emails_opened, c.open_rate, c.total_clicks,
                        u.name as created_by_name 
-                FROM ${envId}.campaigns c
-                LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
-                LEFT JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id 
+                FROM ${targetSchema}.campaigns c
+                LEFT JOIN ${targetSchema}.users u ON c.created_by_id = u.id
+                LEFT JOIN ${targetSchema}.campaign_shares cs ON c.id = cs.campaign_id 
                   AND cs.shared_with_type = 'partner' 
                   AND cs.shared_with_id = $3 
                   AND cs.is_active = true
@@ -11443,21 +11447,15 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             total_clicks: campaign.total_clicks || 0
           }));
           
-          console.log(`Returning ${campaigns.length} campaigns from ${envId} environment:`, campaigns);
-          res.json(campaigns);
-          return;
-        } catch (dbError) {
-          console.error('Database error in campaigns endpoint:', dbError);
-          console.log('Campaigns table does not exist yet, returning empty array');
-          res.json([]);
-          return;
-        }
+        console.log(`Returning ${campaigns.length} campaigns from ${envId} environment (using degoudse database):`, campaigns);
+        res.json(campaigns);
+        return;
+      } catch (dbError) {
+        console.error('Database error in campaigns endpoint:', dbError);
+        console.log('Campaigns table does not exist yet, returning empty array');
+        res.json([]);
+        return;
       }
-      
-      // For other environments, return empty array
-      const campaigns = [];
-      console.log(`Returning ${campaigns.length} campaigns from ${envId} environment`);
-      res.json(campaigns);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
       res.status(500).json({ error: 'Failed to fetch campaigns' });
@@ -11470,10 +11468,13 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const { envId } = req.params;
       const campaignData = req.body;
       
-      if (envId === 'degoudse') {
-        try {
-          const result = await pool.query(`
-            INSERT INTO ${envId}.campaigns (
+      // ALL ENVIRONMENTS USE DEGOUDSE DATABASE - no exceptions
+      const targetSchema = 'degoudse';
+      console.log(`Campaign creation for envId: ${envId} - using degoudse database`);
+      
+      try {
+        const result = await pool.query(`
+          INSERT INTO ${targetSchema}.campaigns (
               name, type, description, status, created_by_id, subject, email_body, 
               objective, is_template, frequency, target_entity_type, recipients,
               partner_id, environment_id, collaboration_enabled
@@ -11506,9 +11507,6 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           res.status(500).json({ error: 'Failed to create campaign' });
           return;
         }
-      }
-      
-      res.status(400).json({ error: 'Campaign creation not supported for this environment' });
     } catch (error) {
       console.error('Error creating campaign:', error);
       res.status(500).json({ error: 'Failed to create campaign' });
@@ -11521,10 +11519,13 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const { envId, id } = req.params;
       const campaignData = req.body;
       
-      if (envId === 'degoudse') {
-        try {
-          const result = await pool.query(`
-            UPDATE ${envId}.campaigns SET
+      // ALL ENVIRONMENTS USE DEGOUDSE DATABASE - no exceptions
+      const targetSchema = 'degoudse';
+      console.log(`Campaign update for envId: ${envId} - using degoudse database`);
+      
+      try {
+        const result = await pool.query(`
+          UPDATE ${targetSchema}.campaigns SET
               name = $1,
               type = $2,
               description = $3,
@@ -11565,9 +11566,6 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           res.status(500).json({ error: 'Failed to update campaign' });
           return;
         }
-      }
-      
-      res.status(400).json({ error: 'Campaign update not supported for this environment' });
     } catch (error) {
       console.error('Error updating campaign:', error);
       res.status(500).json({ error: 'Failed to update campaign' });
@@ -11579,10 +11577,13 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     try {
       const { envId, id } = req.params;
       
-      if (envId === 'degoudse') {
-        try {
-          const result = await pool.query(`
-            UPDATE ${envId}.campaigns SET
+      // ALL ENVIRONMENTS USE DEGOUDSE DATABASE - no exceptions
+      const targetSchema = 'degoudse';
+      console.log(`Campaign pause for envId: ${envId} - using degoudse database`);
+      
+      try {
+        const result = await pool.query(`
+          UPDATE ${targetSchema}.campaigns SET
               status = 'paused',
               updated_at = NOW()
             WHERE id = $1
@@ -11600,9 +11601,6 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           res.status(500).json({ error: 'Failed to pause campaign' });
           return;
         }
-      }
-      
-      res.status(400).json({ error: 'Campaign pause not supported for this environment' });
     } catch (error) {
       console.error('Error pausing campaign:', error);
       res.status(500).json({ error: 'Failed to pause campaign' });
@@ -11614,10 +11612,13 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     try {
       const { envId, id } = req.params;
       
-      if (envId === 'degoudse') {
-        try {
-          const result = await pool.query(`
-            UPDATE ${envId}.campaigns SET
+      // ALL ENVIRONMENTS USE DEGOUDSE DATABASE - no exceptions
+      const targetSchema = 'degoudse';
+      console.log(`Campaign stop for envId: ${envId} - using degoudse database`);
+      
+      try {
+        const result = await pool.query(`
+          UPDATE ${targetSchema}.campaigns SET
               status = 'stopped',
               updated_at = NOW()
             WHERE id = $1
@@ -11635,9 +11636,6 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           res.status(500).json({ error: 'Failed to stop campaign' });
           return;
         }
-      }
-      
-      res.status(400).json({ error: 'Campaign stop not supported for this environment' });
     } catch (error) {
       console.error('Error stopping campaign:', error);
       res.status(500).json({ error: 'Failed to stop campaign' });
