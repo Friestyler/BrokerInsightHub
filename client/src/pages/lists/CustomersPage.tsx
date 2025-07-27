@@ -145,21 +145,6 @@ export default function CustomersPage() {
   // API calls
   const { data: customersResponse, isLoading, error } = useQuery({
     queryKey: ['/api/customers', { search: debouncedSearchTerm, page: currentPage, filters }],
-    queryFn: async () => {
-      const searchParams = new URLSearchParams();
-      if (debouncedSearchTerm) searchParams.append('search', debouncedSearchTerm);
-      if (currentPage) searchParams.append('page', currentPage.toString());
-      if (filters.status !== 'All') searchParams.append('status', filters.status);
-      if (filters.industry !== 'All') searchParams.append('industry', filters.industry);
-      if (filters.size !== 'All') searchParams.append('size', filters.size);
-      
-      const url = `/api/customers${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch customers');
-      }
-      return response.json();
-    },
     enabled: true
   });
 

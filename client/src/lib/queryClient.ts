@@ -121,9 +121,33 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const baseUrl = queryKey[0] as string;
+    const queryParams = queryKey[1] as Record<string, any> || {};
+    
+    // Build URL with query parameters
+    let finalUrl = baseUrl;
+    if (Object.keys(queryParams).length > 0) {
+      const searchParams = new URLSearchParams();
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '' && value !== 'All') {
+          if (typeof value === 'object') {
+            // Handle nested objects like filters
+            Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+              if (nestedValue !== 'All' && nestedValue !== '') {
+                searchParams.append(nestedKey, String(nestedValue));
+              }
+            });
+          } else {
+            searchParams.append(key, String(value));
+          }
+        }
+      });
+      if (searchParams.toString()) {
+        finalUrl += '?' + searchParams.toString();
+      }
+    }
     
     // Apply environment to URL
-    const envUrl = getEnvironmentUrl(baseUrl);
+    const envUrl = getEnvironmentUrl(finalUrl);
     console.log('Fetching from URL:', envUrl);
 
     // Add timeout handling - shorter timeout to prevent hanging
