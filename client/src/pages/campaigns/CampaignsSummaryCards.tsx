@@ -8,7 +8,7 @@ export default function CampaignsSummaryCards() {
   const currentEnvironment = environment?.id || 'degoudse';
   
   const { data: campaigns = [] } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/campaigns`],
+    queryKey: ['/api/campaigns'],
   });
 
   // Calculate summary statistics
