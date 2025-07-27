@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,9 +73,10 @@ const getStatusColor = (status: string) => {
 
 export default function CampaignsPage() {
   const [activeFilter, setActiveFilter] = useState("all");
+  const { currentEnvironment } = useEnvironment();
 
   const { data: campaigns = [], isLoading } = useQuery({
-    queryKey: ['/api/campaigns'],
+    queryKey: [`/api/${currentEnvironment}/campaigns`],
   });
 
   // Calculate aggregate statistics

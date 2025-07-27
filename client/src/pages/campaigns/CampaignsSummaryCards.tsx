@@ -1,10 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Users, Target, TrendingUp, Clock } from "lucide-react";
 
 export default function CampaignsSummaryCards() {
+  const { currentEnvironment } = useEnvironment();
+  
   const { data: campaigns = [] } = useQuery({
-    queryKey: ['/api/degoudse/campaigns'],
+    queryKey: [`/api/${currentEnvironment}/campaigns`],
   });
 
   // Calculate summary statistics
