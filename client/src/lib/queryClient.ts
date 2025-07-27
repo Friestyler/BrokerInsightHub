@@ -226,3 +226,11 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+// Add environment change listener to invalidate all queries when environment changes
+if (typeof window !== 'undefined') {
+  window.addEventListener('environmentChanged', () => {
+    console.log('🔄 Environment changed - invalidating all queries to force refetch');
+    queryClient.invalidateQueries();
+  });
+}

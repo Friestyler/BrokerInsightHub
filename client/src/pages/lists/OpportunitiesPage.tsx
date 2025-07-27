@@ -151,7 +151,7 @@ export default function OpportunitiesPage() {
 
   // Fetch saved lists
   const { data: savedListsData } = useQuery({
-    queryKey: ['/api/saved-lists', 'opportunities', 'all'],
+    queryKey: [`/api/${currentEnvironment}/saved-lists`, 'opportunities', 'all'],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=opportunities'),
     staleTime: 0,
     gcTime: 0,
@@ -159,13 +159,13 @@ export default function OpportunitiesPage() {
 
   // Fetch saved views
   const { data: savedViewsData } = useQuery({
-    queryKey: ['/api/saved-views', 'opportunities'],
+    queryKey: [`/api/${currentEnvironment}/saved-views`, 'opportunities'],
     queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=opportunities'),
   });
 
   // Fetch withhold reasons
   const { data: withholdReasonsData } = useQuery({
-    queryKey: ['/api/opportunity-withhold-reasons'],
+    queryKey: [`/api/${currentEnvironment}/opportunity-withhold-reasons`],
     queryFn: () => apiRequest('GET', '/api/opportunity-withhold-reasons'),
   });
 
