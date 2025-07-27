@@ -1,42 +1,82 @@
-// CRITICAL TEST - Direct React Query key inspection
-const environments = ['degoudse', 'Qollabi-Test'];
+// FINAL COMPREHENSIVE TEST
+console.clear();
+console.log('🎯 FINAL COMPREHENSIVE TEST - BOTH PAGES');
 
-console.log('=== REACT QUERY KEY INSPECTION ===');
-
-for (const env of environments) {
-  console.log(`\n--- Environment: ${env} ---`);
+const testBothPages = async () => {
+  console.log('\n=== API ENDPOINTS TEST ===');
   
-  // Test the exact query keys being used
-  const campaignsKey = `/api/${env}/campaigns`;
-  const opportunitiesKey = `/api/${env}/opportunities`;
-  
-  console.log('Campaigns query key:', campaignsKey);
-  console.log('Opportunities query key:', opportunitiesKey);
-  
-  // Test direct API access
   try {
-    const response1 = await fetch(campaignsKey);
-    const data1 = await response1.json();
-    console.log(`✅ ${campaignsKey} returns ${data1.length} items`);
+    const [campaigns, opportunities] = await Promise.all([
+      fetch('/api/degoudse/campaigns').then(r => r.json()),
+      fetch('/api/degoudse/opportunities').then(r => r.json())
+    ]);
     
-    const response2 = await fetch(opportunitiesKey); 
-    const data2 = await response2.json();
-    console.log(`✅ ${opportunitiesKey} returns ${data2.length} items`);
+    console.log(`✅ Campaigns API: ${campaigns.length} items`);
+    console.log(`✅ Opportunities API: ${opportunities.length} items`);
+    
+    // Check data structure
+    if (campaigns.length > 0) {
+      const camp = campaigns[0];
+      console.log('Campaign sample fields:', {
+        id: camp.id,
+        name: camp.name,
+        emails_sent: camp.emails_sent,
+        target_entity_type: camp.target_entity_type
+      });
+    }
+    
+    if (opportunities.length > 0) {
+      const opp = opportunities[0];
+      console.log('Opportunity sample fields:', {
+        id: opp.id,
+        title: opp.title,
+        clientName: opp.clientName,
+        stage: opp.stage
+      });
+    }
+    
   } catch (error) {
-    console.error(`❌ Error for ${env}:`, error.message);
+    console.error('❌ API Error:', error);
   }
-}
+  
+  console.log('\n=== DOM RENDERING TEST ===');
+  
+  // Check campaigns page rendering
+  const campaignCards = document.querySelectorAll('.hover\\:shadow-md');
+  const campaignLoadingSpinners = document.querySelectorAll('.animate-spin');
+  
+  console.log(`Campaign cards rendered: ${campaignCards.length}`);
+  console.log(`Campaign loading spinners: ${campaignLoadingSpinners.length}`);
+  
+  // Check opportunities page rendering  
+  const opportunitiesTable = document.querySelector('table tbody');
+  const opportunityRows = opportunitiesTable ? opportunitiesTable.querySelectorAll('tr') : [];
+  
+  console.log(`Opportunities table: ${opportunitiesTable ? 'found' : 'missing'}`);
+  console.log(`Opportunity rows: ${opportunityRows.length}`);
+  
+  console.log('\n=== FINAL DIAGNOSIS ===');
+  
+  const isOnCampaignsPage = window.location.pathname.includes('campaigns');
+  const isOnOpportunitiesPage = window.location.pathname.includes('opportunities');
+  
+  if (isOnCampaignsPage) {
+    if (campaignCards.length > 0 && campaignLoadingSpinners.length === 0) {
+      console.log('✅ CAMPAIGNS PAGE: WORKING CORRECTLY');
+    } else {
+      console.log('❌ CAMPAIGNS PAGE: NOT RENDERING');
+    }
+  }
+  
+  if (isOnOpportunitiesPage) {
+    if (opportunitiesTable && opportunityRows.length > 0) {
+      console.log('✅ OPPORTUNITIES PAGE: WORKING CORRECTLY');
+    } else {
+      console.log('❌ OPPORTUNITIES PAGE: NOT RENDERING');
+    }
+  }
+  
+  console.log('\n🎯 RUN THIS SCRIPT ON BOTH /campaigns AND /opportunities PAGES');
+};
 
-// Test environment context extraction
-console.log('\n--- Environment Context Test ---');
-const mockEnvironment1 = { id: 'degoudse' };
-const mockEnvironment2 = { id: 'Qollabi-Test' };
-const mockEnvironment3 = null;
-const mockEnvironment4 = undefined;
-
-console.log('Test 1:', mockEnvironment1?.id || 'degoudse');
-console.log('Test 2:', mockEnvironment2?.id || 'degoudse'); 
-console.log('Test 3:', mockEnvironment3?.id || 'degoudse');
-console.log('Test 4:', mockEnvironment4?.id || 'degoudse');
-
-console.log('\n=== END TEST ===');
+testBothPages();

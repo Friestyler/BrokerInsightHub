@@ -138,11 +138,11 @@ export default function OpportunitiesPage() {
 
   // Fetch all opportunities (with optional list filtering)
   const { data: allOpportunities, isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/opportunities`, activeList?.id],
+    queryKey: [`/api/opportunities`, currentEnvironment, activeList?.id],
     queryFn: () => {
       const url = activeList?.id 
-        ? `/api/${currentEnvironment}/opportunities?listId=${activeList.id}`
-        : `/api/${currentEnvironment}/opportunities`;
+        ? `/api/opportunities?listId=${activeList.id}`
+        : `/api/opportunities`;
       return apiRequest('GET', url);
     },
     staleTime: 0,
@@ -151,7 +151,7 @@ export default function OpportunitiesPage() {
 
   // Fetch saved lists
   const { data: savedListsData } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/saved-lists`, 'opportunities', 'all'],
+    queryKey: [`/api/saved-lists`, 'opportunities', currentEnvironment],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=opportunities'),
     staleTime: 0,
     gcTime: 0,
@@ -159,13 +159,13 @@ export default function OpportunitiesPage() {
 
   // Fetch saved views
   const { data: savedViewsData } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/saved-views`, 'opportunities'],
+    queryKey: [`/api/saved-views`, 'opportunities', currentEnvironment],
     queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=opportunities'),
   });
 
   // Fetch withhold reasons
   const { data: withholdReasonsData } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/opportunity-withhold-reasons`],
+    queryKey: [`/api/opportunity-withhold-reasons`, currentEnvironment],
     queryFn: () => apiRequest('GET', '/api/opportunity-withhold-reasons'),
   });
 

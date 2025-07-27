@@ -65,7 +65,7 @@ export default function CampaignsPage() {
   const currentEnvironment = environment?.id || 'degoudse';
 
   const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
-    queryKey: [`/api/${currentEnvironment}/campaigns`],
+    queryKey: [`/api/campaigns`, currentEnvironment],
   });
 
   // Calculate aggregate statistics
