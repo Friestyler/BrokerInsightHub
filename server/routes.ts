@@ -7115,6 +7115,90 @@ Return as JSON in this exact format:
     }
   });
 
+  // ===== CAMPAIGNS API ENDPOINTS =====
+  
+  // Get all campaigns for an environment
+  app.get('/api/:envId/campaigns', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        SELECT 
+          id, name, type, description, template_id, target_entity_type, 
+          target_entity_id, status, created_by, created_at, updated_at,
+          send_at, last_sent_at, shared_with, is_ai_generated,
+          engagement_summary, emails, recipients, settings, icon,
+          objective, attachments, is_template
+        FROM ${envId}.campaigns 
+        WHERE is_template = false OR is_template IS NULL
+        ORDER BY created_at DESC
+      `);
+      
+      console.log(`Returning ${result.rows.length} campaigns from ${envId} database`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error(`${envId} campaigns API error:`, error);
+      res.status(500).json({ error: 'Failed to fetch campaigns' });
+    }
+  });
+
+  // Get all campaign templates for an environment
+  app.get('/api/:envId/campaign-templates', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        SELECT 
+          id, name, type, description, template_id, target_entity_type, 
+          target_entity_id, status, created_by, created_at, updated_at,
+          send_at, last_sent_at, shared_with, is_ai_generated,
+          engagement_summary, emails, recipients, settings, icon,
+          objective, attachments, is_template
+        FROM ${envId}.campaigns 
+        WHERE is_template = true
+        ORDER BY created_at DESC
+      `);
+      
+      console.log(`Returning ${result.rows.length} campaign templates from ${envId} database`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error(`${envId} campaign templates API error:`, error);
+      res.status(500).json({ error: 'Failed to fetch campaign templates' });
+    }
+  });
+
+  // Get specific campaign by ID
+  app.get('/api/:envId/campaigns/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const campaignId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        SELECT 
+          id, name, type, description, template_id, target_entity_type, 
+          target_entity_id, status, created_by, created_at, updated_at,
+          send_at, last_sent_at, shared_with, is_ai_generated,
+          engagement_summary, emails, recipients, settings, icon,
+          objective, attachments, is_template
+        FROM ${envId}.campaigns 
+        WHERE id = $1
+      `, [campaignId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+      
+      console.log(`Returning campaign ${campaignId} from ${envId} database`);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error(`${envId} campaign ${req.params.id} API error:`, error);
+      res.status(500).json({ error: 'Failed to fetch campaign' });
+    }
+  });
+
   // De Goudse OKR Metrics endpoints
   app.get('/api/degoudse/okr-metrics', async (req, res) => {
     const cacheKey = 'degoudse_okr_metrics';
@@ -7199,7 +7283,7 @@ Return as JSON in this exact format:
       const result = await envPool.query(`
         SELECT 
           c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
-          c.job_title, c.department, c.company, c.is_primary, c.notes, null as reports_to, c.is_active, 
+          c.job_title, c.department, c.company, c.is_primary, c.notes, c.company, c.is_active, 
           c.created_at, c.updated_at,
           supervisor.full_name as supervisor_name,
           COALESCE(
@@ -7226,7 +7310,7 @@ Return as JSON in this exact format:
         LEFT JOIN degoudse.tag_categories tc ON t.category_id = tc.id
         ${queryConditions}
         GROUP BY c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
-                 c.job_title, c.department, c.company, c.is_primary, c.notes, null as reports_to, c.is_active, 
+                 c.job_title, c.department, c.company, c.is_primary, c.notes, c.company, c.is_active, 
                  c.created_at, c.updated_at, supervisor.full_name
         ORDER BY c.first_name ASC, c.last_name ASC
       `, queryParams);
@@ -11333,7 +11417,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         let query = `
           SELECT c.*, u.name as created_by_name 
           FROM ${targetSchema}.campaigns c
-          LEFT JOIN ${targetSchema}.users u ON c.created_by_id = u.id
+          LEFT JOIN ${targetSchema}.users u ON c.created_by = u.id
           WHERE c.is_template = false AND c.status != 'archived'
         `;
           
@@ -11366,7 +11450,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
                          WHEN cs.id IS NOT NULL THEN 'shared_with_partner'
                          ELSE COALESCE(c.partner_status, 'not_shared')
                        END as partner_status,
-                       c.created_by_id, c.sponsor_id, c.list_id, c.subject, c.email_body, 
+                       c.created_by, c.sponsor_id, c.list_id, c.subject, c.email_body, 
                        c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
                        c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
                        c.updated_at, c.heading, c.button_link, c.button_text, 
@@ -11374,7 +11458,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
                        c.emails_sent, c.emails_opened, c.open_rate, c.total_clicks,
                        u.name as created_by_name 
                 FROM ${targetSchema}.campaigns c
-                LEFT JOIN ${targetSchema}.users u ON c.created_by_id = u.id
+                LEFT JOIN ${targetSchema}.users u ON c.created_by = u.id
                 LEFT JOIN ${targetSchema}.campaign_shares cs ON c.id = cs.campaign_id 
                   AND cs.shared_with_type = 'partner' 
                   AND cs.shared_with_id = $3 
@@ -12649,7 +12733,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           c.*,
           u.name as created_by_name
         FROM ${envId}.campaigns c
-        LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+        LEFT JOIN ${envId}.users u ON c.created_by = u.id
         WHERE c.is_template = true AND COALESCE(c.status, 'draft') != 'archived'
         ORDER BY c.created_at DESC
       `);
