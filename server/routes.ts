@@ -7312,43 +7312,18 @@ Return as JSON in this exact format:
   app.get('/api/degoudse/contacts', async (req, res) => {
     try {
       const envPool = pool;
-      const queryConditions = 'WHERE c.is_active = true';
-      const queryParams: any[] = [];
       
       const result = await envPool.query(`
         SELECT 
           c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
-          c.job_title, c.department, c.company, c.is_primary, c.notes, c.is_active, 
+          c.job_title, c.department, c.company, c.position, c.notes, 
+          c.is_active, c.is_primary, c.linked_entity_type, c.linked_entity_id,
           c.created_at, c.updated_at,
-          supervisor.full_name as supervisor_name,
-          COALESCE(
-            json_agg(
-              CASE 
-                WHEN t.id IS NOT NULL THEN json_build_object(
-                  'id', t.id, 
-                  'name', t.name, 
-                  'color', t.color,
-                  'category', json_build_object(
-                    'id', tc.id,
-                    'name', tc.name,
-                    'color', tc.color
-                  )
-                )
-                ELSE NULL 
-              END
-            ) FILTER (WHERE t.id IS NOT NULL), '[]'::json
-          ) as tags
+          c.tags
         FROM degoudse.contacts c
-        LEFT JOIN degoudse.contacts supervisor ON false
-        LEFT JOIN degoudse.contact_tags ct ON c.id = ct.contact_id
-        LEFT JOIN degoudse.tags t ON ct.tag_id = t.id
-        LEFT JOIN degoudse.tag_categories tc ON t.category_id = tc.id
-        ${queryConditions}
-        GROUP BY c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
-                 c.job_title, c.department, c.company, c.is_primary, c.notes, c.is_active, 
-                 c.created_at, c.updated_at, supervisor.full_name
+        WHERE c.is_active = true OR c.is_active IS NULL
         ORDER BY c.first_name ASC, c.last_name ASC
-      `, queryParams);
+      `);
       
       console.log(`Returning ${result.rows.length} contacts from De Goudse database`);
       res.json(result.rows);
