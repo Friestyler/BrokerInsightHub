@@ -1210,19 +1210,16 @@ export default function CustomerDetailNew() {
             >
               OKR plans
             </button>
-            {/* Hide Contacts tab for Amazon CS (customer ID 18) */}
-            {customer?.id !== 18 && (
-              <button 
-                onClick={() => setActiveTab("contacts")}
-                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                  activeTab === "contacts" 
-                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                }`}
-              >
-                Contacts ({relatedContacts?.length || 0})
-              </button>
-            )}
+            <button 
+              onClick={() => setActiveTab("contacts")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                activeTab === "contacts" 
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              Contacts ({relatedContacts?.length || 0})
+            </button>
             <button 
               onClick={() => setActiveTab("network")}
               className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${

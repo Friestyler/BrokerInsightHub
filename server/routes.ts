@@ -3671,10 +3671,11 @@ Prioritize actions that:
       }
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT *
-        FROM degoudse.contacts
-        WHERE linked_entity_type = 'customer' AND linked_entity_id = $1
-        ORDER BY is_primary DESC, full_name ASC
+        SELECT c.*, cr.relationship_type, cr.role, cr.is_primary as rel_is_primary
+        FROM degoudse.contacts c
+        INNER JOIN degoudse.contact_relationships cr ON c.id = cr.contact_id
+        WHERE cr.entity_type = 'customer' AND cr.entity_id = $1
+        ORDER BY cr.is_primary DESC, c.full_name ASC
       `, [customerId]);
       
       const contacts = result.rows.map((contact: any) => ({
@@ -3687,7 +3688,9 @@ Prioritize actions that:
         jobTitle: contact.job_title,
         department: contact.department,
         company: contact.company,
-        isPrimary: contact.is_primary,
+        relationshipType: contact.relationship_type,
+        role: contact.role,
+        isPrimary: contact.rel_is_primary,
         isActive: contact.is_active,
         notes: contact.notes,
         tags: contact.tags,
@@ -3695,6 +3698,7 @@ Prioritize actions that:
         updatedAt: contact.updated_at
       }));
       
+      console.log(`Returning ${contacts.length} contacts for customer ${customerId} from De Goudse database`);
       res.json(contacts);
     } catch (error) {
       console.error('Error fetching De Goudse customer contacts:', error);
