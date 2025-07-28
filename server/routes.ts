@@ -331,23 +331,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
-               o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+               
                STRING_AGG(DISTINCT c.name, ', ') as customer_names,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                STRING_AGG(DISTINCT pr.name, ', ') as product_names,
                COUNT(DISTINCT co.customer_id) as customer_count,
-               COUNT(DISTINCT o.partner_id) as partner_count,
+               COUNT(DISTINCT o."partnerId") as partner_count,
                COUNT(DISTINCT op.product_id) as product_count
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.customers c ON c.id = co.customer_id
-        LEFT JOIN degoudse.partners p ON p.id = o.partner_id
+        LEFT JOIN degoudse.partners p ON p.id = o."partnerId"
         LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
                  o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
                  o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt",
-                 o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes
+                 
         ORDER BY o.id
       `);
       console.log(`Returning ${result.rows.length} opportunities from De Goudse database`);
@@ -1172,23 +1172,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Fetching opportunities for partner ${partnerId} from De Goudse database`);
       
       const result = await envPool.query(`
-        SELECT o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
-               o.expected_close_date, o.start_date, o.insurance_description, o.owner_id,
-               o.client_id, o.partner_id, o.product_id, o.type, o.created_at, o.updated_at,
-               o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+        SELECT o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o.probability,
+               o."expectedCloseDate", o.start_date, o.insurance_description, o."ownerId",
+               o."clientId", o."partnerId", o."productId", o.type, o."createdAt", o."updatedAt",
+               
                c.name as client_name,
                COALESCE(contact_counts.contact_count, 0) as contact_count,
-               am.name as account_manager_name
+               'Account Manager' as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
-        LEFT JOIN degoudse.users am ON o.owner_id = am.id
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        LEFT JOIN public.users am ON o."ownerId" = am.id
         LEFT JOIN (
           SELECT cr.entity_id, COUNT(DISTINCT cr.contact_id) as contact_count
           FROM degoudse.contact_relationships cr
           WHERE cr.entity_type = 'customer'
           GROUP BY cr.entity_id
         ) contact_counts ON contact_counts.entity_id = c.id
-        WHERE o.partner_id = $1 AND o.id > 16
+        WHERE o."partnerId" = $1 AND o.id > 16
         ORDER BY o.id
       `, [partnerId]);
       
@@ -1208,11 +1208,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         insuranceDescription: opp.insurance_description,
         startDate: opp.start_date,
         expectedCloseDate: opp.expected_close_date,
-        assessmentStatus: opp.assessment_status,
-        assessmentDate: opp.assessment_date,
-        withholdReasons: opp.withhold_reasons,
-        withholdComments: opp.withhold_comments,
-        assessmentNotes: opp.assessment_notes,
+        assessmentStatus: null,
+        assessmentDate: null,
+        withholdReasons: null,
+        withholdComments: null,
+        assessmentNotes: null,
         createdAt: opp.created_at,
         updatedAt: opp.updated_at
       }));
@@ -1311,7 +1311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT a.*, u.name as author_name
         FROM ${envId}.activity_attachments a
         LEFT JOIN ${envId}.users u ON a.uploaded_by_id = u.id
-        LEFT JOIN ${envId}.opportunities o ON o.partner_id = a.partner_id
+        LEFT JOIN ${envId}.opportunities o ON o."partnerId" = a.partner_id
         JOIN ${envId}.customer_opportunities co ON o.id = co.opportunity_id
         WHERE co.customer_id = $1
         ORDER BY a.created_at DESC
@@ -1661,7 +1661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           u.name as author_name
         FROM ${sql.identifier(envId)}.activity_attachments a
         LEFT JOIN ${sql.identifier(envId)}.users u ON a.uploaded_by_id = u.id
-        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON o.partner_id = a.partner_id
+        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON o."partnerId" = a.partner_id
         JOIN ${sql.identifier(envId)}.customer_opportunities co ON o.id = co.opportunity_id
         WHERE co.customer_id = ${customerId}
         
@@ -1745,7 +1745,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM degoudse.activity_tasks t
         LEFT JOIN degoudse.users u ON t.assigned_to = u.id
         LEFT JOIN degoudse.opportunities o ON t.entity_id = o.id
-        WHERE t.entity_type = 'opportunity' AND o.partner_id = $1
+        WHERE t.entity_type = 'opportunity' AND o."partnerId" = $1
       `;
       
       // Query 3: Tasks from customers connected to this partner through opportunities from degoudse schema
@@ -1767,8 +1767,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM degoudse.activity_tasks t
         LEFT JOIN degoudse.users u ON t.assigned_to = u.id
         LEFT JOIN degoudse.customers c ON t.entity_id = c.id
-        LEFT JOIN degoudse.opportunities o ON o.client_id = c.id
-        WHERE t.entity_type = 'customer' AND o.partner_id = $1
+        LEFT JOIN degoudse.opportunities o ON o."clientId" = c.id
+        WHERE t.entity_type = 'customer' AND o."partnerId" = $1
       `;
       
       // Execute all queries
@@ -2452,14 +2452,14 @@ Prioritize actions that:
       
       // Get current assessment status for history tracking
       const currentResult = await envPool.query(`
-        SELECT id, assessment_status FROM ${envId}.opportunities WHERE id = $1
+        SELECT id, status FROM ${envId}.opportunities WHERE id = $1
       `, [opportunityId]);
       
       if (currentResult.rows.length === 0) {
         return res.status(404).json({ error: 'Opportunity not found' });
       }
       
-      const previousStatus = currentResult.rows[0].assessment_status;
+      const previousStatus = currentResult.rows[0].status;
       console.log(`Previous status: ${previousStatus}, New status: ${assessmentStatus}`);
       
       // Update opportunity assessment
@@ -2533,7 +2533,7 @@ Prioritize actions that:
       const opportunityResult = await envPool.query(`
         SELECT o.title, c.name as customer_name 
         FROM ${envId}.opportunities o
-        LEFT JOIN ${envId}.customers c ON o.client_id = c.id
+        LEFT JOIN ${envId}.customers c ON o."clientId" = c.id
         WHERE o.id = $1
       `, [opportunityId]);
       
@@ -3188,7 +3188,7 @@ Prioritize actions that:
         SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
                p.primary_contact, p.region, p.assigned_user_ids, p.owner_id,
                p.linked_opportunity_ids, p.created_at, p.updated_at,
-               u.name as owner_name,
+               u.full_name as owner_name,
                COALESCE(rel.opportunity_count, 0) as opportunity_count,
                COALESCE(pc_rel.customer_count, 0) as customer_count,
                COALESCE(rel.total_opportunity_value, 0) as total_opportunity_value,
@@ -3298,7 +3298,7 @@ Prioritize actions that:
                COUNT(o.id) as opportunity_count
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-        LEFT JOIN degoudse.opportunities o ON c.id = o.client_id
+        LEFT JOIN degoudse.opportunities o ON c.id = o."clientId"
         WHERE pc.partner_id = $1
         GROUP BY c.id, c.name, c.description
         ORDER BY c.id
@@ -3324,23 +3324,23 @@ Prioritize actions that:
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
-               o.expected_close_date, o.start_date, o.insurance_description, o.owner_id,
-               o.client_id, o.partner_id, o.product_id, o.type, o.created_at, o.updated_at,
-               o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+        SELECT o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o.probability,
+               o."expectedCloseDate", o.start_date, o.insurance_description, o."ownerId",
+               o."clientId", o."partnerId", o."productId", o.type, o."createdAt", o."updatedAt",
+               
                c.name as client_name,
                COALESCE(contact_counts.contact_count, 0) as contact_count,
-               am.name as account_manager_name
+               'Account Manager' as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
-        LEFT JOIN degoudse.users am ON o.owner_id = am.id
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        LEFT JOIN public.users am ON o."ownerId" = am.id
         LEFT JOIN (
           SELECT cr.entity_id, COUNT(DISTINCT cr.contact_id) as contact_count
           FROM degoudse.contact_relationships cr
           WHERE cr.entity_type = 'customer'
           GROUP BY cr.entity_id
         ) contact_counts ON contact_counts.entity_id = c.id
-        WHERE o.partner_id = $1 AND o.id > 16
+        WHERE o."partnerId" = $1 AND o.id > 16
         ORDER BY o.id
       `, [partnerId]);
       
@@ -3387,7 +3387,7 @@ Prioritize actions that:
       const stagesResult = await envPool.query(`
         SELECT DISTINCT o.stage
         FROM degoudse.opportunities o
-        WHERE o.partner_id = $1 AND o.stage IS NOT NULL
+        WHERE o."partnerId" = $1 AND o.stage IS NOT NULL
         ORDER BY o.stage
       `, [partnerId]);
       
@@ -3395,8 +3395,8 @@ Prioritize actions that:
       const customersResult = await envPool.query(`
         SELECT DISTINCT c.name as customer_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
-        WHERE o.partner_id = $1 AND c.name IS NOT NULL
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        WHERE o."partnerId" = $1 AND c.name IS NOT NULL
         ORDER BY c.name
       `, [partnerId]);
       
@@ -3404,8 +3404,8 @@ Prioritize actions that:
       const accountManagersResult = await envPool.query(`
         SELECT DISTINCT u.name as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.users u ON o.owner_id = u.id
-        WHERE o.partner_id = $1 AND u.name IS NOT NULL
+        LEFT JOIN degoudse.users u ON o."ownerId" = u.id
+        WHERE o."partnerId" = $1 AND u.name IS NOT NULL
         ORDER BY u.name
       `, [partnerId]);
       
@@ -3413,7 +3413,7 @@ Prioritize actions that:
       const insuranceDescriptionsResult = await envPool.query(`
         SELECT DISTINCT o.insurance_description
         FROM degoudse.opportunities o
-        WHERE o.partner_id = $1 AND o.insurance_description IS NOT NULL
+        WHERE o."partnerId" = $1 AND o.insurance_description IS NOT NULL
         ORDER BY o.insurance_description
       `, [partnerId]);
       
@@ -3514,13 +3514,13 @@ Prioritize actions that:
       const envPool = pool;
       const result = await envPool.query(`
         SELECT c.id, c.name, c.description, c.status, c.industry, c.owner_id, c.created_at, c.updated_at,
-               u.name as owner_name,
+               u.full_name as owner_name,
                COUNT(DISTINCT o.id) as opportunity_count,
-               COUNT(DISTINCT CASE WHEN o.partner_id IS NOT NULL THEN o.partner_id END) as partner_count,
-               COALESCE(SUM(o.estimated_value), 0) as total_pipeline_value
+               COUNT(DISTINCT CASE WHEN o."partnerId" IS NOT NULL THEN o."partnerId" END) as partner_count,
+               COALESCE(SUM(o."estimatedValue"), 0) as total_pipeline_value
         FROM degoudse.customers c
         LEFT JOIN degoudse.users u ON c.owner_id = u.id
-        LEFT JOIN degoudse.opportunities o ON c.id = o.client_id
+        LEFT JOIN degoudse.opportunities o ON c.id = o."clientId"
         WHERE c.id = $1
         GROUP BY c.id, c.name, c.description, c.status, c.industry, c.owner_id, c.created_at, c.updated_at, u.name
       `, [customerId]);
@@ -3594,11 +3594,11 @@ Prioritize actions that:
       }
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
+        SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate", 
                p.name as partner_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-        WHERE o.client_id = $1
+        LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+        WHERE o."clientId" = $1
         ORDER BY o.id
       `, [customerId]);
       
@@ -3709,7 +3709,7 @@ Prioritize actions that:
       const result = await envPool.query(`
         SELECT pr.*
         FROM degoudse.products pr
-        INNER JOIN degoudse.opportunities o ON pr.id = o.product_id
+        INNER JOIN degoudse.opportunities o ON pr.id = o."productId"
         WHERE o.id = $1
         ORDER BY pr.id
       `, [opportunityId]);
@@ -4172,7 +4172,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
             p.contract_end_date
           FROM degoudse.partner_products pa
           LEFT JOIN degoudse.products p ON pa.product_id = p.id
-          LEFT JOIN degoudse.categories c ON p.category = c.name
+          LEFT JOIN degoudse.product_categories c ON p.category = c.name
           WHERE pa.partner_id = $1
           ORDER BY p.premium_value DESC
         `, [entityId]);
@@ -4191,7 +4191,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
             pa.customer_contract_end_date as contract_end_date
           FROM degoudse.customer_product_assignments pa
           LEFT JOIN degoudse.product_templates pt ON pa.product_template_id = pt.id
-          LEFT JOIN degoudse.categories c ON pt.category = c.name
+          LEFT JOIN degoudse.product_categories c ON pt.category = c.name
           WHERE pa.customer_id = $1 AND pa.is_active = true
           ORDER BY pa.custom_price DESC
         `, [entityId]);
@@ -4204,7 +4204,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           c.name as parent_category_name,
           c.color as category_color
         FROM degoudse.products p
-        LEFT JOIN degoudse.categories c ON p.category = c.name
+        LEFT JOIN degoudse.product_categories c ON p.category = c.name
         ORDER BY p.id
       `);
 
@@ -4215,10 +4215,10 @@ Keep the tone clear and professional. Focus on what will help the account manage
           c.name as customer_name,
           p.name as partner_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
-        LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-        WHERE ${entityType === 'partners' ? 'o.partner_id' : 'o.client_id'} = $1
-        ORDER BY o.estimated_value DESC
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+        WHERE ${entityType === 'partners' ? 'o."partnerId"' : 'o."clientId"'} = $1
+        ORDER BY o."estimatedValue" DESC
         LIMIT 10
       `, [entityId]);
 
@@ -4271,7 +4271,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
         opportunities: opportunitiesResult.rows.map(o => ({
           title: o.title,
           stage: o.stage,
-          estimatedValue: o.estimated_value,
+          estimatedValue: o.estimatedValue,
           probability: o.probability,
           insuranceType: o.insurance_description,
           relatedEntity: entityType === 'partners' ? o.customer_name : o.partner_name
@@ -4283,7 +4283,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
             description: e.description
           })),
           totalOpportunities: opportunitiesResult.rows.length,
-          totalOpportunityValue: opportunitiesResult.rows.reduce((sum, o) => sum + (o.estimated_value || 0), 0)
+          totalOpportunityValue: opportunitiesResult.rows.reduce((sum, o) => sum + (o.estimatedValue || 0), 0)
         }
       };
 
@@ -4528,7 +4528,7 @@ Prioritize opportunities that combine authentic seasonal demand data with this b
               pa.contract_end_date
             FROM degoudse.product_assignments pa
             JOIN degoudse.products p ON pa.product_id = p.id
-            LEFT JOIN degoudse.categories c ON p.category_id = c.id
+            LEFT JOIN degoudse.product_categories c ON p.category_id = c.id
             WHERE pa.partner_id = $1
           `, [entityId])
         : await pool.query(`
@@ -4544,7 +4544,7 @@ Prioritize opportunities that combine authentic seasonal demand data with this b
               cpt.customer_contract_end_date
             FROM degoudse.customer_product_templates cpt
             JOIN degoudse.product_templates pt ON cpt.product_template_id = pt.id
-            LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+            LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
             WHERE cpt.customer_id = $1
           `, [entityId]);
 
@@ -4559,7 +4559,7 @@ Prioritize opportunities that combine authentic seasonal demand data with this b
           p.total_value,
           p.premium_percentage
         FROM degoudse.products p
-        LEFT JOIN degoudse.categories c ON p.category_id = c.id
+        LEFT JOIN degoudse.product_categories c ON p.category_id = c.id
         WHERE p.id NOT IN (
           SELECT product_id FROM degoudse.product_assignments WHERE partner_id = $1
         )
@@ -4885,15 +4885,15 @@ Return as JSON in this exact format:
           COUNT(DISTINCT p.id) as total_partners,
           COUNT(DISTINCT o.id) as total_opportunities,
           COUNT(DISTINCT prod.id) as total_products,
-          COALESCE(SUM(o.estimated_value), 0) as total_opportunity_value,
+          COALESCE(SUM(o."estimatedValue"), 0) as total_opportunity_value,
           COALESCE(SUM(pt.premium_value), 0) as total_premium_value,
           COUNT(DISTINCT cat.id) as total_categories
         FROM degoudse.customers c
         LEFT JOIN degoudse.opportunities o ON c.id = o.customer_id
-        LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+        LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
         LEFT JOIN degoudse.product_templates pt ON true
         LEFT JOIN degoudse.products prod ON true
-        LEFT JOIN degoudse.categories cat ON prod.category_id = cat.id
+        LEFT JOIN degoudse.product_categories cat ON prod.category_id = cat.id
       `);
 
       // Get category breakdown
@@ -4905,7 +4905,7 @@ Return as JSON in this exact format:
           COUNT(DISTINCT prod.id) as products_count,
           COUNT(DISTINCT cpt.customer_id) as customers_with_products,
           COALESCE(SUM(cpt.custom_price), 0) as total_category_value
-        FROM degoudse.categories c
+        FROM degoudse.product_categories c
         LEFT JOIN degoudse.products prod ON c.id = prod.category_id
         LEFT JOIN degoudse.customer_product_templates cpt ON prod.id = cpt.product_template_id
         WHERE c.parent_id IS NULL
@@ -4919,17 +4919,17 @@ Return as JSON in this exact format:
           o.id,
           o.title,
           o.description,
-          o.estimated_value,
+          o."estimatedValue",
           o.probability,
           c.name as customer_name,
           p.name as partner_name,
           cat.name as category_name
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customers c ON o.customer_id = c.id
-        LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-        LEFT JOIN degoudse.categories cat ON o.category_id = cat.id
-        WHERE o.estimated_value > 0
-        ORDER BY o.estimated_value DESC
+        LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+        LEFT JOIN degoudse.product_categories cat ON o.category_id = cat.id
+        WHERE o."estimatedValue" > 0
+        ORDER BY o."estimatedValue" DESC
         LIMIT 10
       `);
 
@@ -5096,7 +5096,7 @@ Return as JSON in this exact format:
       const result = await envPool.query(`
         SELECT p.*
         FROM degoudse.partners p
-        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
+        INNER JOIN degoudse.opportunities o ON p.id = o."partnerId"
         WHERE o.id = $1
         ORDER BY p.id
       `, [opportunityId]);
@@ -5126,7 +5126,7 @@ Return as JSON in this exact format:
       const result = await envPool.query(`
         SELECT c.*
         FROM degoudse.customers c
-        INNER JOIN degoudse.opportunities o ON c.id = o.client_id
+        INNER JOIN degoudse.opportunities o ON c.id = o."clientId"
         WHERE o.id = $1
         ORDER BY c.id
       `, [opportunityId]);
@@ -5358,48 +5358,40 @@ Return as JSON in this exact format:
           p.id as productId,
           p.name,
           p.description,
-          COALESCE(pc.name, p.category) as category,
-          pc.id as categoryId,
-          pc.name as category_name,
-          parent.name as parent_category_name,
-          pc.color as category_color,
+          p.category,
+          p.category as category_name,
+          p.category as parent_category_name,
+          '#4f46e5' as category_color,
           null as provider,
           null as providerName,
           null as providerType,
-          p.contract_start_date,
-          p.contract_start_date as contractStartDate,
-          p.contract_end_date,
-          p.contract_end_date as contractEndDate,
+          null as contract_start_date,
+          null as contractStartDate,
+          null as contract_end_date,
+          null as contractEndDate,
           null as total_value,
           null as totalValue,
-          p.premium_value,
-          p.premium_value as premiumValue,
-          p.premium_percentage,
-          p.premium_percentage as premiumPercentage,
-          p.discount_percentage,
+          null as premium_value,
+          null as premiumValue,
+          null as premium_percentage,
+          null as premiumPercentage,
+          null as discount_percentage,
           null as discount,
-          p.discount_percentage as discountPercentage,
+          null as discountPercentage,
           null as customerId,
           null as opportunityId,
           null as partnerId,
           null as linked_vendor,
           null as customer_name,
           null as partner_name,
-          p.vendor_id as vendorId,
-          COALESCE(cp_count.customer_count, 0) as customerCount,
+          null as vendorId,
+          0 as customerCount,
           0 as partnerCount,
           0 as opportunityCount,
-          p.created_at as createdAt,
-          p.updated_at as updatedAt
+          now() as createdAt,
+          now() as updatedAt
         FROM degoudse.products p
-        LEFT JOIN degoudse.categories pc ON p.category_id = pc.id
-        LEFT JOIN degoudse.categories parent ON pc.parent_id = parent.id
-        LEFT JOIN (
-          SELECT product_id, COUNT(DISTINCT customer_id) as customer_count
-          FROM degoudse.customer_products
-          GROUP BY product_id
-        ) cp_count ON p.id = cp_count.product_id
-        ORDER BY parent.name, pc.name, p.name
+        ORDER BY p.name
       `);
       console.log(`Returning ${result.rows.length} products from De Goudse database`);
       res.json(result.rows);
@@ -5471,7 +5463,7 @@ Return as JSON in this exact format:
            WHERE cp2.product_id = p.id) as customerCount
         FROM degoudse.customer_products cp
         INNER JOIN degoudse.products p ON cp.product_id = p.id
-        LEFT JOIN degoudse.categories c ON p.category_id = c.id
+        LEFT JOIN degoudse.product_categories c ON p.category_id = c.id
         LEFT JOIN degoudse.vendors v ON p.vendor_id = v.id
         WHERE cp.customer_id = $1
         ORDER BY p.name ASC
@@ -5511,8 +5503,8 @@ Return as JSON in this exact format:
           (SELECT COUNT(*) FROM degoudse.products) as total_available_products
         FROM degoudse.customer_products cp
         INNER JOIN degoudse.products p ON cp.product_id = p.id
-        LEFT JOIN degoudse.categories c ON p.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id
+        LEFT JOIN degoudse.product_categories c ON p.category_id = c.id
+        LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id
         WHERE cp.customer_id = $1
       `, [customerId]);
       
@@ -5528,8 +5520,8 @@ Return as JSON in this exact format:
           ROUND(
             (COUNT(DISTINCT cp.product_id)::decimal / NULLIF(COUNT(DISTINCT p.id), 0)) * 100, 1
           ) as coverage_percentage
-        FROM degoudse.categories parent_cat
-        LEFT JOIN degoudse.categories c ON c.parent_id = parent_cat.id
+        FROM degoudse.product_categories parent_cat
+        LEFT JOIN degoudse.product_categories c ON c.parent_id = parent_cat.id
         LEFT JOIN degoudse.products p ON p.category_id = c.id
         LEFT JOIN degoudse.customer_products cp ON cp.product_id = p.id AND cp.customer_id = $1
         WHERE parent_cat.level = 1
@@ -5549,8 +5541,8 @@ Return as JSON in this exact format:
             ELSE 'low'
           END as priority
         FROM degoudse.products p
-        INNER JOIN degoudse.categories c ON p.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id
+        INNER JOIN degoudse.product_categories c ON p.category_id = c.id
+        LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id
         WHERE p.id NOT IN (
           SELECT DISTINCT cp.product_id 
           FROM degoudse.customer_products cp 
@@ -5631,9 +5623,9 @@ Return as JSON in this exact format:
       
       // Get opportunity basic info with customer
       const opportunityResult = await envPool.query(`
-        SELECT o.title, o.description, c.name as customer_name, o.client_id
+        SELECT o.title, o.description, c.name as customer_name, o."clientId"
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
         WHERE o.id = $1
       `, [opportunityId]);
       
@@ -5660,7 +5652,7 @@ Return as JSON in this exact format:
             COUNT(DISTINCT pt_all.id) as total_available_products
           FROM degoudse.customer_product_assignments cpa
           INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
-          LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+          LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
           CROSS JOIN (SELECT id FROM degoudse.product_templates WHERE is_active = true) pt_all
           WHERE cpa.customer_id = $1 AND cpa.is_active = true
         `, [customerId]);
@@ -5680,7 +5672,7 @@ Return as JSON in this exact format:
               ELSE pt.average_price 
             END, 0)) as current_premium,
             ROUND((COUNT(DISTINCT cpa.product_template_id)::decimal / NULLIF(COUNT(DISTINCT pt.id), 0)) * 100, 1) as coverage_percentage
-          FROM degoudse.categories c
+          FROM degoudse.product_categories c
           LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id AND pt.is_active = true
           LEFT JOIN degoudse.customer_product_assignments cpa ON cpa.product_template_id = pt.id AND cpa.customer_id = $1 AND cpa.is_active = true
           WHERE c.level = 1 AND c.is_active = true
@@ -5702,7 +5694,7 @@ Return as JSON in this exact format:
               ELSE 'low'
             END as priority
           FROM degoudse.product_templates pt
-          INNER JOIN degoudse.categories c ON pt.category_id = c.id
+          INNER JOIN degoudse.product_categories c ON pt.category_id = c.id
           WHERE pt.id NOT IN (
             SELECT DISTINCT cpa.product_template_id 
             FROM degoudse.customer_product_assignments cpa 
@@ -5955,8 +5947,8 @@ Return as JSON in this exact format:
           SUM(pt.premium_value) as "totalValue"
         FROM degoudse.product_templates pt
         LEFT JOIN degoudse.customer_product_assignments cpa ON pt.id = cpa.product_template_id AND cpa.is_active = true
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id)
+        LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id)
         GROUP BY 
           pt.id, pt.name, pt.description, pt.provider_name, pt.average_price, 
           pt.premium_value, pt.premium_percentage, pt.discount_percentage,
@@ -6008,8 +6000,8 @@ Return as JSON in this exact format:
         FROM degoudse.customer_product_assignments cpa
         INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
         INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON (c.parent_id = parent_cat.id AND c.parent_id IS NOT NULL) OR (c.parent_id IS NULL AND c.id = parent_cat.id)
+        LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.product_categories parent_cat ON (c.parent_id = parent_cat.id AND c.parent_id IS NOT NULL) OR (c.parent_id IS NULL AND c.id = parent_cat.id)
         WHERE pc.partner_id = $1
         GROUP BY 
           pt.id, pt.name, pt.description, pt.category,
@@ -6057,8 +6049,8 @@ Return as JSON in this exact format:
         FROM degoudse.customer_product_assignments cpa
         INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
         INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
+        LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
         WHERE pc.partner_id = $1 AND cpa.is_active = true
         GROUP BY pt.id, pt.name, pt.description, pt.category, c.name, c.color, parent_cat.name, parent_cat.color
         ORDER BY COUNT(DISTINCT cpa.customer_id) DESC, SUM(pt.premium_value) DESC
@@ -6100,8 +6092,8 @@ Return as JSON in this exact format:
         FROM degoudse.customer_product_assignments cpa
         INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
         INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
+        LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
         WHERE pc.partner_id = $1
       `, [partnerId]);
       
@@ -6127,8 +6119,8 @@ Return as JSON in this exact format:
         FROM degoudse.customer_product_assignments cpa
         INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
         INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON (c.parent_id = parent_cat.id AND c.parent_id IS NOT NULL) OR (c.parent_id IS NULL AND c.id = parent_cat.id)
+        LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.product_categories parent_cat ON (c.parent_id = parent_cat.id AND c.parent_id IS NOT NULL) OR (c.parent_id IS NULL AND c.id = parent_cat.id)
         WHERE pc.partner_id = $1 AND parent_cat.id IS NOT NULL
         GROUP BY parent_cat.id, parent_cat.name, parent_cat.color
         ORDER BY current_premium DESC
@@ -6148,7 +6140,7 @@ Return as JSON in this exact format:
             ELSE 'low'
           END as priority
         FROM degoudse.product_templates pt
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
         CROSS JOIN degoudse.partner_customers pc
         LEFT JOIN degoudse.customer_product_assignments cpa ON cpa.customer_id = pc.customer_id AND cpa.product_template_id = pt.id
         WHERE pc.partner_id = $1 
@@ -6246,8 +6238,8 @@ Return as JSON in this exact format:
         FROM degoudse.customer_product_assignments cpa
         INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
         INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
+        LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
         WHERE pc.partner_id = $1 AND cpa.is_active = true
       `, [partnerId]);
       
@@ -6267,8 +6259,8 @@ Return as JSON in this exact format:
             (SELECT COUNT(*) FROM partner_customers) as total_customers,
             COALESCE(SUM(pt.premium_value), 0) as current_premium,
             ROUND(COUNT(DISTINCT cpa.customer_id) * 100.0 / (SELECT COUNT(*) FROM partner_customers), 1) as coverage_percentage
-          FROM degoudse.categories parent_cat
-          LEFT JOIN degoudse.categories c ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
+          FROM degoudse.product_categories parent_cat
+          LEFT JOIN degoudse.product_categories c ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
           LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id
           LEFT JOIN degoudse.customer_product_assignments cpa ON cpa.product_template_id = pt.id
             AND cpa.customer_id IN (SELECT customer_id FROM partner_customers)
@@ -6292,8 +6284,8 @@ Return as JSON in this exact format:
             ELSE 'low'
           END as priority
         FROM degoudse.product_templates pt
-        INNER JOIN degoudse.categories c ON pt.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
+        INNER JOIN degoudse.product_categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
         WHERE pt.id NOT IN (
           SELECT DISTINCT cpa.product_template_id 
           FROM degoudse.customer_product_assignments cpa
@@ -6649,21 +6641,21 @@ Return as JSON in this exact format:
           if (partnerId) {
             console.log(`CRITICAL BROKER FIX: Filtering for partner ${partnerId} in broker view`);
             result = await envPool.query(`
-              SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date,
-                     o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+              SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",
+                     
                      c.name as customer_name,
                      p.name as partner_name,
                      pr.name as product_name,
-                     am.name as account_manager_name,
+                     'Account Manager' as account_manager_name,
                      COUNT(DISTINCT op.product_id) as product_count
               FROM degoudse.opportunities o
-              LEFT JOIN degoudse.customers c ON o.client_id = c.id
-              LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-              LEFT JOIN degoudse.products pr ON o.product_id = pr.id
-              LEFT JOIN degoudse.users am ON o.owner_id = am.id
+              LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+              LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+              LEFT JOIN degoudse.products pr ON o."productId" = pr.id
+              LEFT JOIN public.users am ON o."ownerId" = am.id
               LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
-              WHERE o.partner_id = $1 AND o.id > 16
-              GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
+              WHERE o."partnerId" = $1 AND o.id > 16
+              GROUP BY o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",  c.name, p.name, pr.name, 'Account Manager'
               ORDER BY o.id
             `, [partnerId]);
           }
@@ -6682,21 +6674,21 @@ Return as JSON in this exact format:
               if (members.length > 0) {
                 console.log(`Filtering to ${members.length} specific opportunities from list ${listId}`);
                 result = await envPool.query(`
-                  SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date,
-                         o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+                  SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",
+                         
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
-                         am.name as account_manager_name,
+                         'Account Manager' as account_manager_name,
                          COUNT(DISTINCT op.product_id) as product_count
                   FROM degoudse.opportunities o
-                  LEFT JOIN degoudse.customers c ON o.client_id = c.id
-                  LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-                  LEFT JOIN degoudse.products pr ON o.product_id = pr.id
-                  LEFT JOIN degoudse.users am ON o.owner_id = am.id
+                  LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+                  LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+                  LEFT JOIN degoudse.products pr ON o."productId" = pr.id
+                  LEFT JOIN public.users am ON o."ownerId" = am.id
                   LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
                   WHERE o.id = ANY($1) AND o.id > 16
-                  GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
+                  GROUP BY o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",  c.name, p.name, pr.name, 'Account Manager'
                   ORDER BY o.id
                 `, [members]);
               } else {
@@ -6746,21 +6738,21 @@ Return as JSON in this exact format:
                 console.log(`Showing ${opportunityIdsArray.length} opportunities from ${sharedListsResult.rows.length} shared lists`);
                 
                 result = await envPool.query(`
-                  SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date,
-                         o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+                  SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",
+                         
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
-                         am.name as account_manager_name,
+                         'Account Manager' as account_manager_name,
                          COUNT(DISTINCT op.product_id) as product_count
                   FROM degoudse.opportunities o
-                  LEFT JOIN degoudse.customers c ON o.client_id = c.id
-                  LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-                  LEFT JOIN degoudse.products pr ON o.product_id = pr.id
-                  LEFT JOIN degoudse.users am ON o.owner_id = am.id
+                  LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+                  LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+                  LEFT JOIN degoudse.products pr ON o."productId" = pr.id
+                  LEFT JOIN public.users am ON o."ownerId" = am.id
                   LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
                   WHERE o.id = ANY($1)
-                  GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
+                  GROUP BY o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",  c.name, p.name, pr.name, 'Account Manager'
                   ORDER BY o.id
                 `, [opportunityIdsArray]);
               } else {
@@ -6790,21 +6782,21 @@ Return as JSON in this exact format:
             if (members.length > 0) {
               console.log(`Filtering to ${members.length} specific opportunities from list ${listId}`);
               result = await envPool.query(`
-                SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date,
-                       o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+                SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",
+                       
                        c.name as customer_name,
                        p.name as partner_name,
                        pr.name as product_name,
-                       am.name as account_manager_name,
+                       'Account Manager' as account_manager_name,
                        COUNT(DISTINCT op.product_id) as product_count
                 FROM degoudse.opportunities o
-                LEFT JOIN degoudse.customers c ON o.client_id = c.id
-                LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-                LEFT JOIN degoudse.products pr ON o.product_id = pr.id
-                LEFT JOIN degoudse.users am ON o.owner_id = am.id
+                LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+                LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+                LEFT JOIN degoudse.products pr ON o."productId" = pr.id
+                LEFT JOIN public.users am ON o."ownerId" = am.id
                 LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
                 WHERE o.id = ANY($1) AND o.id > 16
-                GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
+                GROUP BY o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",  c.name, p.name, pr.name, 'Account Manager'
                 ORDER BY o.id
               `, [members]);
             } else {
@@ -6819,31 +6811,28 @@ Return as JSON in this exact format:
           // No list filtering - show all opportunities excluding original seed data
           // CRITICAL FIX: Apply partner filter if partnerId is provided
           let baseQuery = `
-            SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
-                   o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
+            SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",
                    c.name as customer_name,
                    p.name as partner_name,
                    pr.name as product_name,
-                   am.name as account_manager_name,
-                   COUNT(DISTINCT op.product_id) as product_count
+                   'Account Manager' as account_manager_name,
+                   1 as product_count
             FROM degoudse.opportunities o
-            LEFT JOIN degoudse.customers c ON o.client_id = c.id
-            LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-            LEFT JOIN degoudse.products pr ON o.product_id = pr.id
-            LEFT JOIN degoudse.users am ON o.owner_id = am.id
-            LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+            LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+            LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+            LEFT JOIN degoudse.products pr ON o."productId" = pr.id
             WHERE o.id > 16
           `;
           
           let queryParams = [];
           if (partnerId) {
-            baseQuery += ` AND o.partner_id = $1`;
+            baseQuery += ` AND o."partnerId" = $1`;
             queryParams.push(partnerId);
             console.log(`CRITICAL FIX: Filtering opportunities for partner ${partnerId}`);
           }
           
           baseQuery += `
-            GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
+            GROUP BY o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",  c.name, p.name, pr.name, 'Account Manager'
             ORDER BY o.id
           `;
           
@@ -6901,26 +6890,26 @@ Return as JSON in this exact format:
       const envPool = pool;
       
       const result = await envPool.query(`
-        SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
+        SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate", 
                STRING_AGG(DISTINCT c.name, ', ') as customer_names,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                STRING_AGG(DISTINCT pr.name, ', ') as product_names,
-               am.name as account_manager_name,
+               'Account Manager' as account_manager_name,
                COUNT(DISTINCT co.customer_id) as customer_count,
-               COUNT(DISTINCT po.partner_id) as partner_count,
+               COUNT(DISTINCT po."partnerId") as partner_count,
                COUNT(DISTINCT op.product_id) as product_count
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.customers c ON c.id = co.customer_id
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+        LEFT JOIN degoudse.partners p ON p.id = po."partnerId"
         LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
-        LEFT JOIN degoudse.users am ON o.owner_id = am.id
+        LEFT JOIN public.users am ON o."ownerId" = am.id
         WHERE o.id = $1 AND o.id > 16
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, 
-                 o.expected_close_date, o.start_date, o.owner_id, o.client_id, o.partner_id, o.product_id, 
-                 o.probability, o.type, o.created_at, o.updated_at, am.name
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
+                 o."expectedCloseDate", o.start_date, o."ownerId", o."clientId", o."partnerId", o."productId", 
+                 o.probability, o.type, o."createdAt", o."updatedAt", 'Account Manager'
       `, [opportunityId]);
       
       if (result.rows.length === 0) {
@@ -7791,7 +7780,7 @@ Return as JSON in this exact format:
       const partnersResult = await envPool.query(`
         SELECT p.id
         FROM degoudse.partners p
-        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
+        INNER JOIN degoudse.opportunities o ON p.id = o."partnerId"
         WHERE o.id = $1
       `, [opportunityId]);
       
@@ -9688,10 +9677,10 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         SELECT 
           c.*,
           p.name as parent_category_name
-        FROM ${envId}.categories c
-        LEFT JOIN ${envId}.categories p ON c.parent_id = p.id
-        WHERE c.is_active = true
-        ORDER BY c.level ASC, c.created_at DESC, c.name ASC
+        FROM ${envId}.product_categories c
+        LEFT JOIN ${envId}.product_categories p ON c.parent_id = p.id
+        WHERE c.status = 'active' OR c.status IS NULL
+        ORDER BY c.created_at DESC, c.name ASC
       `);
       
       res.json(result.rows);
@@ -9809,10 +9798,10 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           c.icon as category_icon,
           v.name as vendor_name,
           -- Get partner count (indirect through opportunities)
-          (SELECT COUNT(DISTINCT o.partner_id) 
+          (SELECT COUNT(DISTINCT o."partnerId") 
            FROM ${envId}.opportunities o 
            JOIN ${envId}.opportunity_products op ON o.id = op.opportunity_id 
-           WHERE op.product_id = pt.id AND o.partner_id IS NOT NULL) as partner_count,
+           WHERE op.product_id = pt.id AND o."partnerId" IS NOT NULL) as partner_count,
           -- Get customer count (mapped from category name-based assignments)
           COALESCE(cp_count.customer_count, 0) as customer_count,
           -- Get opportunity count
