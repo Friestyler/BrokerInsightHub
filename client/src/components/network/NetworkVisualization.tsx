@@ -251,9 +251,13 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
           primaryIds.includes(opp.customer_id) || primaryIds.includes(opp.clientId)
         ) || [];
         
-        // Filter contacts for selected customers
+        // Filter contacts for selected customers using contact relationships
+        const customerContactRelationships = contactRelationshipsArray?.filter((rel: any) => 
+          rel.entity_type === 'customer' && primaryIds.includes(rel.entity_id)
+        ) || [];
+        const contactIds = customerContactRelationships.map((rel: any) => rel.contact_id);
         const relatedContacts = contactsArray?.filter((contact: any) => 
-          primaryIds.includes(contact.customer_id)
+          contactIds.includes(contact.id)
         ) || [];
         
         if (relatedOpportunities.length) {
