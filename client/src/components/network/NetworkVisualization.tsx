@@ -1050,16 +1050,8 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
 
       return (
         <div 
-          className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)} pointer-events-auto relative`}
+          className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow min-w-[180px] ${getRoleColor(person.level)} relative`}
           style={{ zIndex: 10 }}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-            console.log('🔥 ORG CHART CARD MOUSE DOWN:', person.name);
-          }}
-          onMouseUp={(e) => {
-            e.stopPropagation();
-            console.log('🔥 ORG CHART CARD MOUSE UP:', person.name);
-          }}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -1154,7 +1146,7 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
     return (
       <div className="relative h-96 bg-gray-50 rounded-lg border overflow-hidden">
         <div 
-          className="w-full h-full relative"
+          className="w-full h-full relative overflow-auto"
           onWheel={(e) => {
             const delta = e.deltaY > 0 ? 0.9 : 1.1;
             const newScale = Math.max(0.3, Math.min(3, transform.scale * delta));
@@ -1170,30 +1162,22 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
               scale: newScale
             }));
           }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
           style={{ 
+            cursor: isDragging ? 'grabbing' : 'grab',
             transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
             transformOrigin: '0 0',
             minWidth: 'max-content',
             minHeight: 'max-content'
           }}
         >
-          {/* Background drag area for org chart - separate from contact cards */}
-          <div 
-            className="absolute inset-0 w-full h-full pointer-events-auto"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            style={{ 
-              cursor: isDragging ? 'grabbing' : 'grab',
-              zIndex: 1
-            }}
-          />
-          
-          {/* Contact cards container with higher z-index to receive clicks */}
-          <div className="p-6 min-w-fit relative pointer-events-none" style={{ zIndex: 2 }}>
+          {/* Contact cards container */}
+          <div className="p-6 min-w-fit relative">
             {/* Render hierarchical structure */}
-            <div className="flex justify-center space-x-12 pointer-events-auto">
+            <div className="flex justify-center space-x-12">
               {hierarchicalContacts.map((rootNode: any) => (
                 <HierarchyNode key={rootNode.id} node={rootNode} />
               ))}
