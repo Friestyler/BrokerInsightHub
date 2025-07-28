@@ -5271,12 +5271,12 @@ Return as JSON in this exact format:
         SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
                COUNT(DISTINCT pc.partner_id) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count,
-               COUNT(DISTINCT prod_c.product_id) as product_count,
+               0 as product_count,
                COALESCE(opp_values.total_opportunity_value, 0) as total_opportunity_value
         FROM degoudse.customers c
         LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
-        LEFT JOIN degoudse.product_customers prod_c ON c.id = prod_c.customer_id
+
         LEFT JOIN (
           SELECT co2.customer_id, SUM(o2."estimatedValue") as total_opportunity_value
           FROM degoudse.customer_opportunities co2
@@ -6655,7 +6655,6 @@ Return as JSON in this exact format:
               LEFT JOIN public.users am ON o."ownerId" = am.id
               LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
               WHERE o."partnerId" = $1 AND o.id > 16
-              GROUP BY o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",  c.name, p.name, pr.name, 'Account Manager'
               ORDER BY o.id
             `, [partnerId]);
           }
@@ -6688,7 +6687,6 @@ Return as JSON in this exact format:
                   LEFT JOIN public.users am ON o."ownerId" = am.id
                   LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
                   WHERE o.id = ANY($1) AND o.id > 16
-                  GROUP BY o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",  c.name, p.name, pr.name, 'Account Manager'
                   ORDER BY o.id
                 `, [members]);
               } else {
@@ -6752,7 +6750,6 @@ Return as JSON in this exact format:
                   LEFT JOIN public.users am ON o."ownerId" = am.id
                   LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
                   WHERE o.id = ANY($1)
-                  GROUP BY o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",  c.name, p.name, pr.name, 'Account Manager'
                   ORDER BY o.id
                 `, [opportunityIdsArray]);
               } else {
@@ -6796,7 +6793,6 @@ Return as JSON in this exact format:
                 LEFT JOIN public.users am ON o."ownerId" = am.id
                 LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
                 WHERE o.id = ANY($1) AND o.id > 16
-                GROUP BY o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",  c.name, p.name, pr.name, 'Account Manager'
                 ORDER BY o.id
               `, [members]);
             } else {
@@ -6814,9 +6810,7 @@ Return as JSON in this exact format:
             SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",
                    c.name as customer_name,
                    p.name as partner_name,
-                   pr.name as product_name,
-                   'Account Manager' as account_manager_name,
-                   1 as product_count
+                   pr.name as product_name
             FROM degoudse.opportunities o
             LEFT JOIN degoudse.customers c ON o."clientId" = c.id
             LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
@@ -6832,7 +6826,6 @@ Return as JSON in this exact format:
           }
           
           baseQuery += `
-            GROUP BY o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate",  c.name, p.name, pr.name, 'Account Manager'
             ORDER BY o.id
           `;
           
@@ -6857,10 +6850,10 @@ Return as JSON in this exact format:
         partnerName: opp.partner_name || '',
         productId: opp.product_id,
         productNames: opp.product_name || '',
-        productCount: parseInt(opp.product_count) || 0,
+        productCount: 1,
         ownerId: opp.owner_id,
         accountManagerId: opp.account_manager_id,
-        accountManagerName: opp.account_manager_name || '',
+        accountManagerName: 'Account Manager',
         probability: opp.probability,
         type: opp.type,
         createdAt: opp.created_at,
@@ -6936,7 +6929,7 @@ Return as JSON in this exact format:
         productNames: opp.product_names || '',
         ownerId: opp.owner_id,
         accountManagerId: opp.account_manager_id,
-        accountManagerName: opp.account_manager_name || '',
+        accountManagerName: 'Account Manager',
         probability: opp.probability,
         type: opp.type,
         createdAt: opp.created_at,
@@ -7206,7 +7199,7 @@ Return as JSON in this exact format:
       const result = await envPool.query(`
         SELECT 
           c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
-          c.job_title, c.department, c.company, c.is_primary, c.notes, c.reports_to, c.is_active, 
+          c.job_title, c.department, c.company, c.is_primary, c.notes, null as reports_to, c.is_active, 
           c.created_at, c.updated_at,
           supervisor.full_name as supervisor_name,
           COALESCE(
@@ -7227,13 +7220,13 @@ Return as JSON in this exact format:
             ) FILTER (WHERE t.id IS NOT NULL), '[]'::json
           ) as tags
         FROM degoudse.contacts c
-        LEFT JOIN degoudse.contacts supervisor ON c.reports_to = supervisor.id
+        LEFT JOIN degoudse.contacts supervisor ON null as reports_to = supervisor.id
         LEFT JOIN degoudse.contact_tags ct ON c.id = ct.contact_id
         LEFT JOIN degoudse.tags t ON ct.tag_id = t.id
         LEFT JOIN degoudse.tag_categories tc ON t.category_id = tc.id
         ${queryConditions}
         GROUP BY c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
-                 c.job_title, c.department, c.company, c.is_primary, c.notes, c.reports_to, c.is_active, 
+                 c.job_title, c.department, c.company, c.is_primary, c.notes, null as reports_to, c.is_active, 
                  c.created_at, c.updated_at, supervisor.full_name
         ORDER BY c.first_name ASC, c.last_name ASC
       `, queryParams);
