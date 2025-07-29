@@ -45,10 +45,12 @@ npm install
 
 ### Step 4: Initialize Database Schema
 The application will automatically:
-- Create `degoudse` schema
-- Initialize all required tables
+- Create `degoudse` schema with all insurance business tables
+- Initialize `public.users` and `public.custom_environments` tables for admin features
 - Seed opportunity assessment data
-- Set up proper relationships
+- Set up proper relationships and foreign keys
+
+**Note**: If custom environment creation gives Error 500, the required admin tables will be created automatically on first startup.
 
 ### Step 5: Start Application
 ```bash
@@ -100,6 +102,11 @@ The platform uses PostgreSQL with these key tables:
 - Verify DATABASE_URL is properly set
 - Check PostgreSQL service is running
 - Ensure schema permissions are correct
+
+### Custom Environment Creation Error 500
+- Fixed automatically: Missing admin tables (`users`, `custom_environments`) are created on startup
+- Required columns (`description`, `schema_name`, `is_active`) added automatically
+- Default admin user (ID: 2) created for environment management
 
 ### API Errors
 - Check console logs for specific error details
