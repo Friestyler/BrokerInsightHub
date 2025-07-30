@@ -100,11 +100,11 @@ const useProducts = () => {
 };
 
 const customerSegments = [
-  { id: 'all', name: 'Alle segmenten', count: 5127 },
-  { id: 'young_families', name: 'Jonge gezinnen', count: 1234 },
-  { id: 'empty_nesters', name: 'Empty nesters', count: 987 },
-  { id: 'singles', name: 'Alleenstaanden', count: 876 },
-  { id: 'seniors', name: 'Senioren', count: 654 }
+  { id: 'all', name: 'All Segments', count: 58 },
+  { id: 'large_enterprise', name: 'Large Enterprise (€10B+)', count: 12 },
+  { id: 'enterprise', name: 'Enterprise (€1B-10B)', count: 18 },
+  { id: 'mid_market', name: 'Mid-Market (€100M-1B)', count: 15 },
+  { id: 'smb', name: 'SMB (€10M-100M)', count: 13 }
 ];
 
 // Cross-sell matrix data with realistic Deutsche Telekom solution cross-sell rates
@@ -118,12 +118,12 @@ type CrossSellData = {
 };
 
 const crossSellData: Record<string, CrossSellData> = {
-  'auto-home': { rate: 72, benchmark: 80, customers: 1210, potential: 470, maxValue: 300000, expectedRevenue: 67000 },
-  'auto-life': { rate: 45, benchmark: 50, customers: 800, potential: 350, maxValue: 250000, expectedRevenue: 45000 },
-  'home-auto': { rate: 68, benchmark: 75, customers: 1190, potential: 560, maxValue: 285000, expectedRevenue: 64000 },
-  'home-life': { rate: 82, benchmark: 65, customers: 668, potential: 144, maxValue: 175000, expectedRevenue: 39000 },
-  'life-auto': { rate: 35, benchmark: 40, customers: 450, potential: 280, maxValue: 180000, expectedRevenue: 32000 },
-  'life-home': { rate: 75, benchmark: 70, customers: 500, potential: 200, maxValue: 138000, expectedRevenue: 31000 }
+  'connectivity-cloud': { rate: 78, benchmark: 75, customers: 25, potential: 18, maxValue: 1200000, expectedRevenue: 850000 },
+  'connectivity-security': { rate: 82, benchmark: 80, customers: 22, potential: 15, maxValue: 950000, expectedRevenue: 720000 },
+  'cloud-security': { rate: 85, benchmark: 85, customers: 28, potential: 20, maxValue: 1100000, expectedRevenue: 890000 },
+  'cloud-iot': { rate: 65, benchmark: 60, customers: 18, potential: 12, maxValue: 750000, expectedRevenue: 485000 },
+  'security-analytics': { rate: 72, benchmark: 70, customers: 20, potential: 14, maxValue: 680000, expectedRevenue: 520000 },
+  'iot-analytics': { rate: 88, benchmark: 85, customers: 15, potential: 10, maxValue: 920000, expectedRevenue: 650000 }
 };
 
 function getCellColor(rate: number): string {
@@ -151,22 +151,22 @@ function DashboardFilters() {
   // Fetch partners data
   const { data: partners = [] } = useQuery({ queryKey: ['/api/partners'] });
 
-  // Provider options
+  // Solution Provider options
   const providers = [
-    { id: 'all', name: 'All Providers' },
-    { id: 'de_goudse', name: 'De Goudse' },
-    { id: 'nn_group', name: 'NN Group' },
-    { id: 'aegon', name: 'Aegon' },
-    { id: 'allianz', name: 'Allianz' }
+    { id: 'all', name: 'All Solution Providers' },
+    { id: 't_systems', name: 'T-Systems' },
+    { id: 'dt_global', name: 'Deutsche Telekom Global' },
+    { id: 'dt_mms', name: 'Deutsche Telekom MMS' },
+    { id: 'detecon', name: 'Detecon International' }
   ];
 
   // Customer segments
   const customerSegments = [
     { id: 'all', name: 'All Segments' },
-    { id: 'young_families', name: 'Young Families' },
-    { id: 'empty_nesters', name: 'Empty Nesters' },
-    { id: 'singles', name: 'Singles' },
-    { id: 'seniors', name: 'Seniors' }
+    { id: 'large_enterprise', name: 'Large Enterprise (€10B+)' },
+    { id: 'enterprise', name: 'Enterprise (€1B-10B)' },
+    { id: 'mid_market', name: 'Mid-Market (€100M-1B)' },
+    { id: 'smb', name: 'SMB (€10M-100M)' }
   ];
 
   return (
@@ -201,7 +201,7 @@ function DashboardFilters() {
           {/* Provider Selector */}
           <div>
             <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              Provider
+              Solution Provider
             </Label>
             <Select value={selectedProvider} onValueChange={setSelectedProvider}>
               <SelectTrigger>
@@ -253,7 +253,7 @@ function DashboardSection() {
   const { data: aggregatedPortfolioData, isLoading: isAggregatedLoading } = useQuery({
     queryKey: ['/api/portfolio-overview-aggregated'],
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (gcTime replaced cacheTime in v5)
   });
 
   // Fetch authentic data for product list
@@ -286,22 +286,31 @@ function DashboardSection() {
         product.category === category.name ||
         product.categoryName === category.name ||
         product.parent_category_name === category.name ||
-        // Map specific categories to parent categories
-        (category.name === 'Non-Life' && (
-          product.parent_category_name === 'Business' ||
-          product.parent_category_name === 'Health' ||
-          product.parent_category_name === 'Mobility' ||
-          product.parent_category_name === 'Property & Liability'
+        // Map specific categories to Deutsche Telekom solution categories
+        (category.name === 'Cloud & Hosting' && (
+          product.parent_category_name === 'Cloud Services' ||
+          product.parent_category_name === 'Infrastructure' ||
+          product.category?.toLowerCase().includes('cloud') ||
+          product.category?.toLowerCase().includes('hosting')
         )) ||
-        (category.name === 'Life' && (
-          product.parent_category_name === 'Life' ||
-          product.category?.toLowerCase().includes('life') ||
-          product.category?.toLowerCase().includes('death') ||
-          product.category?.toLowerCase().includes('pension')
+        (category.name === 'Connectivity & Network' && (
+          product.parent_category_name === 'Network' ||
+          product.parent_category_name === 'Connectivity' ||
+          product.category?.toLowerCase().includes('network') ||
+          product.category?.toLowerCase().includes('connectivity') ||
+          product.category?.toLowerCase().includes('5g')
         )) ||
-        (category.name === 'Services' && (
-          product.parent_category_name === 'Travel' ||
-          product.category?.toLowerCase().includes('service')
+        (category.name === 'Security' && (
+          product.parent_category_name === 'Cybersecurity' ||
+          product.parent_category_name === 'Security Solutions' ||
+          product.category?.toLowerCase().includes('security') ||
+          product.category?.toLowerCase().includes('cyber')
+        )) ||
+        (category.name === 'IoT & M2M' && (
+          product.parent_category_name === 'IoT Solutions' ||
+          product.parent_category_name === 'M2M' ||
+          product.category?.toLowerCase().includes('iot') ||
+          product.category?.toLowerCase().includes('m2m')
         ))
       );
       
@@ -321,24 +330,26 @@ function DashboardSection() {
         return sum + customers;
       }, 0);
       
-      // Create realistic data based on category type and authentic base
+      // Create realistic data based on Deutsche Telekom solution category type
       let baseCustomers = currentCustomers;
-      if (baseCustomers === 0) {
-        // Generate realistic customer counts based on technology solution category type
-        if (category.name.toLowerCase().includes('life') || category.name.toLowerCase().includes('leven')) {
-          baseCustomers = Math.floor(totalCustomers * 0.18) + Math.floor(Math.random() * 50); // 18% for cloud solutions
-        } else if (category.name.toLowerCase().includes('health') || category.name.toLowerCase().includes('zorg') || category.name.toLowerCase().includes('hospitalization')) {
-          baseCustomers = Math.floor(totalCustomers * 0.72) + Math.floor(Math.random() * 100); // 72% for connectivity solutions  
-        } else if (category.name.toLowerCase().includes('auto') || category.name.toLowerCase().includes('car') || category.name.toLowerCase().includes('mobility')) {
-          baseCustomers = Math.floor(totalCustomers * 0.58) + Math.floor(Math.random() * 80); // 58% for IoT solutions
-        } else if (category.name.toLowerCase().includes('property') || category.name.toLowerCase().includes('fire') || category.name.toLowerCase().includes('home')) {
-          baseCustomers = Math.floor(totalCustomers * 0.45) + Math.floor(Math.random() * 60); // 45% for property
-        } else if (category.name.toLowerCase().includes('travel') || category.name.toLowerCase().includes('reis')) {
-          baseCustomers = Math.floor(totalCustomers * 0.28) + Math.floor(Math.random() * 40); // 28% for travel
-        } else if (category.name.toLowerCase().includes('business') || category.name.toLowerCase().includes('liability')) {
-          baseCustomers = Math.floor(totalCustomers * 0.35) + Math.floor(Math.random() * 50); // 35% for business
+      if (baseCustomers === 0 && totalCustomers > 0) {
+        // Generate realistic customer counts based on Deutsche Telekom solution adoption rates
+        if (category.name.toLowerCase().includes('cloud') || category.name.toLowerCase().includes('hosting')) {
+          baseCustomers = Math.floor(totalCustomers * 0.68) + Math.floor(Math.random() * 15); // 68% for cloud solutions (high adoption)
+        } else if (category.name.toLowerCase().includes('connectivity') || category.name.toLowerCase().includes('network') || category.name.toLowerCase().includes('5g')) {
+          baseCustomers = Math.floor(totalCustomers * 0.85) + Math.floor(Math.random() * 10); // 85% for connectivity (essential)
+        } else if (category.name.toLowerCase().includes('security') || category.name.toLowerCase().includes('cyber')) {
+          baseCustomers = Math.floor(totalCustomers * 0.72) + Math.floor(Math.random() * 12); // 72% for security solutions
+        } else if (category.name.toLowerCase().includes('iot') || category.name.toLowerCase().includes('m2m')) {
+          baseCustomers = Math.floor(totalCustomers * 0.45) + Math.floor(Math.random() * 18); // 45% for IoT solutions (growing)
+        } else if (category.name.toLowerCase().includes('analytics') || category.name.toLowerCase().includes('ai')) {
+          baseCustomers = Math.floor(totalCustomers * 0.38) + Math.floor(Math.random() * 20); // 38% for AI/Analytics (emerging)
+        } else if (category.name.toLowerCase().includes('digital') || category.name.toLowerCase().includes('workplace')) {
+          baseCustomers = Math.floor(totalCustomers * 0.62) + Math.floor(Math.random() * 14); // 62% for digital workplace
+        } else if (category.name.toLowerCase().includes('managed') || category.name.toLowerCase().includes('service')) {
+          baseCustomers = Math.floor(totalCustomers * 0.55) + Math.floor(Math.random() * 16); // 55% for managed services
         } else {
-          baseCustomers = Math.floor(totalCustomers * 0.22) + Math.floor(Math.random() * 30); // 22% default
+          baseCustomers = Math.floor(totalCustomers * 0.35) + Math.floor(Math.random() * 15); // 35% default for specialized solutions
         }
       }
       
@@ -623,42 +634,86 @@ export default function PortfolioInsights() {
   const verticalProducts = getSelectedItems(selectedVerticalProducts);
   const matrixProducts = horizontalProducts; // Use horizontal products for main matrix display
 
+  // Deutsche Telekom Solution Cross-sell Matrix Data
+  const dtSolutionMatrix: Record<string, Record<string, CrossSellData>> = {
+    // Connectivity & Network -> other solutions
+    'connectivity-network': {
+      'cloud-hosting': { rate: 78, benchmark: 65, customers: 245, potential: 191, maxValue: 1250000, expectedRevenue: 390000 },
+      'security': { rate: 85, benchmark: 72, customers: 198, potential: 168, maxValue: 980000, expectedRevenue: 333200 },
+      'iot-m2m': { rate: 62, benchmark: 48, customers: 167, potential: 103, maxValue: 750000, expectedRevenue: 186000 },
+      'digital-workplace': { rate: 71, benchmark: 58, customers: 203, potential: 144, maxValue: 890000, expectedRevenue: 253360 },
+      'analytics-ai': { rate: 45, benchmark: 35, customers: 134, potential: 60, maxValue: 1100000, expectedRevenue: 198000 }
+    },
+    // Cloud & Hosting -> other solutions
+    'cloud-hosting': {
+      'connectivity-network': { rate: 82, benchmark: 75, customers: 187, potential: 153, maxValue: 1150000, expectedRevenue: 377200 },
+      'security': { rate: 88, benchmark: 78, customers: 156, potential: 137, maxValue: 1320000, expectedRevenue: 464640 },
+      'analytics-ai': { rate: 73, benchmark: 58, customers: 142, potential: 103, maxValue: 1580000, expectedRevenue: 461080 },
+      'digital-workplace': { rate: 69, benchmark: 55, customers: 198, potential: 136, maxValue: 950000, expectedRevenue: 262600 },
+      'iot-m2m': { rate: 56, benchmark: 42, customers: 124, potential: 69, maxValue: 850000, expectedRevenue: 190400 }
+    },
+    // Security -> other solutions
+    'security': {
+      'cloud-hosting': { rate: 84, benchmark: 71, customers: 213, potential: 179, maxValue: 1280000, expectedRevenue: 430720 },
+      'connectivity-network': { rate: 79, benchmark: 68, customers: 189, potential: 149, maxValue: 1050000, expectedRevenue: 331800 },
+      'digital-workplace': { rate: 77, benchmark: 63, customers: 167, potential: 128, maxValue: 920000, expectedRevenue: 283520 },
+      'analytics-ai': { rate: 58, benchmark: 45, customers: 145, potential: 84, maxValue: 1350000, expectedRevenue: 313200 },
+      'iot-m2m': { rate: 51, benchmark: 38, customers: 118, potential: 60, maxValue: 780000, expectedRevenue: 159120 }
+    },
+    // IoT & M2M -> other solutions  
+    'iot-m2m': {
+      'analytics-ai': { rate: 81, benchmark: 68, customers: 98, potential: 79, maxValue: 1650000, expectedRevenue: 534600 },
+      'connectivity-network': { rate: 76, benchmark: 65, customers: 145, potential: 110, maxValue: 1180000, expectedRevenue: 358960 },
+      'cloud-hosting': { rate: 68, benchmark: 55, customers: 124, potential: 84, maxValue: 1420000, expectedRevenue: 386720 },
+      'security': { rate: 63, benchmark: 48, customers: 112, potential: 70, maxValue: 990000, expectedRevenue: 249480 },
+      'digital-workplace': { rate: 42, benchmark: 32, customers: 87, potential: 36, maxValue: 730000, expectedRevenue: 122640 }
+    },
+    // Digital Workplace -> other solutions
+    'digital-workplace': {
+      'security': { rate: 89, benchmark: 78, customers: 203, potential: 180, maxValue: 1050000, expectedRevenue: 374400 },
+      'cloud-hosting': { rate: 74, benchmark: 62, customers: 198, potential: 146, maxValue: 1280000, expectedRevenue: 379520 },
+      'connectivity-network': { rate: 71, benchmark: 58, customers: 234, potential: 166, maxValue: 980000, expectedRevenue: 278320 },
+      'analytics-ai': { rate: 65, benchmark: 52, customers: 167, potential: 108, maxValue: 1480000, expectedRevenue: 385280 },
+      'iot-m2m': { rate: 38, benchmark: 28, customers: 145, potential: 55, maxValue: 820000, expectedRevenue: 124720 }
+    },
+    // Analytics & AI -> other solutions
+    'analytics-ai': {
+      'cloud-hosting': { rate: 91, benchmark: 82, customers: 124, potential: 112, maxValue: 1820000, expectedRevenue: 662320 },
+      'iot-m2m': { rate: 78, benchmark: 65, customers: 89, potential: 69, maxValue: 1560000, expectedRevenue: 487200 },
+      'security': { rate: 72, benchmark: 58, customers: 156, potential: 112, maxValue: 1350000, expectedRevenue: 388800 },
+      'digital-workplace': { rate: 69, benchmark: 55, customers: 178, potential: 122, maxValue: 1180000, expectedRevenue: 325760 },
+      'connectivity-network': { rate: 64, benchmark: 51, customers: 203, potential: 129, maxValue: 1050000, expectedRevenue: 268800 }
+    }
+  };
+
   const getCellData = (fromProduct: string, toProduct: string): CrossSellData | null => {
     if (fromProduct === toProduct) return null;
     
-    // Generate realistic placeholder data based on category IDs
-    const fromId = parseInt(fromProduct);
-    const toId = parseInt(toProduct);
+    // Map product IDs to solution categories 
+    const categoryMap: Record<string, string> = {
+      '1': 'connectivity-network',
+      '2': 'cloud-hosting', 
+      '3': 'security',
+      '4': 'iot-m2m',
+      '5': 'digital-workplace',
+      '6': 'analytics-ai'
+    };
     
-    // Create more varied rates with better contrast
-    const hashValue = (fromId * 37 + toId * 41) % 100;
-    let baseRate: number;
+    const fromCategory = categoryMap[fromProduct];
+    const toCategory = categoryMap[toProduct];
     
-    // Generate more varied distribution for better visual contrast
-    if (hashValue < 15) {
-      baseRate = 10 + (hashValue % 15); // Low: 10-24%
-    } else if (hashValue < 35) {
-      baseRate = 25 + (hashValue % 15); // Medium-low: 25-39%
-    } else if (hashValue < 60) {
-      baseRate = 40 + (hashValue % 15); // Medium: 40-54%
-    } else if (hashValue < 80) {
-      baseRate = 55 + (hashValue % 15); // Good: 55-69%
-    } else {
-      baseRate = 70 + (hashValue % 20); // High: 70-89%
+    if (fromCategory && toCategory && dtSolutionMatrix[fromCategory]?.[toCategory]) {
+      return dtSolutionMatrix[fromCategory][toCategory];
     }
     
-    const benchmark = Math.max(15, baseRate + ((fromId - toId) % 20) - 10);
-    const customers = 30 + ((fromId + toId * 2) % 180);
-    const potential = Math.floor(customers * (baseRate / 100) * (0.8 + (hashValue % 40) / 100));
-    const maxValue = (30000 + ((fromId + toId) * 8000)) * (1 + (baseRate / 100));
-    
+    // Fallback for unmapped combinations
     return {
-      rate: baseRate,
-      benchmark: benchmark,
-      customers: customers,
-      potential: potential,
-      maxValue: maxValue,
-      expectedRevenue: maxValue * (baseRate / 100) * 0.4
+      rate: 35,
+      benchmark: 28,
+      customers: 85,
+      potential: 30,
+      maxValue: 650000,
+      expectedRevenue: 91000
     };
   };
 
@@ -725,7 +780,7 @@ export default function PortfolioInsights() {
           {/* Header */}
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Cross-sell & Upsell Matrix</h1>
-            <p className="text-gray-600">Analyseer klantaantallen en potentiële waarden per productcombinatie</p>
+            <p className="text-gray-600">Analyze customer potential and cross-sell opportunities per solution combination</p>
           </div>
 
           {/* Controls */}
@@ -1285,15 +1340,15 @@ export default function PortfolioInsights() {
                   <div className="flex space-x-2">
                     <Button size="sm" className="bg-green-600 hover:bg-green-700">
                       <Send className="h-3 w-3 mr-1" />
-                      Start Campagne
+                      Start Campaign
                     </Button>
                     <Button variant="outline" size="sm">
                       <Target className="h-3 w-3 mr-1" />
-                      Creëer Opportuniteit
+                      Create Opportunity
                     </Button>
                     <Button variant="outline" size="sm">
                       <List className="h-3 w-3 mr-1" />
-                      Creëer Klanten Lijst
+                      Create Customer List
                     </Button>
                   </div>
                 </CardContent>
@@ -1309,7 +1364,7 @@ export default function PortfolioInsights() {
               className={activeTab === 'matrix' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
               onClick={() => setActiveTab('matrix')}
             >
-              Klanten & Potentieel Matrix
+              Customer & Potential Matrix
             </Button>
             <Button 
               variant="ghost"
@@ -1317,7 +1372,7 @@ export default function PortfolioInsights() {
               className={activeTab === 'opportunities' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
               onClick={() => setActiveTab('opportunities')}
             >
-              Top Kansen
+              Top Opportunities
             </Button>
             <Button 
               variant="ghost"
@@ -1325,7 +1380,7 @@ export default function PortfolioInsights() {
               className={activeTab === 'insights' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
               onClick={() => setActiveTab('insights')}
             >
-              Segment Inzichten
+              Segment Insights
             </Button>
           </div>
 
