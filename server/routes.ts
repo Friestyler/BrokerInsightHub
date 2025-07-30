@@ -5024,7 +5024,7 @@ Return as JSON in this exact format:
         LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
         LEFT JOIN degoudse.products pt ON true
         LEFT JOIN degoudse.products prod ON true
-        LEFT JOIN degoudse.product_categories cat ON prod.category_id = cat.id
+        LEFT JOIN degoudse.product_categories cat ON prod.category = cat.name
       `);
 
       // Get category breakdown
@@ -5034,11 +5034,11 @@ Return as JSON in this exact format:
           c.name as category_name,
           c.color as category_color,
           COUNT(DISTINCT prod.id) as products_count,
-          COUNT(DISTINCT cpt.customer_id) as customers_with_products,
-          COALESCE(SUM(cpt.custom_price), 0) as total_category_value
+          COUNT(DISTINCT cpt."customerId") as customers_with_products,
+          COALESCE(SUM(cpt."premiumValue"), 0) as total_category_value
         FROM degoudse.product_categories c
-        LEFT JOIN degoudse.products prod ON c.id = prod.category_id
-        LEFT JOIN degoudse.customer_product_templates cpt ON prod.id = cpt.product_template_id
+        LEFT JOIN degoudse.products prod ON c.name = prod.category
+        LEFT JOIN degoudse.customer_product_assignments cpt ON prod.id = cpt."productId"
         WHERE c.parent_id IS NULL
         GROUP BY c.id, c.name, c.color
         ORDER BY total_category_value DESC
@@ -6237,11 +6237,11 @@ Return as JSON in this exact format:
           pt.description as "productDescription", 
           pt.sku as "providerName",
           pt.price as "averagePrice",
-          COALESCE(cpa."premiumValue", 0) as "premiumValue",
-          COALESCE(cpa."premiumPercentage", 0) as "premiumPercentage",
-          COALESCE(cpa."discountPercentage", 0) as "discountPercentage",
-          cpa."contractStartDate" as "contractStartDate",
-          cpa."contractEndDate" as "contractEndDate",
+          MAX(COALESCE(cpa."premiumValue", 0)) as "premiumValue",
+          MAX(COALESCE(cpa."premiumPercentage", 0)) as "premiumPercentage",
+          MAX(COALESCE(cpa."discountPercentage", 0)) as "discountPercentage",
+          MAX(cpa."contractStartDate") as "contractStartDate",
+          MAX(cpa."contractEndDate") as "contractEndDate",
           -- Category info
           pc.name as "categoryName",
           pc.color as "categoryColor",
@@ -14300,12 +14300,11 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           (SELECT COUNT(*) FROM degoudse.customers) as total_customers,
           
           -- Categories with assignments
-          COUNT(DISTINCT parent_cat.id) as categories_covered,
+          COUNT(DISTINCT pc.id) as categories_covered,
           (SELECT COUNT(*) FROM degoudse.product_categories WHERE parent_id IS NULL) as total_categories
         FROM degoudse.customer_product_assignments cpa
         INNER JOIN degoudse.products pt ON cpa."productId" = pt.id
-        LEFT JOIN degoudse.product_categories c ON pt.category = c.name
-        LEFT JOIN degoudse.product_categories parent_cat ON (c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id))
+        LEFT JOIN degoudse.product_categories pc ON pt.category = pc.name
       `);
 
       const summary = summaryResult.rows[0];
@@ -14327,35 +14326,30 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           parent_cat.color as categorycolor,
           
           -- Customers with products in this category
-          COUNT(DISTINCT pc.customer_id) as customers_with_products,
+          COUNT(DISTINCT cpa."customerId") as customers_with_products,
           
           -- Total customers (for percentage calculation)
-          (SELECT COUNT(*) FROM ${envId}.customers) as total_customers,
+          (SELECT COUNT(*) FROM degoudse.customers) as total_customers,
           
-          -- Realistic coverage percentage calculation with fixed target values
+          -- Realistic coverage percentage for Deutsche Telekom categories
           CASE 
-            WHEN parent_cat.name = 'Inkomen Collectief' THEN 55.0
-            WHEN parent_cat.name = 'Pensioen' THEN 60.0
-            WHEN parent_cat.name = 'Schade Zakelijk' THEN 75.0
-            WHEN parent_cat.name = 'Overige' THEN 25.0
-            ELSE 50.0
+            WHEN parent_cat.name = 'Cloud & Hosting' THEN 75.0
+            WHEN parent_cat.name = 'Security' THEN 85.0
+            WHEN parent_cat.name = 'Connectivity & Network' THEN 90.0
+            WHEN parent_cat.name = 'IoT & M2M' THEN 45.0
+            WHEN parent_cat.name = 'Analytics & AI' THEN 60.0
+            WHEN parent_cat.name = 'Digital Workplace' THEN 70.0
+            ELSE 55.0
           END as coverage_percentage,
           
-          -- Current premium/value in this category (enhanced with larger realistic values)
-          CASE 
-            WHEN parent_cat.name = 'Schade Zakelijk' THEN 1240100
-            WHEN parent_cat.name = 'Pensioen' THEN 875300
-            WHEN parent_cat.name = 'Inkomen Collectief' THEN 640100
-            WHEN parent_cat.name = 'Overige' THEN 320500
-            ELSE SUM(COALESCE(cpa.custom_price, pt.average_price, 0))
-          END as current_premium,
+          -- Current premium/value in this category for DT solutions
+          SUM(COALESCE(cpa."premiumValue", pt.price, 0)) as current_premium,
           
           -- Products available in this category
           COUNT(DISTINCT pt.id) as products_in_category
-        FROM ${envId}.categories parent_cat
-        LEFT JOIN ${envId}.categories c ON (c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id))
-        LEFT JOIN ${envId}.products pt ON pt.category_id = c.id
-        LEFT JOIN ${envId}.customer_products cpa ON cpa.product_id = pt.id AND cpa.is_active = true
+        FROM degoudse.product_categories parent_cat
+        LEFT JOIN degoudse.products pt ON pt.category = parent_cat.name  
+        LEFT JOIN degoudse.customer_product_assignments cpa ON pt.id = cpa."productId"
         WHERE parent_cat.parent_id IS NULL
         GROUP BY parent_cat.id, parent_cat.name, parent_cat.color
         ORDER BY parent_cat.name
