@@ -1,0 +1,167 @@
+{
+  "Connectivity & Network": [
+    {
+      "name": "MagentaMobil Business (Mobile Plans)",
+      "provider": "Deutsche Telekom"
+    },
+    {
+      "name": "MagentaEINS Business (Fixed + Mobile Bundle)",
+      "provider": "Deutsche Telekom"
+    },
+    {
+      "name": "Telekom SD-WAN",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "Telekom MPLS & IP-VPN",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "Telekom Fiber & FTTH",
+      "provider": "Deutsche Telekom"
+    },
+    {
+      "name": "Telekom Roaming Services",
+      "provider": "Deutsche Telekom"
+    },
+    {
+      "name": "Telekom Connectivity Hub",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "Telekom IoT Connectivity (NB-IoT, LTE-M)",
+      "provider": "Deutsche Telekom"
+    },
+    {
+      "name": "T-Systems Mobile Connect",
+      "provider": "Deutsche Telekom"
+    }
+  ],
+  "Cloud & Hosting": [
+    {
+      "name": "MagentaCloud (Backup & File Sync)",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "Open Telekom Cloud",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "Telekom Public Cloud (Azure Stack)",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "Telekom Private Cloud",
+      "provider": "T-Systems"
+    },
+    {
+      "name": "Telekom Hybrid Cloud Suite",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "Telekom Colocation & Data Center Services",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "T-Systems Automotive Cloud",
+      "provider": "T-Systems"
+    },
+    {
+      "name": "T-Systems Rail Cloud",
+      "provider": "T-Systems"
+    },
+    {
+      "name": "T-Systems Media Cloud",
+      "provider": "T-Systems"
+    },
+    {
+      "name": "T-Systems Postal Cloud",
+      "provider": "T-Systems"
+    },
+    {
+      "name": "T-Systems Cloud Reselling",
+      "provider": "Deutsche Telekom, T-Systems"
+    }
+  ],
+  "Security": [
+    {
+      "name": "MagentaSecurity (Endpoint Protection)",
+      "provider": "Deutsche Telekom"
+    },
+    {
+      "name": "MagentaSecure Workspace (Secure Web Gateway)",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "T-Systems Managed Firewall",
+      "provider": "T-Systems"
+    }
+  ],
+  "Unified Communications": [
+    {
+      "name": "T-Systems Voice Platform",
+      "provider": "T-Systems"
+    }
+  ],
+  "IoT & M2M": [
+    {
+      "name": "Telekom IoT Platform",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "Telekom Device Management",
+      "provider": "Deutsche Telekom"
+    },
+    {
+      "name": "T-Systems Smart Mobility",
+      "provider": "T-Systems"
+    },
+    {
+      "name": "T-Systems Industry 4.0 Suite",
+      "provider": "T-Systems"
+    },
+    {
+      "name": "T-Systems Smarter Cities Platform",
+      "provider": "T-Systems"
+    }
+  ],
+  "Digital & Application": [
+    {
+      "name": "T-Systems Application Management",
+      "provider": "T-Systems"
+    },
+    {
+      "name": "Telekom API Management",
+      "provider": "Deutsche Telekom, T-Systems"
+    }
+  ],
+  "Analytics & AI": [
+    {
+      "name": "Telekom Real-time Data Streaming",
+      "provider": "Deutsche Telekom, T-Systems"
+    },
+    {
+      "name": "Telekom Big Data Analytics",
+      "provider": "Deutsche Telekom, T-Systems"
+    }
+  ],
+  "Managed Services": [
+    {
+      "name": "T-Systems Infrastructure Management",
+      "provider": "T-Systems"
+    }
+  ],
+  "Industry Solutions": [
+    {
+      "name": "T-Systems Energy Solutions",
+      "provider": "T-Systems"
+    }
+  ],
+  "Digital Workplace": [],
+  "Payment & FinTech": [
+    {
+      "name": "Telekom Payment Gateway",
+      "provider": "Deutsche Telekom"
+    }
+  ]
+}

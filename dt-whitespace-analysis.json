@@ -1,0 +1,72 @@
+{
+  "categories": [
+    "Connectivity & Network",
+    "Cloud & Hosting",
+    "Security",
+    "Unified Communications",
+    "IoT & M2M",
+    "Digital & Application",
+    "Analytics & AI",
+    "Managed Services",
+    "Industry Solutions",
+    "Digital Workplace",
+    "Payment & FinTech"
+  ],
+  "customerSegments": [
+    "Large Enterprise (€10B+ revenue)",
+    "Enterprise (€1B-10B revenue)",
+    "Mid-Market (€100M-1B revenue)",
+    "SMB (€10M-100M revenue)"
+  ],
+  "crossSellPotential": {
+    "Large Enterprise": {
+      "Connectivity & Network": {
+        "potential": 85,
+        "customers": 5,
+        "avgValue": 950000
+      },
+      "Cloud & Hosting": {
+        "potential": 90,
+        "customers": 6,
+        "avgValue": 1200000
+      },
+      "Security": {
+        "potential": 95,
+        "customers": 7,
+        "avgValue": 850000
+      },
+      "IoT & M2M": {
+        "potential": 80,
+        "customers": 4,
+        "avgValue": 1100000
+      },
+      "Analytics & AI": {
+        "potential": 85,
+        "customers": 5,
+        "avgValue": 750000
+      }
+    },
+    "Enterprise": {
+      "Connectivity & Network": {
+        "potential": 75,
+        "customers": 8,
+        "avgValue": 650000
+      },
+      "Cloud & Hosting": {
+        "potential": 80,
+        "customers": 9,
+        "avgValue": 800000
+      },
+      "Security": {
+        "potential": 85,
+        "customers": 10,
+        "avgValue": 550000
+      },
+      "Digital & Application": {
+        "potential": 70,
+        "customers": 6,
+        "avgValue": 480000
+      }
+    }
+  }
+}
