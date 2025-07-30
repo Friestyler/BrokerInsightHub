@@ -1542,12 +1542,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           null as priority,
           null as completed,
           c.visible_to_partner,
-          c.user_id as assigned_to,
+          c.author_id as assigned_to,
           c.created_at,
           c.updated_at,
           u.name as author_name
         FROM degoudse.activity_comments c
-        LEFT JOIN degoudse.users u ON c.user_id = u.id
+        LEFT JOIN degoudse.users u ON c.author_id = u.id
         WHERE c.partner_id = $1
         
         UNION ALL
@@ -1671,12 +1671,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           null as priority,
           null as completed,
           c.visible_to_partner,
-          c.user_id as assigned_to,
+          c.author_id as assigned_to,
           c.created_at,
           c.updated_at,
           u.name as author_name
         FROM ${sql.identifier(envId)}.activity_comments c
-        LEFT JOIN ${sql.identifier(envId)}.users u ON c.user_id = u.id
+        LEFT JOIN ${sql.identifier(envId)}.users u ON c.author_id = u.id
         WHERE c.entity_type = 'customer' AND c.entity_id = ${customerId}
         
         UNION ALL
