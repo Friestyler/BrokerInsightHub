@@ -5300,7 +5300,7 @@ Return as JSON in this exact format:
       const finalQueryParams = [...queryParams, limit, offset];
       
       const result = await envPool.query(`
-        SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
+        SELECT c.id, c.name, c.description, c.industry, c.size, c.status, c."ownerId", c."createdAt", c."updatedAt",
                COUNT(DISTINCT pc.partner_id) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count,
                0 as product_count,
@@ -5316,7 +5316,7 @@ Return as JSON in this exact format:
           GROUP BY co2.customer_id
         ) opp_values ON opp_values.customer_id = c.id
         ${whereClause}
-        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt", opp_values.total_opportunity_value
+        GROUP BY c.id, c.name, c.description, c.industry, c.size, c.status, c."ownerId", c."createdAt", c."updatedAt", opp_values.total_opportunity_value
         ORDER BY c.id
         LIMIT $${limitParam} OFFSET $${offsetParam}
       `, finalQueryParams);
@@ -5342,6 +5342,9 @@ Return as JSON in this exact format:
           id: customer.id,
           name: customer.name,
           description: customer.description,
+          industry: customer.industry,
+          size: customer.size,
+          status: customer.status,
           initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
           ownerId: customer.ownerId,
           createdAt: customer.createdAt,
