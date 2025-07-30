@@ -1,0 +1,155 @@
+{
+  "categories": [
+    "Mobility Solutions",
+    "Thermotechnology",
+    "Security Solutions",
+    "Digital Products & Services",
+    "Industrial Manufacturing",
+    "Research & Development",
+    "IT Infrastructure",
+    "Enterprise Applications",
+    "Smart Building",
+    "Collaboration & UX",
+    "End-User Support",
+    "Backup & Recovery",
+    "Network Services"
+  ],
+  "subcategories": {
+    "Mobility Solutions": [
+      "IoT Connectivity"
+    ],
+    "Thermotechnology": [
+      "MagentaSecurity"
+    ],
+    "Security Solutions": [
+      "Secure Web Gateway"
+    ],
+    "Digital Products & Services": [
+      "Open Telekom Cloud"
+    ],
+    "Industrial Manufacturing": [
+      "Industrial IoT Suite"
+    ],
+    "Research & Development": [
+      "Big Data Analytics as a Service"
+    ],
+    "IT Infrastructure": [
+      "SD-WAN Managed Service"
+    ],
+    "Enterprise Applications": [
+      "API Management Platform"
+    ],
+    "Smart Building": [
+      "Smart Building / Smart City Solutions"
+    ],
+    "Collaboration & UX": [
+      "Digital Experience (UX/UI, Testing)"
+    ],
+    "End-User Support": [
+      "End-User Support & Helpdesk"
+    ],
+    "Backup & Recovery": [
+      "Backup & Disaster Recovery"
+    ],
+    "Network Services": [
+      "MPLS & IP-VPN"
+    ]
+  },
+  "opportunities": [
+    {
+      "title": "IoT Connectivity - Mobility Solutions",
+      "description": "Closed opportunity from Bosch data. Category: Mobility Solutions, Subcategory: IoT Connectivity, Contract expires: 2026-06-30",
+      "category": "Mobility Solutions",
+      "subcategory": "IoT Connectivity",
+      "contractExpiry": "2026-06-30",
+      "value": 1500000,
+      "status": "closed_won"
+    },
+    {
+      "title": "MagentaSecurity - Thermotechnology",
+      "description": "Closed opportunity from Bosch data. Category: Thermotechnology, Subcategory: MagentaSecurity, Contract expires: 2025-12-31",
+      "category": "Thermotechnology",
+      "subcategory": "MagentaSecurity",
+      "contractExpiry": "2025-12-31",
+      "value": 1200000,
+      "status": "closed_won"
+    },
+    {
+      "title": "Secure Web Gateway - Security Solutions",
+      "description": "Closed opportunity from Bosch data. Category: Security Solutions, Subcategory: Secure Web Gateway, Contract expires: 2026-03-31",
+      "category": "Security Solutions",
+      "subcategory": "Secure Web Gateway",
+      "contractExpiry": "2026-03-31",
+      "value": 800000,
+      "status": "closed_won"
+    },
+    {
+      "title": "Open Telekom Cloud - Digital Products & Services",
+      "description": "Closed opportunity from Bosch data. Category: Digital Products & Services, Subcategory: Open Telekom Cloud, Contract expires: 2026-08-15",
+      "category": "Digital Products & Services",
+      "subcategory": "Open Telekom Cloud",
+      "contractExpiry": "2026-08-15",
+      "value": 1000000,
+      "status": "closed_won"
+    },
+    {
+      "title": "Industrial IoT Suite - Industrial Manufacturing",
+      "description": "Closed opportunity from Bosch data. Category: Industrial Manufacturing, Subcategory: Industrial IoT Suite, Contract expires: 2027-01-01",
+      "category": "Industrial Manufacturing",
+      "subcategory": "Industrial IoT Suite",
+      "contractExpiry": "2027-01-01",
+      "value": 600000,
+      "status": "closed_won"
+    },
+    {
+      "title": "Big Data Analytics as a Service - Research & Development",
+      "description": "Closed opportunity from Bosch data. Category: Research & Development, Subcategory: Big Data Analytics as a Service, Contract expires: 2026-09-30",
+      "category": "Research & Development",
+      "subcategory": "Big Data Analytics as a Service",
+      "contractExpiry": "2026-09-30",
+      "value": 1300000,
+      "status": "closed_won"
+    },
+    {
+      "title": "SD-WAN Managed Service - IT Infrastructure",
+      "description": "Closed opportunity from Bosch data. Category: IT Infrastructure, Subcategory: SD-WAN Managed Service, Contract expires: 2025-10-31",
+      "category": "IT Infrastructure",
+      "subcategory": "SD-WAN Managed Service",
+      "contractExpiry": "2025-10-31",
+      "value": 900000,
+      "status": "closed_won"
+    },
+    {
+      "title": "API Management Platform - Enterprise Applications",
+      "description": "Closed opportunity from Bosch data. Category: Enterprise Applications, Subcategory: API Management Platform, Contract expires: 2026-02-28",
+      "category": "Enterprise Applications",
+      "subcategory": "API Management Platform",
+      "contractExpiry": "2026-02-28",
+      "value": 1100000,
+      "status": "closed_won"
+    },
+    {
+      "title": "Smart Building / Smart City Solutions - Smart Building",
+      "description": "Closed opportunity from Bosch data. Category: Smart Building, Subcategory: Smart Building / Smart City Solutions, Contract expires: 2026-11-15",
+      "category": "Smart Building",
+      "subcategory": "Smart Building / Smart City Solutions",
+      "contractExpiry": "2026-11-15",
+      "value": 700000,
+      "status": "closed_won"
+    },
+    {
+      "title": "Digital Experience (UX/UI, Testing) - Collaboration & UX",
+      "description": "Closed opportunity from Bosch data. Category: Collaboration & UX, Subcategory: Digital Experience (UX/UI, Testing), Contract expires: 2026-05-20",
+      "category": "Collaboration & UX",
+      "subcategory": "Digital Experience (UX/UI, Testing)",
+      "contractExpiry": "2026-05-20",
+      "value": 1400000,
+      "status": "closed_won"
+    }
+  ],
+  "totals": {
+    "opportunityCount": 13,
+    "totalValue": 13000000,
+    "totalValueM": "13.0"
+  }
+}
