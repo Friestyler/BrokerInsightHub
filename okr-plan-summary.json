@@ -1,0 +1,103 @@
+{
+  "totalObjectives": 4,
+  "totalKeyResults": 12,
+  "objectives": [
+    "1. Grow Joint Revenue",
+    "2. Expand Pipeline Quality & Quantity",
+    "3. Deepen Technical & GTM Alignment",
+    "4. Improve Operational Excellence & Satisfaction"
+  ],
+  "sampleKeyResults": [
+    {
+      "name": "Achieve combined DT-product bookings via Cancom",
+      "description": "1. Grow Joint Revenue - Achieve combined DT-product bookings via Cancom",
+      "target_value": 12000000,
+      "measure_unit": "currency",
+      "currency_type": "EUR",
+      "responsible_contact_id": null,
+      "timeframe": "quarterly",
+      "frequency": "monthly",
+      "due_date": "2025-09-30",
+      "is_muted": false,
+      "is_archived": false,
+      "is_shared": true,
+      "hierarchy": "strategic",
+      "tags": "{okr_plan,1__grow_joint_revenue}",
+      "created_by": 1
+    },
+    {
+      "name": "Close new cross-sell deals (> 0.5 M € each)",
+      "description": "1. Grow Joint Revenue - Close new cross-sell deals (> 0.5 M € each)",
+      "target_value": 8,
+      "measure_unit": "count",
+      "currency_type": null,
+      "responsible_contact_id": null,
+      "timeframe": "quarterly",
+      "frequency": "monthly",
+      "due_date": "2025-09-30",
+      "is_muted": false,
+      "is_archived": false,
+      "is_shared": true,
+      "hierarchy": "strategic",
+      "tags": "{okr_plan,1__grow_joint_revenue}",
+      "created_by": 1
+    },
+    {
+      "name": "Increase renewals rate on existing joint customers",
+      "description": "1. Grow Joint Revenue - Increase renewals rate on existing joint customers",
+      "target_value": 95,
+      "measure_unit": "percentage",
+      "currency_type": null,
+      "responsible_contact_id": null,
+      "timeframe": "quarterly",
+      "frequency": "monthly",
+      "due_date": "2025-09-30",
+      "is_muted": false,
+      "is_archived": false,
+      "is_shared": true,
+      "hierarchy": "strategic",
+      "tags": "{okr_plan,1__grow_joint_revenue}",
+      "created_by": 1
+    },
+    {
+      "name": "Generate qualified DT-product opportunities (min. 50 K € ACV)",
+      "description": "2. Expand Pipeline Quality & Quantity - Generate qualified DT-product opportunities (min. 50 K € ACV)",
+      "target_value": 50,
+      "measure_unit": "count",
+      "currency_type": null,
+      "responsible_contact_id": null,
+      "timeframe": "quarterly",
+      "frequency": "monthly",
+      "due_date": "2025-08-31",
+      "is_muted": false,
+      "is_archived": false,
+      "is_shared": true,
+      "hierarchy": "strategic",
+      "tags": "{okr_plan,2__expand_pipeline_quality___quantity}",
+      "created_by": 1
+    },
+    {
+      "name": "Maintain an average opportunity win rate",
+      "description": "2. Expand Pipeline Quality & Quantity - Maintain an average opportunity win rate",
+      "target_value": 30,
+      "measure_unit": "percentage",
+      "currency_type": null,
+      "responsible_contact_id": null,
+      "timeframe": "quarterly",
+      "frequency": "monthly",
+      "due_date": "2025-08-31",
+      "is_muted": false,
+      "is_archived": false,
+      "is_shared": true,
+      "hierarchy": "strategic",
+      "tags": "{okr_plan,2__expand_pipeline_quality___quantity}",
+      "created_by": 1
+    }
+  ],
+  "units": [
+    "currency",
+    "count",
+    "percentage",
+    "units"
+  ]
+}
