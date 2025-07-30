@@ -125,20 +125,20 @@ export default function CustomerDetailNew() {
     // Fallback colors if not in database
     const fallbackColors: any = {
       'Inkomen Collectief': 'cyan',
-      'Pensioen': 'purple',
+      'Cloud Solutions': 'purple',
       'Schade Zakelijk': 'red',
       'Overige': 'orange',
-      'Verzuimverzekering': 'cyan',
+      'Workplace Solutions': 'cyan',
       'WGA ERD': 'cyan',
       'WGA Hiaat': 'cyan',
       'WIA ERD': 'cyan',
       'WIA Excedent': 'cyan',
       'Ziektewet ERD': 'cyan',
       'NN PPP': 'purple',
-      'Bewust Pensioen Plus': 'purple',
-      'Garant Pensioen Plan': 'purple',
-      'Netto Pensioen': 'purple',
-      'PPPc': 'purple'
+      'Enterprise Analytics Plus': 'purple',
+      'Managed Cloud Platform': 'purple',
+      'Advanced Security Platform': 'purple',
+      'Enterprise Connectivity': 'purple'
     };
     
     return {
@@ -222,32 +222,32 @@ export default function CustomerDetailNew() {
         currentPremium: 2800,
         potentialUplift: 2800,
         coveredProducts: [
-          { name: 'WGA ERD', premium: 980 },
-          { name: 'WIA ERD', premium: 920 },
-          { name: 'Verzuimverzekering', premium: 900 }
+          { name: 'Enterprise Collaboration', premium: 980 },
+          { name: 'Digital Workspace', premium: 920 },
+          { name: 'Workplace Solutions', premium: 900 }
         ],
         availableProducts: [
-          { name: 'WGA Hiaat', premium: 840 },
-          { name: 'WIA Excedent', premium: 780 },
-          { name: 'Ziektewet ERD', premium: 1180 }
+          { name: 'Cloud Backup Solutions', premium: 840 },
+          { name: 'Data Recovery Platform', premium: 780 },
+          { name: 'Business Continuity', premium: 1180 }
         ]
       },
       {
-        name: 'Pensioen',
-        ...getCategoryInfo('Pensioen'),
+        name: 'Cloud Solutions',
+        ...getCategoryInfo('Cloud Solutions'),
         covered: 2,
         total: 5,
         percentage: 40,
         currentPremium: 2400,
         potentialUplift: 3600,
         coveredProducts: [
-          { name: 'NN PPP', premium: 1200 },
-          { name: 'Bewust Pensioen Plus', premium: 1200 }
+          { name: 'Enterprise Cloud Platform', premium: 1200 },
+          { name: 'Advanced Analytics Plus', premium: 1200 }
         ],
         availableProducts: [
-          { name: 'Garant Pensioen Plan', premium: 1200 },
-          { name: 'Netto Pensioen', premium: 1200 },
-          { name: 'PPPc', premium: 1200 }
+          { name: 'Managed IoT Platform', premium: 1200 },
+          { name: 'Advanced Security Platform', premium: 1200 },
+          { name: 'Enterprise Connectivity', premium: 1200 }
         ]
       },
       {
@@ -260,14 +260,14 @@ export default function CustomerDetailNew() {
         potentialUplift: 2400,
         coveredProducts: [
           { name: 'Aansprakelijkheid Bedrijven', premium: 840 },
-          { name: 'Bedrijfsschadeverzekering', premium: 960 },
-          { name: 'Brandverzekering', premium: 800 },
-          { name: 'Wagenparkverzekering', premium: 600 }
+          { name: 'Business Continuity Services', premium: 960 },
+          { name: 'Cybersecurity Platform', premium: 800 },
+          { name: 'Fleet Management IoT', premium: 600 }
         ],
         availableProducts: [
-          { name: 'Transport-Goederen', premium: 680 },
-          { name: 'Construction All Risk', premium: 920 },
-          { name: 'Machinebreukverzekering', premium: 800 }
+          { name: 'Logistics IoT Platform', premium: 680 },
+          { name: 'Smart Building Solutions', premium: 920 },
+          { name: 'Industrial IoT Monitoring', premium: 800 }
         ]
       },
       {
@@ -279,11 +279,11 @@ export default function CustomerDetailNew() {
         currentPremium: 650,
         potentialUplift: 1950,
         coveredProducts: [
-          { name: 'Rechtsbijstandverzekering Zakelijk', premium: 650 }
+          { name: 'Legal Tech Advisory Services', premium: 650 }
         ],
         availableProducts: [
-          { name: 'Keymanverzekering', premium: 800 },
-          { name: 'Kredietverzekering', premium: 750 },
+          { name: 'Executive Digital Services', premium: 800 },
+          { name: 'Financial Services Platform', premium: 750 },
           { name: 'Cyberverzekering', premium: 400 }
         ]
       }
@@ -409,9 +409,9 @@ export default function CustomerDetailNew() {
             { name: 'NN PPP Plus', premium: 1200 }
           ]
         });
-      } else if (selectedCat === 'Bewust Pensioen Plus') {
+      } else if (selectedCat === 'Enterprise Analytics Plus') {
         filteredCategories.push({
-          name: 'Bewust Pensioen Plus',
+          name: 'Enterprise Analytics Plus',
           covered: 1,
           total: 2,
           percentage: 50,
@@ -419,15 +419,15 @@ export default function CustomerDetailNew() {
           currentPremium: 1200,
           potentialUplift: 1200,
           coveredProducts: [
-            { name: 'Bewust Pensioen Plus Basis', premium: 1200 }
+            { name: 'Basic Analytics Package', premium: 1200 }
           ],
           availableProducts: [
-            { name: 'Bewust Pensioen Plus Uitgebreid', premium: 1200 }
+            { name: 'Advanced Analytics Platform', premium: 1200 }
           ]
         });
-      } else if (selectedCat === 'Garant Pensioen Plan') {
+      } else if (selectedCat === 'Managed Cloud Platform') {
         filteredCategories.push({
-          name: 'Garant Pensioen Plan',
+          name: 'Managed Cloud Platform',
           covered: 0,
           total: 2,
           percentage: 0,
@@ -436,13 +436,13 @@ export default function CustomerDetailNew() {
           potentialUplift: 2400,
           coveredProducts: [],
           availableProducts: [
-            { name: 'Garant Pensioen Plan Basis', premium: 1200 },
-            { name: 'Garant Pensioen Plan Plus', premium: 1200 }
+            { name: 'Basic Cloud Package', premium: 1200 },
+            { name: 'Enterprise Cloud Plus', premium: 1200 }
           ]
         });
-      } else if (selectedCat === 'Netto Pensioen') {
+      } else if (selectedCat === 'Advanced Security Platform') {
         filteredCategories.push({
-          name: 'Netto Pensioen',
+          name: 'Advanced Security Platform',
           covered: 0,
           total: 2,
           percentage: 0,
@@ -451,13 +451,13 @@ export default function CustomerDetailNew() {
           potentialUplift: 2400,
           coveredProducts: [],
           availableProducts: [
-            { name: 'Netto Pensioen Basis', premium: 1200 },
-            { name: 'Netto Pensioen Plus', premium: 1200 }
+            { name: 'Basic Security Package', premium: 1200 },
+            { name: 'Enterprise Security Plus', premium: 1200 }
           ]
         });
-      } else if (selectedCat === 'PPPc') {
+      } else if (selectedCat === 'Enterprise Connectivity') {
         filteredCategories.push({
-          name: 'PPPc',
+          name: 'Enterprise Connectivity',
           covered: 0,
           total: 2,
           percentage: 0,
@@ -466,8 +466,8 @@ export default function CustomerDetailNew() {
           potentialUplift: 2400,
           coveredProducts: [],
           availableProducts: [
-            { name: 'PPPc Basis', premium: 1200 },
-            { name: 'PPPc Plus', premium: 1200 }
+            { name: 'Basic Connectivity Package', premium: 1200 },
+            { name: 'Enterprise Network Plus', premium: 1200 }
           ]
         });
       }
@@ -758,7 +758,7 @@ export default function CustomerDetailNew() {
         estimatedValue: product.premium || 5000,
         probability: 50,
         stage: 'Qualification',
-        insuranceType: 'Cross-sell',
+        solutionType: 'Cross-sell',
         customerId: parseInt(id!),
         accountManagerId: 1,
         products: [product.name]
@@ -794,57 +794,57 @@ export default function CustomerDetailNew() {
 
   // Get partner sales history for a specific product
   const getPartnerSalesHistory = (productName: string) => {
-    // Realistic partner sales data based on insurance market patterns
+    // Realistic partner sales data based on Deutsche Telekom market patterns
     const partnerSalesData: Record<string, Array<{name: string, salesCount: number, totalValue: number}>> = {
-      'Auto Insurance Premium': [
-        { name: 'Zicht B.V.', salesCount: 24, totalValue: 186000 },
-        { name: 'Van der Berg Insurance', salesCount: 18, totalValue: 142000 },
-        { name: 'Nederlands Assurance Group', salesCount: 15, totalValue: 118000 }
+      'Enterprise 5G Solutions': [
+        { name: 'T-Systems International', salesCount: 24, totalValue: 186000 },
+        { name: 'Network Solutions Partner', salesCount: 18, totalValue: 142000 },
+        { name: 'Deutsche Telekom MMS', salesCount: 15, totalValue: 118000 }
       ],
-      'Home Insurance Comprehensive': [
-        { name: 'Zicht B.V.', salesCount: 31, totalValue: 248000 },
-        { name: 'Dekker & Partners', salesCount: 22, totalValue: 176000 },
-        { name: 'Assuradesk Nederland', salesCount: 19, totalValue: 152000 }
+      'Cloud Platform Services': [
+        { name: 'T-Systems International', salesCount: 31, totalValue: 248000 },
+        { name: 'Cloud Technology Partners', salesCount: 22, totalValue: 176000 },
+        { name: 'Enterprise Cloud Nederland', salesCount: 19, totalValue: 152000 }
       ],
-      'Business Liability Coverage': [
-        { name: 'Van der Berg Insurance', salesCount: 28, totalValue: 420000 },
-        { name: 'Zicht B.V.', salesCount: 16, totalValue: 240000 },
-        { name: 'MKB Verzekeringen Plus', salesCount: 12, totalValue: 180000 }
+      'Cybersecurity Solutions': [
+        { name: 'Security Solutions Partner', salesCount: 28, totalValue: 420000 },
+        { name: 'T-Systems International', salesCount: 16, totalValue: 240000 },
+        { name: 'Digital Security Plus', salesCount: 12, totalValue: 180000 }
       ],
-      'Life Insurance Term': [
-        { name: 'Levensverzekering Direct', salesCount: 42, totalValue: 315000 },
-        { name: 'Zicht B.V.', salesCount: 33, totalValue: 247500 },
-        { name: 'Familie Financieel', salesCount: 25, totalValue: 187500 }
+      'IoT & M2M Platform': [
+        { name: 'IoT Solutions Direct', salesCount: 42, totalValue: 315000 },
+        { name: 'T-Systems International', salesCount: 33, totalValue: 247500 },
+        { name: 'Connected Device Partners', salesCount: 25, totalValue: 187500 }
       ],
-      'Travel Insurance Annual': [
-        { name: 'Reis & Verzekering B.V.', salesCount: 67, totalValue: 134000 },
-        { name: 'Zicht B.V.', salesCount: 45, totalValue: 90000 },
-        { name: 'Vakantie Verzekerd', salesCount: 38, totalValue: 76000 }
+      'Digital Workplace Solutions': [
+        { name: 'Workplace Technology B.V.', salesCount: 67, totalValue: 134000 },
+        { name: 'T-Systems International', salesCount: 45, totalValue: 90000 },
+        { name: 'Digital Workspace Direct', salesCount: 38, totalValue: 76000 }
       ],
-      'Health Insurance Supplementary': [
-        { name: 'Zorgverzekering Plus', salesCount: 52, totalValue: 416000 },
-        { name: 'Zicht B.V.', salesCount: 29, totalValue: 232000 },
-        { name: 'Gezondheid Centraal', salesCount: 21, totalValue: 168000 }
+      'Cloud & Hosting Solutions': [
+        { name: 'T-Systems International', salesCount: 52, totalValue: 416000 },
+        { name: 'Cloud Solutions Partner', salesCount: 29, totalValue: 232000 },
+        { name: 'Enterprise Cloud Direct', salesCount: 21, totalValue: 168000 }
       ],
-      'Cyber Security Insurance': [
-        { name: 'TechSecure Partners', salesCount: 8, totalValue: 120000 },
-        { name: 'Digital Risk Solutions', salesCount: 6, totalValue: 90000 },
-        { name: 'Zicht B.V.', salesCount: 4, totalValue: 60000 }
+      'IoT & M2M Solutions': [
+        { name: 'IoT Integration Partners', salesCount: 8, totalValue: 120000 },
+        { name: 'Connected Device Solutions', salesCount: 6, totalValue: 90000 },
+        { name: 'Smart Technology B.V.', salesCount: 4, totalValue: 60000 }
       ],
-      'Directors & Officers Insurance': [
-        { name: 'Executive Risk Partners', salesCount: 12, totalValue: 300000 },
-        { name: 'Corporate Shield B.V.', salesCount: 9, totalValue: 225000 },
-        { name: 'Management Liability Direct', salesCount: 7, totalValue: 175000 }
+      'Security Solutions': [
+        { name: 'Cybersecurity Partners', salesCount: 12, totalValue: 300000 },
+        { name: 'Digital Security B.V.', salesCount: 9, totalValue: 225000 },
+        { name: 'Enterprise Security Direct', salesCount: 7, totalValue: 175000 }
       ],
-      'Professional Indemnity': [
-        { name: 'Professional Risk B.V.', salesCount: 18, totalValue: 270000 },
-        { name: 'Zicht B.V.', salesCount: 14, totalValue: 210000 },
-        { name: 'Expertise Verzekeringen', salesCount: 11, totalValue: 165000 }
+      'Analytics & AI Solutions': [
+        { name: 'AI Technology Partners', salesCount: 18, totalValue: 270000 },
+        { name: 'Data Analytics B.V.', salesCount: 14, totalValue: 210000 },
+        { name: 'Machine Learning Direct', salesCount: 11, totalValue: 165000 }
       ],
-      'Pension Insurance Group': [
-        { name: 'Pensioen Partners Nederland', salesCount: 35, totalValue: 875000 },
-        { name: 'Retirement Solutions B.V.', salesCount: 28, totalValue: 700000 },
-        { name: 'Zicht B.V.', salesCount: 22, totalValue: 550000 }
+      'Connectivity & Network': [
+        { name: 'Network Solutions Nederland', salesCount: 35, totalValue: 875000 },
+        { name: '5G Technology Partners', salesCount: 28, totalValue: 700000 },
+        { name: 'Connectivity Solutions B.V.', salesCount: 22, totalValue: 550000 }
       ]
     };
 
@@ -854,11 +854,11 @@ export default function CustomerDetailNew() {
   // Handle smart coverage gap actions
   const handleSmartGapAction = (productType: string, actionType: string) => {
     const productMap: Record<string, {name: string, value: number}> = {
-      'cyber-insurance': { name: 'Cyber Security Insurance', value: 2400 },
-      'do-insurance': { name: 'Directors & Officers Insurance', value: 1800 },
-      'group-health': { name: 'Group Health Insurance', value: 3200 },
-      'occupational-health': { name: 'Occupational Health Insurance', value: 1500 },
-      'key-person': { name: 'Key Person Life Insurance', value: 2600 }
+      'cybersecurity-solution': { name: 'Cybersecurity Solutions', value: 2400 },
+      'iot-connectivity': { name: 'IoT & Connectivity Solutions', value: 1800 },
+      'cloud-platform': { name: 'Enterprise Cloud Platform', value: 3200 },
+      'analytics-ai': { name: 'Analytics & AI Platform', value: 1500 },
+      'digital-workplace': { name: 'Digital Workplace Solutions', value: 2600 }
     };
 
     const product = productMap[productType];
@@ -867,12 +867,12 @@ export default function CustomerDetailNew() {
       case 'Add to Opportunity List':
         // Create opportunity directly
         const opportunity = {
-          title: `${product.name} - Smart Gap Opportunity`,
-          description: `Coverage gap identified for ${product.name} based on customer profile and industry analysis`,
+          title: `${product.name} - Digital Transformation Opportunity`,
+          description: `Technology gap identified for ${product.name} based on customer profile and digital readiness analysis`,
           estimatedValue: product.value,
           probability: 60,
           stage: 'Qualification',
-          insuranceType: 'Cross-sell',
+          solutionType: 'Cross-sell',
           customerId: parseInt(id!),
           accountManagerId: 1,
           products: [product.name]
@@ -1088,7 +1088,7 @@ export default function CustomerDetailNew() {
                 onClick={() => setIsOpportunityModalOpen(true)}
               >
                 <Target className="w-4 h-4 mr-2" />
-                Creëer Kans
+                Create Opportunity
               </Button>
             </div>
             <div className="mt-1">
@@ -1782,7 +1782,7 @@ export default function CustomerDetailNew() {
                           // Willis-style color mapping based on category names
                           const getColorByName = (categoryName: string) => {
                             const lowerName = categoryName.toLowerCase();
-                            if (lowerName.includes('pensioen') || lowerName.includes('pension')) return 'green';
+                            if (lowerName.includes('cloud') || lowerName.includes('platform')) return 'green';
                             if (lowerName.includes('schade') || lowerName.includes('zakelijk') || lowerName.includes('property')) return 'orange';
                             if (lowerName.includes('inkomen') || lowerName.includes('collectief') || lowerName.includes('income')) return 'blue';
                             if (lowerName.includes('overige') || lowerName.includes('specialistische')) return 'purple';
@@ -1927,7 +1927,7 @@ export default function CustomerDetailNew() {
                             // Get Willis-style colors for this main category
                             const getMainCategoryColor = (categoryName: string) => {
                               const lowerName = categoryName.toLowerCase();
-                              if (lowerName.includes('pensioen') || lowerName.includes('pension')) return 'green';
+                              if (lowerName.includes('cloud') || lowerName.includes('platform')) return 'green';
                               if (lowerName.includes('schade') || lowerName.includes('zakelijk') || lowerName.includes('property')) return 'orange';
                               if (lowerName.includes('inkomen') || lowerName.includes('collectief') || lowerName.includes('income')) return 'blue';
                               if (lowerName.includes('overige') || lowerName.includes('specialistische')) return 'purple';

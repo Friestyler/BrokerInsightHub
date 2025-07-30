@@ -107,7 +107,7 @@ const customerSegments = [
   { id: 'seniors', name: 'Senioren', count: 654 }
 ];
 
-// Cross-sell matrix data with realistic insurance cross-sell rates
+// Cross-sell matrix data with realistic Deutsche Telekom solution cross-sell rates
 type CrossSellData = {
   rate: number;
   benchmark: number;
@@ -324,13 +324,13 @@ function DashboardSection() {
       // Create realistic data based on category type and authentic base
       let baseCustomers = currentCustomers;
       if (baseCustomers === 0) {
-        // Generate realistic customer counts based on insurance category type
+        // Generate realistic customer counts based on technology solution category type
         if (category.name.toLowerCase().includes('life') || category.name.toLowerCase().includes('leven')) {
-          baseCustomers = Math.floor(totalCustomers * 0.18) + Math.floor(Math.random() * 50); // 18% for life insurance
+          baseCustomers = Math.floor(totalCustomers * 0.18) + Math.floor(Math.random() * 50); // 18% for cloud solutions
         } else if (category.name.toLowerCase().includes('health') || category.name.toLowerCase().includes('zorg') || category.name.toLowerCase().includes('hospitalization')) {
-          baseCustomers = Math.floor(totalCustomers * 0.72) + Math.floor(Math.random() * 100); // 72% for health insurance  
+          baseCustomers = Math.floor(totalCustomers * 0.72) + Math.floor(Math.random() * 100); // 72% for connectivity solutions  
         } else if (category.name.toLowerCase().includes('auto') || category.name.toLowerCase().includes('car') || category.name.toLowerCase().includes('mobility')) {
-          baseCustomers = Math.floor(totalCustomers * 0.58) + Math.floor(Math.random() * 80); // 58% for auto insurance
+          baseCustomers = Math.floor(totalCustomers * 0.58) + Math.floor(Math.random() * 80); // 58% for IoT solutions
         } else if (category.name.toLowerCase().includes('property') || category.name.toLowerCase().includes('fire') || category.name.toLowerCase().includes('home')) {
           baseCustomers = Math.floor(totalCustomers * 0.45) + Math.floor(Math.random() * 60); // 45% for property
         } else if (category.name.toLowerCase().includes('travel') || category.name.toLowerCase().includes('reis')) {
@@ -1747,7 +1747,7 @@ function SmartCrossSellSection() {
                 </div>
                 <div>
                   <CardTitle className="text-lg">Summer Trending Products</CardTitle>
-                  <CardDescription>Top 3 seasonal insurance products for summer 2025</CardDescription>
+                  <CardDescription>Top 3 trending Deutsche Telekom solutions for summer 2025</CardDescription>
                 </div>
               </div>
               <Play className="w-5 h-5 text-[#5567E5]" />
@@ -1756,15 +1756,15 @@ function SmartCrossSellSection() {
           <CardContent className="flex-1 flex flex-col">
             <div className="flex-1 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">1. Travel Insurance</span>
+                <span className="text-sm text-gray-600">1. 5G Enterprise Solutions</span>
                 <span className="font-semibold text-green-600">€45,200</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">2. Recreational Vehicle</span>
+                <span className="text-sm text-gray-600">2. IoT Smart Factory Solutions</span>
                 <span className="font-semibold text-green-600">€38,600</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">3. Event & Festival</span>
+                <span className="text-sm text-gray-600">3. Cloud Analytics Platform</span>
                 <span className="font-semibold text-green-600">€29,800</span>
               </div>
               <div className="flex-1 min-h-[20px]"></div>
@@ -1878,9 +1878,9 @@ function SmartCrossSellSection() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="free-text">Free Text</SelectItem>
-                      <SelectItem value="life-insurance">Life Insurance</SelectItem>
-                      <SelectItem value="non-life">Non-Life Insurance</SelectItem>
-                      <SelectItem value="business-insurance">Business Insurance</SelectItem>
+                      <SelectItem value="cloud-hosting">Cloud & Hosting</SelectItem>
+                      <SelectItem value="connectivity">Connectivity & Network</SelectItem>
+                      <SelectItem value="iot-solutions">IoT & M2M Solutions</SelectItem>
                     </SelectContent>
                   </Select>
                   <textarea

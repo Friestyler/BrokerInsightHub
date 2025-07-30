@@ -31,29 +31,29 @@ interface PortfolioData {
   customerName?: string;
   opportunityName?: string;
   summary: {
-    totalPremium: number;
-    productsCovered: number;
-    totalProducts: number;
-    coveragePercentage: number;
-    categoriesCovered: number;
-    gapOpportunities: number;
+    totalRevenue: number;
+    solutionsDeployed: number;
+    totalSolutions: number;
+    deploymentPercentage: number;
+    categoriesDeployed: number;
+    transformationOpportunities: number;
   };
   categoryBreakdown: Array<{
     categoryId: string;
     categoryName: string;
     categoryColor: string;
-    productsCovered: number;
-    totalProducts: number;
-    coveragePercentage: number;
-    currentPremium: number;
-    gapValue: number;
+    solutionsDeployed: number;
+    totalSolutions: number;
+    deploymentPercentage: number;
+    currentRevenue: number;
+    transformationValue: number;
   }>;
-  gapAnalysis: {
+  transformationAnalysis: {
     critical: {
       count: number;
       totalValue: number;
-      topProducts: Array<{
-        productName: string;
+      topSolutions: Array<{
+        solutionName: string;
         potentialValue: number;
         category: string;
       }>;
@@ -61,16 +61,16 @@ interface PortfolioData {
     medium: {
       count: number;
       totalValue: number;
-      topProducts: Array<{
-        productName: string;
+      topSolutions: Array<{
+        solutionName: string;
         potentialValue: number;
         category: string;
       }>;
     };
-    wellCovered: {
+    wellDigitized: {
       count: number;
       totalValue: number;
-      coverageRate: number;
+      digitizationRate: number;
     };
   };
 }
@@ -131,7 +131,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     estimatedValue: '',
     probability: '',
     stage: 'qualification',
-    insuranceType: '',
+    solutionType: '',
     comments: ''
   });
 
@@ -348,15 +348,15 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
       const entityName = entityData?.name || 'Unknown Entity';
       const partnerName = entityType === 'partners' ? entityName : entityData?.partner?.name || 'Unknown Partner';
       
-      const prompt = `Generate a professional comment for a new insurance opportunity in Salesforce. Context:
+      const prompt = `Generate a professional comment for a new digital transformation opportunity in Deutsche Telekom CRM. Context:
 - Entity: ${entityName} (${entityType.slice(0, -1)})
 - Partner: ${partnerName}
-- Portfolio coverage: ${portfolioData.summary.coveragePercentage}%
-- Current premium: €${portfolioData.summary.totalPremium}
-- Gap opportunities: ${portfolioData.summary.gapOpportunities}
-- Top coverage gaps: ${portfolioData.categoryBreakdown.filter(cat => cat.coveragePercentage < 50).map(cat => cat.categoryName).join(', ')}
+- Digital deployment: ${portfolioData.summary.deploymentPercentage}%
+- Current revenue: €${portfolioData.summary.totalRevenue}
+- Transformation opportunities: ${portfolioData.summary.transformationOpportunities}
+- Top transformation gaps: ${portfolioData.categoryBreakdown.filter(cat => cat.deploymentPercentage < 50).map(cat => cat.categoryName).join(', ')}
 
-Create a concise, professional comment (max 200 words) that highlights the opportunity, mentions relevant coverage gaps, and suggests next steps for the account manager.`;
+Create a concise, professional comment (max 200 words) that highlights the digital transformation opportunity, mentions relevant technology gaps, and suggests next steps for the account manager.`;
 
       const response = await apiRequest('POST', `/api/ai/generate-comment`, {
         prompt,
@@ -383,17 +383,17 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
   const handleModalOpen = () => {
     if (entityData && portfolioData) {
       const entityName = entityData?.name || 'Unknown Entity';
-      const estimatedValue = portfolioData.summary.gapOpportunities > 0 
-        ? Math.round(portfolioData.summary.totalPremium * 0.3).toString()
+      const estimatedValue = portfolioData.summary.transformationOpportunities > 0 
+        ? Math.round(portfolioData.summary.totalRevenue * 0.3).toString()
         : '';
       
       setFormData({
-        title: `${entityName} - Portfolio Enhancement`,
-        description: `Cross-sell opportunity based on portfolio gap analysis. Current coverage: ${portfolioData.summary.coveragePercentage}%`,
+        title: `${entityName} - Digital Transformation Enhancement`,
+        description: `Technology expansion opportunity based on digital readiness analysis. Current deployment: ${portfolioData.summary.deploymentPercentage}%`,
         estimatedValue,
         probability: '60',
         stage: 'qualification',
-        insuranceType: portfolioData.categoryBreakdown.find(cat => cat.coveragePercentage < 50)?.categoryName || '',
+        solutionType: portfolioData.categoryBreakdown.find(cat => cat.deploymentPercentage < 50)?.categoryName || '',
         comments: ''
       });
     }
@@ -441,7 +441,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       estimatedValue: '',
       probability: '',
       stage: 'qualification',
-      insuranceType: '',
+      solutionType: '',
       comments: ''
     });
     setClosingDate(undefined);
@@ -456,7 +456,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       estimated_value: parseFloat(formData.estimatedValue) || 0,
       probability: parseInt(formData.probability) || 0,
       stage: formData.stage,
-      insurance_type: formData.insuranceType,
+      solution_type: formData.solutionType,
       closing_date: closingDate ? format(closingDate, 'yyyy-MM-dd') : null,
       customer_id: entityType === 'customers' ? parseInt(entityId) : null,
       partner_id: entityType === 'partners' ? parseInt(entityId) : entityData?.partner_id || null,
@@ -1195,14 +1195,14 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
             </div>
 
             <div>
-              <Label htmlFor="insuranceType" className="text-sm font-medium text-gray-700">
-                Verzekering type
+              <Label htmlFor="solutionType" className="text-sm font-medium text-gray-700">
+                Solution Category
               </Label>
               <Input
-                id="insuranceType"
-                value={formData.insuranceType}
-                onChange={(e) => setFormData(prev => ({ ...prev, insuranceType: e.target.value }))}
-                placeholder="bijv. Zakelijke verzekering, Auto verzekering"
+                id="solutionType"
+                value={formData.solutionType}
+                onChange={(e) => setFormData(prev => ({ ...prev, solutionType: e.target.value }))}
+                placeholder="e.g. Cloud & Hosting, IoT & M2M, Security"
                 className="mt-1"
               />
             </div>

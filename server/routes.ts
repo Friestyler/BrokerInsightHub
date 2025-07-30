@@ -4308,7 +4308,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           stage: o.stage,
           estimatedValue: o.estimatedValue,
           probability: o.probability,
-          insuranceType: o.insurance_description,
+          solutionType: o.insurance_description,
           relatedEntity: entityType === 'partners' ? o.customer_name : o.partner_name
         })),
         marketContext: {
