@@ -1,0 +1,151 @@
+{
+  "totalCategories": 11,
+  "totalSubcategories": 46,
+  "categories": {
+    "Connectivity & Network": {
+      "subcategories": [
+        "MPLS & IP-VPN",
+        "SD-WAN",
+        "Carrier Ethernet",
+        "Mobile Data Plans (MagentaMobil Business, IoT SIM)",
+        "Roaming Services",
+        "Fiber & FTTH"
+      ],
+      "providers": [
+        "Deutsche Telekom",
+        "T-Systems"
+      ],
+      "count": 6
+    },
+    "Cloud & Hosting": {
+      "subcategories": [
+        "Public Cloud (Open Telekom Cloud, Azure Stack)",
+        "Private Cloud",
+        "Hybrid Cloud Solutions",
+        "Colocation & Data Center",
+        "Backup & Disaster Recovery"
+      ],
+      "providers": [
+        "Deutsche Telekom",
+        "T-Systems"
+      ],
+      "count": 5
+    },
+    "Security": {
+      "subcategories": [
+        "Managed Firewall",
+        "DDoS Protection",
+        "Secure Web Gateway",
+        "Security Operations Center (SOC as a Service)",
+        "Endpoint Protection (MagentaSecurity)",
+        "Identity & Access Management"
+      ],
+      "providers": [
+        "T-Systems",
+        "Deutsche Telekom"
+      ],
+      "count": 6
+    },
+    "Unified Communications": {
+      "subcategories": [
+        "SIP Trunking & VoIP",
+        "Hosted PBX",
+        "Contact Center as a Service",
+        "Collaboration Platforms (e.g. Teams, Webex)"
+      ],
+      "providers": [
+        "Deutsche Telekom",
+        "T-Systems"
+      ],
+      "count": 4
+    },
+    "IoT & M2M": {
+      "subcategories": [
+        "IoT Connectivity (NB-IoT, LTE-M)",
+        "Device Management Platform",
+        "Industry 4.0 Solutions (Predictive Maintenance)",
+        "Smart Building / Smart City Solutions"
+      ],
+      "providers": [
+        "Deutsche Telekom",
+        "T-Systems"
+      ],
+      "count": 4
+    },
+    "Digital & Application": {
+      "subcategories": [
+        "Application Development & DevOps",
+        "API Management",
+        "Integration Services (ESB, iPaaS)",
+        "Digital Experience (UX/UI, Testing)"
+      ],
+      "providers": [
+        "T-Systems",
+        "Deutsche Telekom"
+      ],
+      "count": 4
+    },
+    "Analytics & AI": {
+      "subcategories": [
+        "Big Data Analytics",
+        "AI & Machine Learning Services",
+        "IoT Analytics",
+        "Real-time Data Streaming"
+      ],
+      "providers": [
+        "Deutsche Telekom",
+        "T-Systems"
+      ],
+      "count": 4
+    },
+    "Managed Services": {
+      "subcategories": [
+        "Infrastructure Management",
+        "Application Management",
+        "End-User Support & Helpdesk"
+      ],
+      "providers": [
+        "T-Systems",
+        "Deutsche Telekom"
+      ],
+      "count": 3
+    },
+    "Industry Solutions": {
+      "subcategories": [
+        "Automotive Cloud",
+        "Rail Cloud",
+        "Energy & Utilities (Smart Grid)",
+        "Healthcare Solutions"
+      ],
+      "providers": [
+        "T-Systems",
+        "Deutsche Telekom"
+      ],
+      "count": 4
+    },
+    "Digital Workplace": {
+      "subcategories": [
+        "Virtual Desktop Infrastructure (VDI)",
+        "Device as a Service (DaaS)",
+        "Mobile Device Management (MDM)"
+      ],
+      "providers": [
+        "Deutsche Telekom",
+        "T-Systems"
+      ],
+      "count": 3
+    },
+    "Payment & FinTech": {
+      "subcategories": [
+        "Payment Gateway",
+        "Mobile Identity & Authentication",
+        "Financial Services Platforms"
+      ],
+      "providers": [
+        "Deutsche Telekom",
+        "T-Systems"
+      ],
+      "count": 3
+    }
+  }
+}
