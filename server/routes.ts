@@ -3329,13 +3329,14 @@ Prioritize actions that:
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT DISTINCT c.id, c.name, c.description,
-               COUNT(o.id) as opportunity_count
+        SELECT DISTINCT c.id, c.name, c.description, c.industry, c.status, c.size,
+               COUNT(o.id) as opportunity_count,
+               COALESCE(SUM(o."estimatedValue"), 0) as total_value
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-        LEFT JOIN degoudse.opportunities o ON c.id = o."clientId"
+        LEFT JOIN degoudse.opportunities o ON c.id = o."clientId" AND o."partnerId" = $1
         WHERE pc.partner_id = $1
-        GROUP BY c.id, c.name, c.description
+        GROUP BY c.id, c.name, c.description, c.industry, c.status, c.size
         ORDER BY c.id
       `, [partnerId]);
       
@@ -3343,7 +3344,11 @@ Prioritize actions that:
         id: customer.id,
         name: customer.name,
         description: customer.description,
-        opportunityCount: parseInt(customer.opportunity_count) || 0
+        industry: customer.industry,
+        status: customer.status,
+        size: customer.size,
+        opportunityCount: parseInt(customer.opportunity_count) || 0,
+        totalOpportunityValue: parseFloat(customer.total_value) || 0
       }));
       
       console.log(`Partner ${partnerId} customers query returned ${customers.length} results`);

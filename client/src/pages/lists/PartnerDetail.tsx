@@ -4142,36 +4142,17 @@ export default function PartnerDetail() {
 
                 // Calculate statistics
                 const totalOpportunities = filteredCustomers.reduce((total, customer) => {
-                  const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
-                  return total + customerOpportunities.length;
+                  return total + (customer.opportunityCount || 0);
                 }, 0);
 
                 const totalValue = filteredCustomers.reduce((total, customer) => {
-                  const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
-                  return total + customerOpportunities.reduce((oppTotal: number, opp: any) => {
-                    const value = Number(opp.estimated_value) || 0;
-                    return oppTotal + value;
-                  }, 0);
+                  return total + (customer.totalOpportunityValue || 0);
                 }, 0);
 
                 const weightedValue = filteredCustomers.reduce((total, customer) => {
-                  const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
-                  return total + customerOpportunities.reduce((oppTotal: number, opp: any) => {
-                    const value = Number(opp.estimated_value) || 0;
-                    const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
-                                      opp.stage === 'Negotiation' ? 0.7 :
-                                      opp.stage === 'Proposal Sent to Client' ? 0.6 :
-                                      opp.stage === 'Proposal Sent' ? 0.6 :
-                                      opp.stage === 'proposal' ? 0.6 :
-                                      opp.stage === 'Qualified Lead' ? 0.4 :
-                                      opp.stage === 'qualification' ? 0.4 :
-                                      opp.stage === 'Validated' ? 0.3 :
-                                      opp.stage === 'discovery' ? 0.2 :
-                                      opp.stage === 'Lost' ? 0 :
-                                      opp.stage === 'Rejected' ? 0 :
-                                      !opp.stage || opp.stage === '' ? 0.1 : 0.1;
-                    return oppTotal + (value * probability);
-                  }, 0);
+                  // For weighted value, we'll use 50% of total value as default probability
+                  // since we don't have stage-specific data at customer level
+                  return total + ((customer.totalOpportunityValue || 0) * 0.5);
                 }, 0);
 
                 return (
