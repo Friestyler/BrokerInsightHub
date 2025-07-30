@@ -5594,7 +5594,99 @@ Return as JSON in this exact format:
     }
   });
 
-  // Get Customer Portfolio Overview
+  // Get Customer Portfolio Overview - Fixed for Adidas
+  app.get('/api/:envId/customers/:id/portfolio-overview', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envId = req.params.envId;
+      const envPool = pool;
+      
+      console.log(`Fetching portfolio overview for customer ${customerId} in environment ${envId}`);
+      
+      // Get customer basic info
+      const customerResult = await envPool.query(`
+        SELECT id, name, description, industry, size FROM ${envId}.customers WHERE id = $1
+      `, [customerId]);
+      
+      if (customerResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Customer not found' });
+      }
+      
+      const customer = customerResult.rows[0];
+      
+      // Get assigned products with simple query
+      const productsResult = await envPool.query(`
+        SELECT 
+          p.id, p.name, p.category, p.description,
+          cp.value, cp.status, cp."assignedDate"
+        FROM ${envId}.customer_products cp
+        JOIN ${envId}.products p ON cp."productId" = p.id
+        WHERE cp."customerId" = $1 AND cp.status = 'Active'
+        ORDER BY cp.value DESC
+      `, [customerId]);
+      
+      const products = productsResult.rows.map(p => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        description: p.description,
+        value: p.value,
+        status: p.status,
+        assignedDate: p.assignedDate
+      }));
+      
+      // Get category summary
+      const categoryResult = await envPool.query(`
+        SELECT 
+          p.category,
+          COUNT(*) as count,
+          SUM(cp.value) as total_value
+        FROM ${envId}.customer_products cp
+        JOIN ${envId}.products p ON cp."productId" = p.id
+        WHERE cp."customerId" = $1 AND cp.status = 'Active'
+        GROUP BY p.category
+        ORDER BY total_value DESC
+      `, [customerId]);
+      
+      const categories = categoryResult.rows.map(cat => ({
+        name: cat.category,
+        count: parseInt(cat.count),
+        totalValue: parseInt(cat.total_value)
+      }));
+      
+      // Calculate totals
+      const totalProducts = products.length;
+      const totalValue = products.reduce((sum, p) => sum + (p.value || 0), 0);
+      
+      console.log(`Customer ${customer.name} has ${totalProducts} products worth €${totalValue}`);
+      
+      res.json({
+        customer: {
+          id: customer.id,
+          name: customer.name,
+          description: customer.description,
+          industry: customer.industry,
+          size: customer.size,
+          productCount: totalProducts,
+          totalProductValue: totalValue
+        },
+        products: products,
+        categories: categories,
+        summary: {
+          totalProducts: totalProducts,
+          totalValue: totalValue,
+          totalProductValue: totalValue,
+          avgValue: totalProducts > 0 ? Math.round(totalValue / totalProducts) : 0
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error fetching customer portfolio overview:', error);
+      res.status(500).json({ error: 'Failed to fetch customer portfolio overview' });
+    }
+  });
+
+  // Get Customer Portfolio Overview (Legacy)
   app.get('/api/degoudse/customers/:id/portfolio-overview', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
