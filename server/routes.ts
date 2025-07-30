@@ -5397,7 +5397,7 @@ Return as JSON in this exact format:
       
       const result = await envPool.query(`
         SELECT c.id, c.name, c.description, c.industry, c.size, c.status, c."ownerId", c."createdAt", c."updatedAt",
-               COUNT(DISTINCT pc.partnerId) as partner_count,
+               COUNT(DISTINCT pc.partner_id) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count,
                0 as product_count,
                COALESCE(opp_values.total_opportunity_value, 0) as total_opportunity_value
@@ -5424,7 +5424,7 @@ Return as JSON in this exact format:
       const partnerDetails = await envPool.query(`
         SELECT pc.customer_id, p.id as partner_id, p.name as partner_name
         FROM degoudse.partner_customers pc
-        JOIN degoudse.partners p ON p.id = pc.partnerId
+        JOIN degoudse.partners p ON p.id = pc.partner_id
         WHERE pc.customer_id = ANY($1)
         ORDER BY pc.customer_id, p.name
       `, [customerIds]);
@@ -6235,32 +6235,31 @@ Return as JSON in this exact format:
           pt.id as "productId",
           pt.name as "productName",
           pt.description as "productDescription", 
-          pt.provider_name as "providerName",
-          pt.average_price as "averagePrice",
-          pt.premium_value as "premiumValue",
-          pt.premium_percentage as "premiumPercentage",
-          pt.discount_percentage as "discountPercentage",
-          pt.contract_start_date as "contractStartDate",
-          pt.contract_end_date as "contractEndDate",
+          pt.sku as "providerName",
+          pt.price as "averagePrice",
+          COALESCE(cpa."premiumValue", 0) as "premiumValue",
+          COALESCE(cpa."premiumPercentage", 0) as "premiumPercentage",
+          COALESCE(cpa."discountPercentage", 0) as "discountPercentage",
+          cpa."contractStartDate" as "contractStartDate",
+          cpa."contractEndDate" as "contractEndDate",
           -- Category info
-          c.name as "categoryName",
-          c.color as "categoryColor",
+          pc.name as "categoryName",
+          pc.color as "categoryColor",
           -- Parent category info for main category grouping
           parent_cat.name as "parentCategoryName",
           parent_cat.color as "parentCategoryColor",
           -- Assignment counts
-          COUNT(DISTINCT pc.customer_id) as "customersCount",
-          SUM(pt.premium_value) as "totalValue"
+          COUNT(DISTINCT cpa."customerId") as "customersCount",
+          SUM(COALESCE(cpa."premiumValue", pt.price, 0)) as "totalValue"
         FROM degoudse.products pt
-        LEFT JOIN degoudse.opportunities o JOIN degoudse.customers c ON o."clientId" = c.id cpa ON pt.id = cpa.product_id AND cpa.is_active = true
-        LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
-        LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id)
+        LEFT JOIN degoudse.customer_product_assignments cpa ON pt.id = cpa."productId"
+        LEFT JOIN degoudse.customers cust ON cpa."customerId" = cust.id
+        LEFT JOIN degoudse.product_categories pc ON pt.category = pc.name
+        LEFT JOIN degoudse.product_categories parent_cat ON pc.parent_id = parent_cat.id OR (pc.parent_id IS NULL AND pc.id = parent_cat.id)
         GROUP BY 
-          pt.id, pt.name, pt.description, pt.provider_name, pt.average_price, 
-          pt.premium_value, pt.premium_percentage, pt.discount_percentage,
-          pt.contract_start_date, pt.contract_end_date,
-          c.name, c.color, parent_cat.name, parent_cat.color
-        ORDER BY COUNT(DISTINCT pc.customer_id) DESC, pt.name ASC
+          pt.id, pt.name, pt.description, pt.sku, pt.price,
+          pc.name, pc.color, parent_cat.name, parent_cat.color
+        ORDER BY COUNT(DISTINCT cpa."customerId") DESC, pt.name ASC
       `);
       
       console.log(`Returning ${result.rows.length} product assignments from all categories`);
@@ -9701,10 +9700,10 @@ Respond with a JSON object containing:
         SELECT 
           c.*,
           p.name as parent_name,
-          (SELECT COUNT(*) FROM ${envId}.products WHERE category = c.name) as product_count,
-          (SELECT COUNT(*) FROM ${envId}.categories WHERE parent_id = c.id) as child_count
-        FROM ${envId}.categories c
-        LEFT JOIN ${envId}.categories p ON c.parent_id = p.id
+          (SELECT COUNT(*) FROM degoudse.products WHERE category = c.name) as product_count,
+          (SELECT COUNT(*) FROM degoudse.product_categories WHERE parent_id = c.id) as child_count
+        FROM degoudse.product_categories c
+        LEFT JOIN degoudse.product_categories p ON c.parent_id = p.id
         ORDER BY c.parent_id NULLS FIRST, c.name
       `);
       
@@ -14292,22 +14291,21 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const summaryResult = await pool.query(`
         SELECT 
           -- Customer product assignments (actual coverage)
-          COUNT(DISTINCT cpa.product_id) as products_covered,
-          COUNT(DISTINCT pc.customer_id) as customers_with_products,
-          SUM(COALESCE(cpa.custom_price, pt.average_price, 0)) as total_portfolio_value,
+          COUNT(DISTINCT cpa."productId") as products_covered,
+          COUNT(DISTINCT cpa."customerId") as customers_with_products,
+          SUM(COALESCE(cpa."premiumValue", pt.price, 0)) as total_portfolio_value,
           
           -- Available products and customers totals
-          (SELECT COUNT(*) FROM ${envId}.product_templates) as total_available_products,
-          (SELECT COUNT(*) FROM ${envId}.customers) as total_customers,
+          (SELECT COUNT(*) FROM degoudse.products) as total_available_products,
+          (SELECT COUNT(*) FROM degoudse.customers) as total_customers,
           
           -- Categories with assignments
           COUNT(DISTINCT parent_cat.id) as categories_covered,
-          (SELECT COUNT(*) FROM ${envId}.categories WHERE parent_id IS NULL) as total_categories
-        FROM ${envId}.customer_products cpa
-        INNER JOIN ${envId}.products pt ON cpa.product_id = pt.id
-        LEFT JOIN ${envId}.categories c ON pt.category_id = c.id
-        LEFT JOIN ${envId}.categories parent_cat ON (c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id))
-        WHERE cpa.is_active = true
+          (SELECT COUNT(*) FROM degoudse.product_categories WHERE parent_id IS NULL) as total_categories
+        FROM degoudse.customer_product_assignments cpa
+        INNER JOIN degoudse.products pt ON cpa."productId" = pt.id
+        LEFT JOIN degoudse.product_categories c ON pt.category = c.name
+        LEFT JOIN degoudse.product_categories parent_cat ON (c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id))
       `);
 
       const summary = summaryResult.rows[0];
