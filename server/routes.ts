@@ -243,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                COUNT(DISTINCT po.opportunity_id) as opportunity_count,
                STRING_AGG(DISTINCT c.name, ', ') as customer_names
         FROM myqollabi.partners p
-        LEFT JOIN myqollabi.partner_customers pc ON p.id = pc.partner_id
+        LEFT JOIN myqollabi.partner_customers pc ON p.id = pc.partnerId
         LEFT JOIN myqollabi.partner_opportunities po ON p.id = po.partnerId
         LEFT JOIN myqollabi.customers c ON c.id = pc.customer_id
         GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
@@ -291,7 +291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await db.execute(sql`
         SELECT c.*, 
-               COUNT(DISTINCT pc.partner_id) as partner_count,
+               COUNT(DISTINCT pc.partnerId) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count
         FROM myqollabi.customers c
         LEFT JOIN myqollabi.partner_customers pc ON c.id = pc.customer_id
@@ -369,7 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                COUNT(DISTINCT po.opportunity_id) as opportunity_count,
                STRING_AGG(DISTINCT c.name, ', ') as customer_names
         FROM myqollabi.partners p
-        LEFT JOIN myqollabi.partner_customers pc ON p.id = pc.partner_id
+        LEFT JOIN myqollabi.partner_customers pc ON p.id = pc.partnerId
         LEFT JOIN myqollabi.partner_opportunities po ON p.id = po.partnerId
         LEFT JOIN myqollabi.customers c ON c.id = pc.customer_id
         GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
@@ -555,7 +555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.id, c.name, c.description, c."ownerId",
           c.created_at, c.updated_at,
           COUNT(DISTINCT o.id) as opportunity_count,
-          COUNT(DISTINCT pc.partner_id) as partner_count,
+          COUNT(DISTINCT pc.partnerId) as partner_count,
           COALESCE(SUM(o."estimatedValue"), 0) as total_opportunity_value
         FROM ${envId}.customers c
         LEFT JOIN ${envId}.opportunities o ON o."clientId" = c.id
@@ -1131,12 +1131,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await db.execute(sql`
         SELECT c.*, 
                COUNT(DISTINCT o.id) as opportunity_count,
-               COUNT(DISTINCT pc.partner_id) as partner_count,
+               COUNT(DISTINCT pc.partnerId) as partner_count,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names
         FROM myqollabi.customers c
         LEFT JOIN myqollabi.opportunities o ON o.clientId = c.id
         LEFT JOIN myqollabi.partner_customers pc ON pc.customer_id = c.id
-        LEFT JOIN myqollabi.partners p ON p.id = pc.partner_id
+        LEFT JOIN myqollabi.partners p ON p.id = pc.partnerId
         GROUP BY c.id, c.name, c.description, c.ownerId, c.created_at, c.updated_at, 
                  c.contact_name, c.contact_email, c.contact_phone, c.assigned_partner_id
         ORDER BY c.id
@@ -1175,7 +1175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.opportunities o ON o.clientId = c.id
-        WHERE pc.partner_id = ${partnerId}
+        WHERE pc.partnerId = ${partnerId}
         GROUP BY c.id, c.name, c.description, c.ownerId, c.created_at, c.updated_at, 
                  c.contact_name, c.contact_email, c.contact_phone
         ORDER BY c.id
@@ -1266,35 +1266,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool; // Always use degoudse database
       
-      // Fetch tasks for this partner AND related opportunity tasks from degoudse schema
+      // Fetch all tasks from degoudse schema with user information
       const tasksResult = await envPool.query(`
-        SELECT t.*, u.name as assigned_to_name, 
-               CASE WHEN t.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
+        SELECT t.*, u.full_name as assigned_to_name
         FROM degoudse.activity_tasks t
         LEFT JOIN degoudse.users u ON t.assigned_to_id = u.id
-        LEFT JOIN degoudse.opportunities o ON t.entity_id = o.id AND t.entity_type = 'opportunity'
-        WHERE (t.entity_type = 'partner' AND t.partner_id = $1)
-           OR (t.entity_type = 'opportunity' AND t.entity_id IN (
-               SELECT o2.id FROM degoudse.opportunities o2 WHERE o2.partner_id = $1
-           ))
         ORDER BY t.created_at DESC
-      `, [partnerId]);
+      `);
       
-      // Fetch comments for this partner AND related opportunity comments from degoudse schema
+      // Fetch all comments from degoudse schema with user information
       const commentsResult = await envPool.query(`
-        SELECT c.*, u.name as author_name
+        SELECT c.*, u.full_name as author_name
         FROM degoudse.activity_comments c
-        LEFT JOIN degoudse.users u ON c.user_id = u.id
-        WHERE c.partner_id = $1
+        LEFT JOIN degoudse.users u ON c.author_id = u.id
         ORDER BY c.created_at DESC
-      `, [partnerId]);
+      `);
       
       // Fetch attachments for this partner from degoudse schema
       const attachmentsResult = await envPool.query(`
-        SELECT a.*, u.name as author_name
+        SELECT a.*, u.full_name as author_name
         FROM degoudse.activity_attachments a
         LEFT JOIN degoudse.users u ON a.uploaded_by_id = u.id
-        WHERE a.partner_id = $1
+        WHERE a.partnerId = $1
         ORDER BY a.created_at DESC
       `, [partnerId]);
       
@@ -1346,7 +1339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT a.*, u.name as author_name
         FROM ${envId}.activity_attachments a
         LEFT JOIN ${envId}.users u ON a.uploaded_by_id = u.id
-        LEFT JOIN ${envId}.opportunities o ON o."partnerId" = a.partner_id
+        LEFT JOIN ${envId}.opportunities o ON o."partnerId" = a.partnerId
         JOIN ${envId}.customer_opportunities co ON o.id = co.opportunity_id
         WHERE co.customer_id = $1
         ORDER BY a.created_at DESC
@@ -1531,10 +1524,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           t.assigned_to_id as assigned_to,
           t.created_at,
           t.updated_at,
-          u.name as author_name
+          u.full_name as author_name
         FROM degoudse.activity_tasks t
         LEFT JOIN degoudse.users u ON t.assigned_to_id = u.id
-        WHERE t.partner_id = $1
+        WHERE (t.entity_type = 'partner' AND t.entity_id = $1)
+           OR (t.entity_type = 'opportunity' AND t.entity_id IN (
+               SELECT o.id FROM degoudse.opportunities o WHERE o.partnerId = $1
+           ))
         
         UNION ALL
         
@@ -1550,10 +1546,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.author_id as assigned_to,
           c.created_at,
           c.updated_at,
-          u.name as author_name
+          u.full_name as author_name
         FROM degoudse.activity_comments c
         LEFT JOIN degoudse.users u ON c.author_id = u.id
-        WHERE c.partner_id = $1
+        WHERE (c.entity_type = 'partner' AND c.entity_id = $1)
+           OR (c.entity_type = 'opportunity' AND c.entity_id IN (
+               SELECT o.id FROM degoudse.opportunities o WHERE o.partnerId = $1
+           ))
         
         UNION ALL
         
@@ -1569,10 +1568,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           a.uploaded_by_id as assigned_to,
           a.created_at,
           null as updated_at,
-          u.name as author_name
+          u.full_name as author_name
         FROM degoudse.activity_attachments a
         LEFT JOIN degoudse.users u ON a.uploaded_by_id = u.id
-        WHERE a.partner_id = $1
+        WHERE (a.entity_type = 'partner' AND a.entity_id = $1)
+           OR (a.entity_type = 'opportunity' AND a.entity_id IN (
+               SELECT o.id FROM degoudse.opportunities o WHERE o.partnerId = $1
+           ))
         
         ORDER BY created_at DESC
       `, [partnerId]);
@@ -1701,7 +1703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           u.name as author_name
         FROM ${sql.identifier(envId)}.activity_attachments a
         LEFT JOIN ${sql.identifier(envId)}.users u ON a.uploaded_by_id = u.id
-        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON o."partnerId" = a.partner_id
+        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON o."partnerId" = a.partnerId
         JOIN ${sql.identifier(envId)}.customer_opportunities co ON o.id = co.opportunity_id
         WHERE co.customer_id = ${customerId}
         
@@ -1763,7 +1765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM degoudse.activity_tasks t
         LEFT JOIN degoudse.users u ON t.assigned_to_id = u.id
         LEFT JOIN degoudse.partners p ON p.id = $1
-        WHERE t.partner_id = $1
+        WHERE t.partnerId = $1
       `;
       
       // Query 2: Tasks from opportunities connected to this partner from degoudse schema
@@ -1976,7 +1978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.opportunities o ON c.id = o."clientId"
-        WHERE pc.partner_id = $1
+        WHERE pc.partnerId = $1
         GROUP BY c.id
         ORDER BY opportunity_count DESC
         LIMIT 10
@@ -2250,7 +2252,7 @@ Prioritize actions that:
       const result = await db.execute(sql`
         SELECT p.*
         FROM myqollabi.partners p
-        INNER JOIN myqollabi.partner_customers pc ON p.id = pc.partner_id
+        INNER JOIN myqollabi.partner_customers pc ON p.id = pc.partnerId
         WHERE pc.customer_id = ${customerId}
         ORDER BY p.id
       `);
@@ -3340,7 +3342,7 @@ Prioritize actions that:
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.opportunities o ON c.id = o."clientId" AND o."partnerId" = $1
-        WHERE pc.partner_id = $1
+        WHERE pc.partnerId = $1
         GROUP BY c.id, c.name, c.description, c.industry, c.status, c.size
         ORDER BY c.id
       `, [partnerId]);
@@ -3529,7 +3531,7 @@ Prioritize actions that:
         INNER JOIN ${envId}.partner_customers pc ON c.id = pc.customer_id
         INNER JOIN ${envId}.customer_products cpa ON c.id = pc.customer_id
         INNER JOIN ${envId}.products pt ON cpa.product_id = pt.id
-        WHERE pc.partner_id = $1 
+        WHERE pc.partnerId = $1 
           AND pt.id = $2 
           AND cpa.is_active = true
         ORDER BY c.name ASC
@@ -3601,7 +3603,7 @@ Prioritize actions that:
       const result = await envPool.query(`
         SELECT DISTINCT p.id, p.name, p.description, p.status, p.location, p.contact_email, p.primary_contact
         FROM degoudse.partners p
-        INNER JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
+        INNER JOIN degoudse.partner_customers pc ON p.id = pc.partnerId
         WHERE pc.customer_id = $1
         ORDER BY p.id
       `, [customerId]);
@@ -4302,7 +4304,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           FROM degoudse.partner_products pa
           LEFT JOIN degoudse.products p ON pa.product_id = p.id
           LEFT JOIN degoudse.product_categories c ON p.category = c.name
-          WHERE pa.partner_id = $1
+          WHERE pa.partnerId = $1
           ORDER BY p.premium_value DESC
         `, [entityId]);
       } else {
@@ -4356,12 +4358,12 @@ Keep the tone clear and professional. Focus on what will help the account manage
         ? await pool.query(`
             SELECT c.* FROM degoudse.customers c 
             JOIN degoudse.partner_customers pc ON c.id = pc.customer_id 
-            WHERE pc.partner_id = $1 
+            WHERE pc.partnerId = $1 
             LIMIT 5
           `, [entityId])
         : await pool.query(`
             SELECT p.* FROM degoudse.partners p 
-            JOIN degoudse.partner_customers pc ON p.id = pc.partner_id 
+            JOIN degoudse.partner_customers pc ON p.id = pc.partnerId 
             WHERE pc.customer_id = $1 
             LIMIT 5
           `, [entityId]);
@@ -4658,7 +4660,7 @@ Prioritize opportunities that combine authentic seasonal demand data with this c
             FROM degoudse.product_assignments pa
             JOIN degoudse.products p ON pa.product_id = p.id
             LEFT JOIN degoudse.product_categories c ON p.category_id = c.id
-            WHERE pa.partner_id = $1
+            WHERE pa.partnerId = $1
           `, [entityId])
         : await pool.query(`
             SELECT 
@@ -5395,7 +5397,7 @@ Return as JSON in this exact format:
       
       const result = await envPool.query(`
         SELECT c.id, c.name, c.description, c.industry, c.size, c.status, c."ownerId", c."createdAt", c."updatedAt",
-               COUNT(DISTINCT pc.partner_id) as partner_count,
+               COUNT(DISTINCT pc.partnerId) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count,
                0 as product_count,
                COALESCE(opp_values.total_opportunity_value, 0) as total_opportunity_value
@@ -5422,7 +5424,7 @@ Return as JSON in this exact format:
       const partnerDetails = await envPool.query(`
         SELECT pc.customer_id, p.id as partner_id, p.name as partner_name
         FROM degoudse.partner_customers pc
-        JOIN degoudse.partners p ON p.id = pc.partner_id
+        JOIN degoudse.partners p ON p.id = pc.partnerId
         WHERE pc.customer_id = ANY($1)
         ORDER BY pc.customer_id, p.name
       `, [customerIds]);
@@ -6306,7 +6308,7 @@ Return as JSON in this exact format:
         INNER JOIN degoudse.partner_customers pc ON pc.customer_id = cpa.customer_id
         LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
         LEFT JOIN degoudse.product_categories parent_cat ON (c.parent_id = parent_cat.id AND c.parent_id IS NOT NULL) OR (c.parent_id IS NULL AND c.id = parent_cat.id)
-        WHERE pc.partner_id = $1
+        WHERE pc.partnerId = $1
         GROUP BY 
           pt.id, pt.name, pt.description, pt.category,
           c.name, c.color, parent_cat.name, parent_cat.color,
@@ -6355,7 +6357,7 @@ Return as JSON in this exact format:
         INNER JOIN degoudse.partner_customers pc ON pc.customer_id = cpa.customer_id
         LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
         LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
-        WHERE pc.partner_id = $1 AND cpa.is_active = true
+        WHERE pc.partnerId = $1 AND cpa.is_active = true
         GROUP BY pt.id, pt.name, pt.description, pt.category, c.name, c.color, parent_cat.name, parent_cat.color
         ORDER BY COUNT(DISTINCT pc.customer_id) DESC, SUM(pt.premium_value) DESC
       `, [partnerId]);
@@ -6398,7 +6400,7 @@ Return as JSON in this exact format:
         INNER JOIN degoudse.products pt ON cpa.product_id = pt.id
         LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
         LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
-        WHERE pc.partner_id = $1
+        WHERE pc.partnerId = $1
       `, [partnerId]);
       
       const summary = summaryResult.rows[0] || {};
@@ -6425,7 +6427,7 @@ Return as JSON in this exact format:
         INNER JOIN degoudse.products pt ON cpa.product_id = pt.id
         LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
         LEFT JOIN degoudse.product_categories parent_cat ON (c.parent_id = parent_cat.id AND c.parent_id IS NOT NULL) OR (c.parent_id IS NULL AND c.id = parent_cat.id)
-        WHERE pc.partner_id = $1 AND parent_cat.id IS NOT NULL
+        WHERE pc.partnerId = $1 AND parent_cat.id IS NOT NULL
         GROUP BY parent_cat.id, parent_cat.name, parent_cat.color
         ORDER BY current_premium DESC
       `, [partnerId]);
@@ -6447,7 +6449,7 @@ Return as JSON in this exact format:
         LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
         CROSS JOIN degoudse.partner_customers pc
         LEFT JOIN degoudse.opportunities o JOIN degoudse.customers c ON o."clientId" = c.id cpa ON pc.customer_id = cpa.customer_id AND cpa.product_id = pt.id
-        WHERE pc.partner_id = $1 
+        WHERE pc.partnerId = $1 
           AND cpa.id IS NULL 
           AND pt.is_active = true
         GROUP BY pt.id, pt.name, c.name, pt.premium_value
@@ -6544,7 +6546,7 @@ Return as JSON in this exact format:
         INNER JOIN degoudse.products pt ON cpa.product_id = pt.id
         LEFT JOIN degoudse.product_categories c ON pt.category_id = c.id
         LEFT JOIN degoudse.product_categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
-        WHERE pc.partner_id = $1 AND cpa.is_active = true
+        WHERE pc.partnerId = $1 AND cpa.is_active = true
       `, [partnerId]);
       
       // Get category coverage breakdown - customer coverage per category
@@ -6594,7 +6596,7 @@ Return as JSON in this exact format:
           SELECT DISTINCT cpa.product_id 
           FROM degoudse.opportunities o JOIN degoudse.customers c ON o."clientId" = c.id cpa
           INNER JOIN degoudse.partner_customers pc ON pc.customer_id = cpa.customer_id
-          WHERE pc.partner_id = $1 AND cpa.is_active = true
+          WHERE pc.partnerId = $1 AND cpa.is_active = true
         )
         ORDER BY pt.premium_value DESC
       `, [partnerId]);
@@ -7748,7 +7750,7 @@ Return as JSON in this exact format:
         estimatedValue: project.estimated_value,
         actualValue: project.actual_value,
         customerId: project.customer_id,
-        partnerId: project.partner_id,
+        partnerId: project.partnerId,
         projectManagerId: project.project_manager_id,
         createdById: project.created_by_id,
         customerName: project.customer_name,
@@ -8402,7 +8404,7 @@ Return as JSON in this exact format:
         const dataResult = await envPool.query(`
           SELECT p.*, COUNT(DISTINCT c.id) as customers, COUNT(DISTINCT o.id) as opportunities
           FROM degoudse.partners p
-          LEFT JOIN degoudse.customers c ON c.partner_id = p.id
+          LEFT JOIN degoudse.customers c ON c.partnerId = p.id
           LEFT JOIN degoudse.opportunities o ON o.partnerId = p.id
           GROUP BY p.id
           ORDER BY p.name
@@ -8412,7 +8414,7 @@ Return as JSON in this exact format:
         const dataResult = await envPool.query(`
           SELECT c.*, p.name as partner_name
           FROM degoudse.customers c
-          LEFT JOIN degoudse.partners p ON c.partner_id = p.id
+          LEFT JOIN degoudse.partners p ON c.partnerId = p.id
           ORDER BY c.name
         `);
         listData = dataResult.rows;
@@ -9144,7 +9146,7 @@ Respond with a JSON object containing:
                    COUNT(DISTINCT po.opportunity_id) as opportunity_count,
                    STRING_AGG(DISTINCT c.name, ', ') as customer_names
             FROM degoudse.partners p
-            LEFT JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
+            LEFT JOIN degoudse.partner_customers pc ON p.id = pc.partnerId
             LEFT JOIN degoudse.partner_opportunities po ON p.id = po.partnerId  
             LEFT JOIN degoudse.customers c ON c.id = pc.customer_id
             GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
@@ -11838,7 +11840,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             'one_time',
             campaignData.target_entity_type || null,
             JSON.stringify(campaignData.recipients || []),
-            campaignData.partner_id || null,
+            campaignData.partnerId || null,
             envId,
             campaignData.collaboration_enabled || false
           ]);
@@ -12324,7 +12326,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             FROM ${envId}.campaigns c
             INNER JOIN ${envId}.campaign_assignments ca ON c.id = ca.campaign_id
             LEFT JOIN ${envId}.users u ON ca.assigned_by = u.id
-            WHERE ca.partner_id = $1 AND ca.status = 'active'
+            WHERE ca.partnerId = $1 AND ca.status = 'active'
             ORDER BY ca.assigned_at DESC
           `, [partnerId]);
           
