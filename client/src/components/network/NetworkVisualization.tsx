@@ -95,7 +95,8 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
   
   // Protected setSelectedNode function that respects user org chart selections
   const setSelectedNodeProtected = (node: any) => {
-    // If user has manually selected an org chart node, don't allow automatic overrides
+    // If user has manually selected an org chart node, don't allow automatic customer overrides
+    // But DO allow manual contact selections and null selections
     if (userSelectedOrgNode && node && node.type === 'customer') {
       console.log('🛡️ BLOCKED automatic customer selection - user has selected org chart node');
       return;
@@ -174,9 +175,9 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
   const productsArray = Array.isArray(products) ? products : [];
   const contactRelationshipsArray = Array.isArray(contactRelationships) ? contactRelationships : [];
 
-  // Set default customer when data loads
+  // Set default customer when data loads (but not when user is in org chart mode)
   useEffect(() => {
-    if (customersArray && Array.isArray(customersArray) && customersArray.length > 0 && !selectedCustomer) {
+    if (customersArray && Array.isArray(customersArray) && customersArray.length > 0 && !selectedCustomer && !userSelectedOrgNode) {
       // Find a customer with opportunities for better visualization
       const customerWithOpportunities = customersArray.find((customer: any) => {
         const custOpps = opportunitiesArray?.filter((o: any) => o.customer_id === customer.id || o.clientId === customer.id);
@@ -186,11 +187,13 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
       const targetCustomer = customerWithOpportunities || customersArray[0];
       setSelectedCustomer(targetCustomer.name);
       
-      console.log('Selected customer:', targetCustomer);
+      console.log('✅ Auto-selected customer (not in org mode):', targetCustomer);
       console.log('Available opportunities:', opportunitiesArray?.slice(0, 3));
       console.log('Available contacts:', contactsArray?.slice(0, 3));
+    } else if (userSelectedOrgNode) {
+      console.log('🛡️ BLOCKED auto customer selection - user in org chart mode');
     }
-  }, [customersArray, selectedCustomer, opportunitiesArray, contactsArray]);
+  }, [customersArray, selectedCustomer, opportunitiesArray, contactsArray, userSelectedOrgNode]);
 
   // Show counts of currently selected/filtered entities only
   const getEntityCounts = () => {
@@ -1083,7 +1086,7 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
             console.log('🔥 Formatted org chart node data:', nodeData);
             console.log('🔥 BEFORE setSelectedNode - current selectedNode:', selectedNode);
             setUserSelectedOrgNode(true); // Mark that user manually selected an org chart node
-            setSelectedNode(nodeData);
+            setSelectedNodeProtected(nodeData);
             console.log('🔥 AFTER setSelectedNode - new selectedNode should be:', nodeData);
             console.log('🔥 Set userSelectedOrgNode flag to TRUE to prevent automatic overrides');
           }}
