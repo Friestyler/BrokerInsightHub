@@ -4814,37 +4814,37 @@ Provide detailed analysis that incorporates all custom parameters into actionabl
       console.log(`Generating smart list for ${entityType} ${entityId} with prompt: "${userPrompt}"`);
 
       // Generate smart customer lists based on the prompt
-      const systemPrompt = `You are an expert insurance account manager AI. Generate smart customer lists based on the user's prompt and portfolio data.
+      const systemPrompt = `You are an expert Deutsche Telekom business development AI specializing in enterprise digital transformation. Generate smart customer lists based on the user's prompt and portfolio data.
 
 Based on the user prompt and portfolio context, create three customer lists organized by priority levels:
 
-1. Critical Gaps (high priority prospects with significant coverage gaps)
-2. Medium Priority (moderate opportunities with some gaps)
-3. Well Covered (existing customers with good coverage but upsell potential)
+1. Critical Transformation (high priority enterprises needing digital transformation with DT solutions)
+2. Medium Priority (moderate opportunities with partial digital infrastructure)
+3. Well Digitized (existing customers with good infrastructure but expansion potential)
 
 For each priority level, provide:
 - count: number of customers
 - totalValue: total potential value
-- topCustomers: array of customer objects with name, relevant metrics (gapsCount for critical/medium, coverageRate for well covered), and potentialValue or currentValue
+- topCustomers: array of customer objects with name, relevant metrics (transformationGaps for critical/medium, digitizationLevel for well digitized), and potentialValue or currentValue
 
-Generate realistic customer names and data that makes sense for insurance cross-sell analysis.
+Generate realistic German enterprise customer names and data that makes sense for Deutsche Telekom digital transformation analysis.
 
 Return as JSON in this exact format:
 {
   "critical": {
     "count": number,
     "totalValue": number,
-    "topCustomers": [{"name": string, "gapsCount": number, "potentialValue": number}]
+    "topCustomers": [{"name": string, "transformationGaps": number, "potentialValue": number}]
   },
   "medium": {
     "count": number,
     "totalValue": number,
-    "topCustomers": [{"name": string, "gapsCount": number, "potentialValue": number}]
+    "topCustomers": [{"name": string, "transformationGaps": number, "potentialValue": number}]
   },
-  "wellCovered": {
+  "wellDigitized": {
     "count": number,
     "totalValue": number,
-    "topCustomers": [{"name": string, "coverageRate": number, "currentValue": number}]
+    "topCustomers": [{"name": string, "digitizationLevel": number, "currentValue": number}]
   }
 }`;
 
@@ -4866,12 +4866,12 @@ Return as JSON in this exact format:
               content: `User prompt: "${userPrompt}"
               
               Portfolio context:
-              - Coverage: ${portfolioData.summary.coveragePercentage}%
-              - Current premium: €${portfolioData.summary.totalPremium}
-              - Gap opportunities: ${portfolioData.summary.gapOpportunities}
-              - Categories: ${portfolioData.categoryBreakdown.map(cat => `${cat.categoryName} (${cat.coveragePercentage}%)`).join(', ')}
+              - Digital Transformation Coverage: ${portfolioData.summary.coveragePercentage || 65}%
+              - Current opportunity value: €${portfolioData.summary.totalPremium || '2.4M'}
+              - Technology gaps: ${portfolioData.summary.gapOpportunities || 'Cloud, IoT, 5G, Cybersecurity'}
+              - DT Solution Categories: Cloud & Hosting, Connectivity & Network, IoT & M2M, Security, Digital & Application, Analytics & AI
               
-              Generate smart customer lists based on this context and the user's specific request.`
+              Generate smart customer lists based on Deutsche Telekom enterprise solutions and the user's specific request.`
             }
           ],
           temperature: 0.7,
@@ -4975,13 +4975,13 @@ Return as JSON in this exact format:
       };
 
       // Create AI prompt for portfolio analysis
-      const systemPrompt = `You are an expert insurance portfolio analyst specializing in cross-sell opportunities. 
-      Analyze the provided portfolio data and generate actionable cross-sell recommendations at the portfolio level.
+      const systemPrompt = `You are an expert Deutsche Telekom portfolio analyst specializing in enterprise digital transformation opportunities. 
+      Analyze the provided portfolio data and generate actionable recommendations at the portfolio level.
       
       Focus on:
-      1. Customer Cross-Sell Opportunities - identify gaps in customer coverage
-      2. Summer Trending Products - seasonal insurance products with high demand
-      3. Strategic market opportunities based on portfolio composition
+      1. Customer Digital Transformation Opportunities - identify gaps in enterprise technology infrastructure
+      2. Trending Digital Solutions - high-demand DT products like 5G, IoT, Cloud, AI
+      3. Strategic market opportunities based on customer industry segments and technology maturity
       
       Return your analysis in this exact JSON format:
       {
@@ -5001,23 +5001,20 @@ Return as JSON in this exact format:
       
       Generate 3-5 opportunities with realistic revenue amounts and probabilities.`;
 
-      const userPrompt = `Analyze this insurance portfolio for cross-sell opportunities:
+      const userPrompt = `Analyze this Deutsche Telekom enterprise portfolio for digital transformation opportunities:
       
       Portfolio Overview:
-      - Total customers: ${portfolioData.overview.total_customers}
-      - Total partners: ${portfolioData.overview.total_partners}
+      - Total enterprise customers: ${portfolioData.overview.total_customers}
+      - Total DT partners: ${portfolioData.overview.total_partners}
       - Total opportunities: ${portfolioData.overview.total_opportunities}
-      - Total products: ${portfolioData.overview.total_products}
+      - Total DT products: ${portfolioData.overview.total_products}
       - Total opportunity value: €${portfolioData.overview.total_opportunity_value}
-      - Total premium value: €${portfolioData.overview.total_premium_value}
+      - Technology solution categories: Cloud & Hosting, Connectivity & Network, IoT & M2M, Security, Analytics & AI
       
-      Category Performance:
-      ${portfolioData.categoryBreakdown.map(cat => `- ${cat.category_name}: ${cat.products_count} products, ${cat.customers_with_products} customers, €${cat.total_category_value} value`).join('\n')}
+      Top Digital Transformation Opportunities:
+      ${portfolioData.topOpportunities.slice(0, 5).map(opp => `- ${opp.title} (${opp.probability}% probability, €${opp.estimated_value})`).join('\n')}
       
-      Top Opportunities:
-      ${portfolioData.topOpportunities.map(opp => `- ${opp.title} (${opp.probability}% probability, €${opp.estimated_value})`).join('\n')}
-      
-      Generate portfolio-level cross-sell analysis with focus on seasonal trends and customer segments.`;
+      Generate portfolio-level analysis with focus on enterprise digital transformation trends and industry-specific solutions.`;
 
       const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',

@@ -25,70 +25,70 @@ import {
 import { Brain, Users, TrendingUp, Shield, Calendar, Clock, Building, AlertCircle, MessageSquare, Filter, Search, BarChart3, BookmarkPlus, Send } from "lucide-react";
 import CustomersPageClean from "@/pages/lists/CustomersPage";
 
-// AI Smart List Suggestions data
+// AI Smart List Suggestions data - Deutsche Telekom Context
 const smartListSuggestions = [
   {
     id: 1,
-    title: "Retirement Prospects",
-    description: "Find customers approaching retirement who need pension planning",
+    title: "Cloud Migration Prospects",
+    description: "Enterprise customers ready for cloud transformation with DT solutions",
     priority: "High",
-    customerCount: 23,
-    value: 1240000,
-    icon: Clock,
+    customerCount: 8,
+    value: 2100000,
+    icon: TrendingUp,
     color: "text-blue-600",
     bgColor: "bg-blue-50",
     criteria: [
-      "Age 55-65",
-      "No pension coverage",
-      "Income >€50k"
+      "Enterprise size (>1000 employees)",
+      "Technology/Manufacturing industry",
+      "No current cloud infrastructure"
     ]
   },
   {
     id: 2,
-    title: "Contract Renewals",
-    description: "Customers with contracts ending soon",
+    title: "5G Enterprise Readiness",
+    description: "Large customers needing private 5G networks for digital transformation",
     priority: "High",
-    customerCount: 18,
-    value: 890000,
-    icon: Calendar,
+    customerCount: 12,
+    value: 1800000,
+    icon: Building,
     color: "text-red-600",
     bgColor: "bg-red-50",
     criteria: [
-      "Contract expires in 3-6 months",
-      "Premium >€500",
-      "No renewal discussion"
+      "Automotive/Manufacturing sector",
+      "Large facilities (>50k sqm)",
+      "IoT/Industry 4.0 initiatives"
     ]
   },
   {
     id: 3,
-    title: "SME Health Coverage Gap",
-    description: "Small companies missing group health insurance",
-    priority: "Medium",
-    customerCount: 15,
-    value: 2100000,
-    icon: Building,
+    title: "Cybersecurity Gap Analysis",
+    description: "Financial services customers requiring enhanced security solutions",
+    priority: "High",
+    customerCount: 5,
+    value: 1500000,
+    icon: Shield,
     color: "text-orange-600",
     bgColor: "bg-orange-50",
     criteria: [
-      "SME with 5-25 employees",
-      "No group health plan",
-      "Annual revenue >€500k"
+      "Financial Services industry",
+      "Enterprise size",
+      "Minimal security infrastructure"
     ]
   },
   {
     id: 4,
-    title: "Liability Cross-sell",
-    description: "Property customers without liability insurance",
+    title: "IoT Manufacturing Upgrade",
+    description: "Industrial customers perfect for IoT platform implementation",
     priority: "Medium",
-    customerCount: 12,
-    value: 650000,
-    icon: Shield,
+    customerCount: 7,
+    value: 950000,
+    icon: BarChart3,
     color: "text-purple-600",
     bgColor: "bg-purple-50",
     criteria: [
-      "Has property insurance",
-      "No liability coverage",
-      "Business type: retail/service"
+      "Industrial & Manufacturing",
+      "Large enterprise operations",
+      "Legacy automation systems"
     ]
   }
 ];
@@ -509,7 +509,7 @@ export default function SmartCustomerLists() {
                   </Badge>
                 </h2>
                 <p className="text-sm text-gray-600">
-                  AI-powered customer segments based on your data. Click to preview, then save as a list.
+                  AI-powered customer segments based on Deutsche Telekom product portfolio and customer industries. Click to preview, then save as a list.
                 </p>
               </div>
             </div>
