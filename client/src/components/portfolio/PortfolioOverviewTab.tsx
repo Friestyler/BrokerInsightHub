@@ -631,36 +631,35 @@ Create a concise, professional comment (max 200 words) that highlights the digit
 
       {/* Category Coverage Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {portfolioData.categoryBreakdown
+        {(portfolioData?.categories || [])
           .sort((a, b) => {
             // Sort "Other Services" or "Other Services / Specialistische Producten" to the end
-            if (a.categoryName === "Other Services" || a.categoryName === "Other Services / Specialistische Producten") return 1;
-            if (b.categoryName === "Other Services" || b.categoryName === "Other Services / Specialistische Producten") return -1;
+            if (a.name === "Other Services" || a.name === "Other Services / Specialistische Producten") return 1;
+            if (b.name === "Other Services" || b.name === "Other Services / Specialistische Producten") return -1;
             return 0;
           })
           .map((category) => {
-          const gapCount = Math.max(0, category.totalProducts - category.productsCovered);
-          const gapValue = category.gapValue || (gapCount * 50000); // Estimate gap value
+          const productCount = category.count || 0;
+          const totalValue = category.totalValue || 0;
+          const avgValue = productCount > 0 ? Math.round(totalValue / productCount) : 0;
           
-          // Use API data for customer coverage (API returns customers with products in this category)
-          const uniqueCustomersInCategory = category.productsCovered; // API returns customer count with products in this category
-          const totalCustomers = category.totalProducts; // API returns total customer count
-          const customerCoveragePercentage = category.coveragePercentage; // API returns calculated percentage
+          // For categories, we'll show product count and value
+          const coveragePercentage = 100; // Since these are actual assigned products
           
-          const coverageCircleColor = getCoverageCircleColor(customerCoveragePercentage);
-          const categoryTagStyle = getCategoryTagStyle(category.categoryColor, category.categoryName);
+          const coverageCircleColor = getCoverageCircleColor(100);
+          const categoryTagStyle = getCategoryTagStyle('#5567E5', category.name);
           
-          const isSelected = categoryFilter === category.categoryName;
+          const isSelected = categoryFilter === category.name;
           
           return (
             <Card 
-              key={category.categoryId} 
+              key={category.name} 
               className={`border bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer ${
                 isSelected 
                   ? 'border-[#5567E5] bg-[#F5F6FE] shadow-md' 
                   : 'border-[#E6E7F1] hover:border-[#D1D5DB]'
               }`}
-              onClick={() => toggleCategory(category.categoryName)}
+              onClick={() => toggleCategory(category.name)}
             >
 
               
@@ -669,10 +668,10 @@ Create a concise, professional comment (max 200 words) that highlights the digit
                 <div className="mb-4 flex items-center justify-center space-x-2">
                   <div
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: category.categoryColor }}
+                    style={{ backgroundColor: '#5567E5' }}
                   />
                   <span className="text-sm font-bold text-gray-700">
-                    {category.categoryName === "Other Services / Specialistische Producten" ? "Other Services" : category.categoryName}
+                    {category.name}
                   </span>
                 </div>
                 
@@ -697,7 +696,7 @@ Create a concise, professional comment (max 200 words) that highlights the digit
                       strokeWidth="6"
                       fill="none"
                       strokeDasharray={`${2 * Math.PI * 32}`}
-                      strokeDashoffset={`${2 * Math.PI * 32 * (1 - Math.min(customerCoveragePercentage, 100) / 100)}`}
+                      strokeDashoffset={`${2 * Math.PI * 32 * (1 - Math.min(coveragePercentage, 100) / 100)}`}
                       strokeLinecap="round"
                       className="transition-all duration-700 ease-out"
                     />
@@ -705,30 +704,25 @@ Create a concise, professional comment (max 200 words) that highlights the digit
                   {/* Percentage text */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-lg font-bold text-gray-900">
-                      {Math.round(customerCoveragePercentage)}%
+                      {Math.round(coveragePercentage)}%
                     </span>
                   </div>
                 </div>
                 
-                {/* Coverage Info - Different logic for customers vs partners */}
+                {/* Coverage Info */}
                 <p className="text-sm text-gray-600 mb-2">
-                  {entityType === 'customers' 
-                    ? `${category.productsCovered} of ${category.totalProducts} products`
-                    : `${uniqueCustomersInCategory} of ${totalCustomers} customers`
-                  }
+                  {productCount} products
                 </p>
                 
                 {/* Current Value */}
                 <p className="text-lg font-bold text-gray-900">
-                  {formatCurrency(category.currentPremium)}
+                  {formatCurrency(totalValue)}
                 </p>
                 
-                {/* Gap Information - subtle display */}
-                {gapCount > 0 && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    Potential: {formatCurrency(gapValue)}
-                  </p>
-                )}
+                {/* Average Value */}
+                <p className="text-xs text-gray-500 mt-2">
+                  Avg: {formatCurrency(avgValue)}
+                </p>
               </CardContent>
             </Card>
           );
