@@ -1,0 +1,452 @@
+[
+  {
+    "id": 1,
+    "name": "T-Systems International GmbH",
+    "hqLocation": "Frankfurt am Main, DE",
+    "partnerType": "SI / MSP",
+    "specializations": "Cloud, IoT, Security, Network Services",
+    "jointCustomers": "Shell, BMW",
+    "partnerProgram": "T‑Systems"
+  },
+  {
+    "id": 2,
+    "name": "Deutsche Telekom MMS GmbH",
+    "hqLocation": "Dresden, DE",
+    "partnerType": "Digital Services",
+    "specializations": "UX/Design, Testing, Digital Experience",
+    "jointCustomers": "Volkswagen",
+    "partnerProgram": "T‑Systems"
+  },
+  {
+    "id": 3,
+    "name": "Detecon International GmbH",
+    "hqLocation": "Köln, DE",
+    "partnerType": "Consulting",
+    "specializations": "Digital Strategy & Transformation Advisory",
+    "jointCustomers": "DHL",
+    "partnerProgram": "Deutsche Telekom"
+  },
+  {
+    "id": 4,
+    "name": "ORBIT IT-Solutions GmbH",
+    "hqLocation": "Bonn, DE",
+    "partnerType": "SI",
+    "specializations": "System- & Software-Integratie",
+    "jointCustomers": "Allianz",
+    "partnerProgram": "Deutsche Telekom"
+  },
+  {
+    "id": 5,
+    "name": "rola Security Solutions GmbH",
+    "hqLocation": "Oberhausen, DE",
+    "partnerType": "Security SI",
+    "specializations": "IT-Security voor Behörden & Konzerne",
+    "jointCustomers": "BW-Bank",
+    "partnerProgram": "T‑Systems"
+  },
+  {
+    "id": 6,
+    "name": "Deutsche Telekom Security GmbH",
+    "hqLocation": "Bonn, DE",
+    "partnerType": "Security MSP",
+    "specializations": "Managed Security Services",
+    "jointCustomers": "Deutsche Bahn",
+    "partnerProgram": "T‑Systems"
+  },
+  {
+    "id": 7,
+    "name": "Bechtle AG",
+    "hqLocation": "Neckarsulm, DE",
+    "partnerType": "Channel Partner",
+    "specializations": "Hardware, Cloud, Managed Services",
+    "jointCustomers": "SAP, Microsoft",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 8,
+    "name": "Computacenter AG & Co. oHG",
+    "hqLocation": "Kerpen, DE",
+    "partnerType": "SI / MSP",
+    "specializations": "IT-Infrastruktur, Cloud, Workplace",
+    "jointCustomers": "Daimler",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 9,
+    "name": "CANCOM SE",
+    "hqLocation": "München, DE",
+    "partnerType": "MSP",
+    "specializations": "Cloud, Security, Data Center",
+    "jointCustomers": "BMW",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 10,
+    "name": "All for One Group AG",
+    "hqLocation": "St. Georgen, DE",
+    "partnerType": "SI / MSP",
+    "specializations": "SAP, Cloud, Integration",
+    "jointCustomers": "Audi, Bosch",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 11,
+    "name": "adesso SE",
+    "hqLocation": "Dortmund, DE",
+    "partnerType": "Consulting",
+    "specializations": "Custom Software, Digitalisierung",
+    "jointCustomers": "Deutsche Post",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 12,
+    "name": "msg systems AG",
+    "hqLocation": "Ismaning, DE",
+    "partnerType": "SI",
+    "specializations": "IT-Consulting, Cloud, Insurance",
+    "jointCustomers": "Allianz",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 13,
+    "name": "Materna Information & Communications SE",
+    "hqLocation": "Dortmund, DE",
+    "partnerType": "SI",
+    "specializations": "Collaboration, Digital Workplace",
+    "jointCustomers": "Telekom Kunden",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 14,
+    "name": "Sycor GmbH",
+    "hqLocation": "Göttingen, DE",
+    "partnerType": "SI / MSP",
+    "specializations": "Cloud, SAP, Security",
+    "jointCustomers": "KfW, Fraunhofer",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 15,
+    "name": "Arvato Systems GmbH",
+    "hqLocation": "Gütersloh, DE",
+    "partnerType": "SI / MSP",
+    "specializations": "E-Commerce, Cloud, Security",
+    "jointCustomers": "Spotify, Vodafone",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 16,
+    "name": "Bechtle direct GmbH",
+    "hqLocation": "Neckarsulm, DE",
+    "partnerType": "Channel Partner",
+    "specializations": "Software Licensing, Cloud",
+    "jointCustomers": "Microsoft 365, Adobe",
+    "partnerProgram": "Deutsche Telekom"
+  },
+  {
+    "id": 17,
+    "name": "SVA System Vertrieb Alexander GmbH",
+    "hqLocation": "München, DE",
+    "partnerType": "Channel Partner",
+    "specializations": "Infrastructure Services, Security",
+    "jointCustomers": "BMW Group",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 18,
+    "name": "brodos AG",
+    "hqLocation": "Dortmund, DE",
+    "partnerType": "Channel Partner",
+    "specializations": "Mobilgeräte, Zubehör, Managed Mobility",
+    "jointCustomers": "Deutsche Telekom",
+    "partnerProgram": "Deutsche Telekom"
+  },
+  {
+    "id": 19,
+    "name": "Cancom Deutschland GmbH",
+    "hqLocation": "Hallbergmoos, DE",
+    "partnerType": "MSP",
+    "specializations": "Cloud, Netzwerk, Security",
+    "jointCustomers": "Lufthansa",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 20,
+    "name": "ACP IT Solutions AG",
+    "hqLocation": "Stuttgart, DE",
+    "partnerType": "SI",
+    "specializations": "Hardware, Cloud, Workplace",
+    "jointCustomers": "Deutsche Börse",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 21,
+    "name": "Computop GmbH",
+    "hqLocation": "München, DE",
+    "partnerType": "Technology Partner",
+    "specializations": "Payment Gateways, Security",
+    "jointCustomers": "Deutsche Telekom Pay",
+    "partnerProgram": "Deutsche Telekom"
+  },
+  {
+    "id": 22,
+    "name": "Allgeier SE",
+    "hqLocation": "München, DE",
+    "partnerType": "SI / MSP",
+    "specializations": "Software Development, Cloud, SAP",
+    "jointCustomers": "VW",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 23,
+    "name": "T-Systems Multimedia Solutions GmbH",
+    "hqLocation": "Dresden, DE",
+    "partnerType": "Digital Services",
+    "specializations": "Digitalisierung, UX, Testing",
+    "jointCustomers": "Porsche",
+    "partnerProgram": "T‑Systems"
+  },
+  {
+    "id": 24,
+    "name": "InnoGames GmbH",
+    "hqLocation": "Hamburg, DE",
+    "partnerType": "Developer Partner",
+    "specializations": "Gaming-Plattformen, Cloud",
+    "jointCustomers": "Deutsche Telekom Gaming",
+    "partnerProgram": "Deutsche Telekom"
+  },
+  {
+    "id": 25,
+    "name": "Bull GmbH",
+    "hqLocation": "Sulzbach, DE",
+    "partnerType": "SI",
+    "specializations": "Mainframe, Cloud",
+    "jointCustomers": "Deutsche Bank",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 26,
+    "name": "NTT DATA Deutschland GmbH",
+    "hqLocation": "Frankfurt am Main, DE",
+    "partnerType": "SI",
+    "specializations": "Digital Transformation, Cloud",
+    "jointCustomers": "Bayer",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 27,
+    "name": "Capgemini Deutschland GmbH",
+    "hqLocation": "Berlin, DE",
+    "partnerType": "SI / MSP",
+    "specializations": "Cloud, AI, IoT",
+    "jointCustomers": "Siemens",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 28,
+    "name": "IBM Deutschland GmbH",
+    "hqLocation": "Ehningen, DE",
+    "partnerType": "SI / MSP",
+    "specializations": "Cloud, AI, Smarter Cities",
+    "jointCustomers": "Hamburg Stadtverwaltung",
+    "partnerProgram": "T‑Systems"
+  },
+  {
+    "id": 29,
+    "name": "Atos Germany GmbH",
+    "hqLocation": "München, DE",
+    "partnerType": "SI / MSP",
+    "specializations": "Security, Cloud, Data Center",
+    "jointCustomers": "Deutsche Bahn",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 30,
+    "name": "Fujitsu Technology Solutions GmbH",
+    "hqLocation": "München, DE",
+    "partnerType": "SI",
+    "specializations": "Infrastructure, Cloud",
+    "jointCustomers": "Lufthansa",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 31,
+    "name": "Tech Mahindra GmbH",
+    "hqLocation": "Frankfurt am Main, DE",
+    "partnerType": "SI / MSP",
+    "specializations": "IoT, netwerk",
+    "jointCustomers": "SAP IoT",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 32,
+    "name": "Infosys Limited (DE-Niederlassung)",
+    "hqLocation": "Düsseldorf, DE",
+    "partnerType": "SI / Consulting",
+    "specializations": "Digital Services, Cloud",
+    "jointCustomers": "Deutsche Telekom Labs",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 33,
+    "name": "DXC Technology Germany GmbH",
+    "hqLocation": "Böblingen, DE",
+    "partnerType": "Outsourcing SI",
+    "specializations": "IT Outsourcing, Cloud",
+    "jointCustomers": "Deutsche Rentenversicherung",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 34,
+    "name": "NTT Security (DE)",
+    "hqLocation": "Düsseldorf, DE",
+    "partnerType": "Security MSP",
+    "specializations": "Managed Security, SOC",
+    "jointCustomers": "KfW, Deutsche Börse",
+    "partnerProgram": "T‑Systems"
+  },
+  {
+    "id": 35,
+    "name": "Microsoft Deutschland GmbH",
+    "hqLocation": "Unterschleißheim, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Azure, M365, Dynamics 365",
+    "jointCustomers": "Deutsche Telekom Cloud Services",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 36,
+    "name": "AWS Germany (Berlin Region)",
+    "hqLocation": "Berlin, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "AWS Cloud Services",
+    "jointCustomers": "T-Systems AWS Reselling",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 37,
+    "name": "Google Cloud Germany GmbH",
+    "hqLocation": "München, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Google Cloud Platform",
+    "jointCustomers": "Deutsche Telekom Data Intelligence",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 38,
+    "name": "VMware Germany GmbH",
+    "hqLocation": "Wallisellen, CH",
+    "partnerType": "Tech Partner",
+    "specializations": "Virtualization, Cloud",
+    "jointCustomers": "T-Systems VMware Services",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 39,
+    "name": "Cisco Systems Germany GmbH",
+    "hqLocation": "Frankfurt am Main, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Networking, Security",
+    "jointCustomers": "Telekom Netzprojekte",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 40,
+    "name": "NetApp Germany GmbH",
+    "hqLocation": "Mainz, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Storage, Data Management",
+    "jointCustomers": "Deutsche Telekom Data Centers",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 41,
+    "name": "Fortinet Germany",
+    "hqLocation": "Ratingen, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Security Appliances",
+    "jointCustomers": "Telekom Secure Connectivity",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 42,
+    "name": "Palo Alto Networks Germany",
+    "hqLocation": "München, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Next-Gen Firewall, Cloud Security",
+    "jointCustomers": "T-Systems Security",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 43,
+    "name": "Check Point Software Technologies GmbH",
+    "hqLocation": "Ratingen, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Security Gateways",
+    "jointCustomers": "Telekom Security Services",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 44,
+    "name": "Juniper Networks Germany",
+    "hqLocation": "Frankfurt am Main, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Routers, Switches, SD-WAN",
+    "jointCustomers": "Telekom Enterprise Networks",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 45,
+    "name": "Pure Storage Germany GmbH",
+    "hqLocation": "Munich, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Flash Storage, Data Management",
+    "jointCustomers": "DT Data Hub",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 46,
+    "name": "Nutanix Germany GmbH",
+    "hqLocation": "Frankfurt am Main, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Hyperconverged Infrastructure",
+    "jointCustomers": "T-Systems Nutanix Cloud",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 47,
+    "name": "ServiceNow Germany GmbH",
+    "hqLocation": "Berlin, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "ITSM, HR Service Delivery",
+    "jointCustomers": "Telekom Service Portal",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 48,
+    "name": "Splunk Germany GmbH",
+    "hqLocation": "Munich, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "Security Analytics, Observability",
+    "jointCustomers": "Telekom SIEM",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 49,
+    "name": "Red Hat Germany GmbH",
+    "hqLocation": "Munich, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "OpenShift, Linux",
+    "jointCustomers": "T-Systems Open Source",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  },
+  {
+    "id": 50,
+    "name": "SAP Deutschland SE",
+    "hqLocation": "Walldorf, DE",
+    "partnerType": "Tech Partner",
+    "specializations": "SAP Cloud Platform, ERP",
+    "jointCustomers": "Deutsche Telekom SAP Integration",
+    "partnerProgram": "Deutsche Telekom, T-Systems"
+  }
+]
