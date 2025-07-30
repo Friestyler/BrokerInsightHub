@@ -1384,6 +1384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           t.visible_to_partner,
           t.created_at,
           t.updated_at,
+          u.full_name as author_name,
           CASE 
             WHEN t.entity_type = 'partner' THEN p.name
             WHEN t.entity_type = 'opportunity' THEN o.title  
@@ -1391,6 +1392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ELSE NULL
           END as entity_name
         FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.users u ON t.assigned_to_id = u.id
         LEFT JOIN ${envId}.partners p ON t.entity_type = 'partner' AND t.entity_id = p.id
         LEFT JOIN ${envId}.opportunities o ON t.entity_type = 'opportunity' AND t.entity_id = o.id  
         LEFT JOIN ${envId}.customers c ON t.entity_type = 'customer' AND t.entity_id = c.id
@@ -1411,6 +1413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.visible_to_partner,
           c.created_at,
           c.updated_at,
+          u.full_name as author_name,
           CASE 
             WHEN c.entity_type = 'partner' THEN p.name
             WHEN c.entity_type = 'opportunity' THEN o.title  
@@ -1418,6 +1421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ELSE NULL
           END as entity_name
         FROM ${envId}.activity_comments c
+        LEFT JOIN ${envId}.users u ON c.author_id = u.id
         LEFT JOIN ${envId}.partners p ON c.entity_type = 'partner' AND c.entity_id = p.id
         LEFT JOIN ${envId}.opportunities o ON c.entity_type = 'opportunity' AND c.entity_id = o.id  
         LEFT JOIN ${envId}.customers cu ON c.entity_type = 'customer' AND c.entity_id = cu.id
@@ -1452,6 +1456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         assigned_to: activity.assigned_to,
         user_id: activity.assigned_to,
         author_id: activity.assigned_to,
+        author_name: activity.author_name,
         created_at: activity.created_at,
         updated_at: activity.updated_at,
         reactions: []
