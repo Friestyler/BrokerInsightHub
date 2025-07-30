@@ -108,6 +108,12 @@ function Router() {
           <Route path="/partners" component={PartnersPage} />
           <Route path="/lists/partners/:id" component={PartnerDetail} />
           <Route path="/customers" component={CustomersPage} />
+          <Route path="/customers/:id">
+            {({ id }) => {
+              window.location.href = `/lists/customers/${id}${window.location.search}`;
+              return null;
+            }}
+          </Route>
           <Route path="/lists/customers/:id" component={CustomerDetail} />
           <Route path="/opportunities" component={OpportunitiesPage} />
           <Route path="/opportunities/:id" component={OpportunityDetail} />
