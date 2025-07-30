@@ -811,16 +811,16 @@ export default function CustomersPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-sm text-[#696C8C]">{customer.industry || '-'}</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{customer.industry || 'Not specified'}</td>
                   <td className="py-3 px-4 text-sm text-[#696C8C]">{customer.size || '-'}</td>
                   <td className="py-3 px-4">
                     <Badge variant="secondary" className="bg-green-50 text-green-700 text-xs">
-                      {customer.status || 'Active'}
+                      {customer.status || 'unknown'}
                     </Badge>
                   </td>
                   <td className="py-3 px-4 text-sm text-[#696C8C]">{customer.partnerNames || '-'}</td>
                   <td className="py-3 px-4 text-sm text-[#696C8C]">{customer.opportunityCount || 0}</td>
-                  <td className="py-3 px-4 text-sm text-[#696C8C]">{formatCurrency(customer.totalValue || 0)}</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{formatCurrency(customer.totalOpportunityValue || 0)}</td>
                   <td className="py-3 px-4 text-sm text-[#696C8C]">No templates</td>
                 </tr>
               ))}
