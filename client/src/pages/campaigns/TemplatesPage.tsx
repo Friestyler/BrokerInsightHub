@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift, TrendingUp, Lightbulb, Settings as SettingsIcon, Rocket, Car, Sun, Building, RefreshCw } from "lucide-react";
+import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift, TrendingUp, Lightbulb, Settings as SettingsIcon, Rocket, Car, Sun, Building, RefreshCw, Handshake, UserPlus, Search, BarChart } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface EmailTemplate {
@@ -11,7 +11,7 @@ interface EmailTemplate {
   name: string;
   description: string;
   objective: string;
-  entity: string;
+  target_entity_type: string;
   icon: string;
   emailCount: number;
   status: 'draft' | 'published';
@@ -32,7 +32,7 @@ export default function TemplatesPage() {
   // Filter templates based on selected filter
   let templateList = selectedFilter === 'all' 
     ? allTemplates 
-    : allTemplates.filter(template => template.entity === selectedFilter);
+    : allTemplates.filter(template => template.target_entity_type === selectedFilter);
 
   const handleCreateTemplate = () => {
     setLocation('/campaigns/create-template');
@@ -78,6 +78,10 @@ export default function TemplatesPage() {
       case 'lightbulb': return <Lightbulb {...iconProps} />;
       case 'car': return <Car {...iconProps} />;
       case 'sun': return <Sun {...iconProps} />;
+      case 'handshake': return <Handshake {...iconProps} />;
+      case 'user-plus': return <UserPlus {...iconProps} />;
+      case 'search': return <Search {...iconProps} />;
+      case 'bar-chart': return <BarChart {...iconProps} />;
       default: return <FileText {...iconProps} />;
     }
   };
