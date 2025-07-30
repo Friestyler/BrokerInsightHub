@@ -517,14 +517,18 @@ Create a concise, professional comment (max 200 words) that highlights the digit
     return 'bg-red-500';
   };
 
-  // Simple coverage performance color system for circles only
+  // Enhanced coverage performance color system with dramatic differences
   const getCoverageCircleColor = (coveragePercentage: number) => {
-    if (coveragePercentage >= 70) {
-      return '#10B981'; // Green for excellent coverage
+    if (coveragePercentage >= 80) {
+      return '#059669'; // Dark green for excellent coverage
+    } else if (coveragePercentage >= 65) {
+      return '#3b82f6'; // Blue for good coverage
+    } else if (coveragePercentage >= 45) {
+      return '#f59e0b'; // Orange for medium coverage
     } else if (coveragePercentage >= 30) {
-      return '#F59E0B'; // Orange for improving coverage
+      return '#ea580c'; // Dark orange for low coverage
     } else {
-      return '#EF4444'; // Red for needs attention
+      return '#dc2626'; // Red for critical gaps and opportunities
     }
   };
 
@@ -643,26 +647,26 @@ Create a concise, professional comment (max 200 words) that highlights the digit
           const totalValue = category.totalValue || 0;
           const avgValue = productCount > 0 ? Math.round(totalValue / productCount) : 0;
           
-          // Create realistic coverage percentages based on category maturity
+          // Create realistic coverage percentages with dramatic differences to show opportunities
           let coveragePercentage = 100;
           const categoryName = category.name;
           
           if (categoryName === 'IoT & M2M') {
-            coveragePercentage = 85; // Mature IoT deployment
+            coveragePercentage = 92; // Mature IoT deployment - high coverage
           } else if (categoryName === 'Cloud & Hosting') {
-            coveragePercentage = 78; // Good cloud adoption
+            coveragePercentage = 35; // Major opportunity - needs expansion
           } else if (categoryName === 'Security') {
-            coveragePercentage = 92; // High security priority
+            coveragePercentage = 28; // Critical gap - high upsell potential
           } else if (categoryName === 'IoT & Industry Solutions') {
-            coveragePercentage = 68; // Growing industry solutions
+            coveragePercentage = 78; // Good foundation
           } else if (categoryName === 'Digital & Application') {
-            coveragePercentage = 74; // Digital transformation in progress
+            coveragePercentage = 58; // Medium maturity
           } else if (categoryName === 'Connectivity & Network') {
-            coveragePercentage = 88; // Strong network foundation
+            coveragePercentage = 84; // Strong network foundation
           } else if (categoryName === 'imported') {
-            coveragePercentage = 45; // Legacy systems being assessed
+            coveragePercentage = 15; // Legacy systems - major transformation needed
           } else {
-            coveragePercentage = Math.floor(Math.random() * 30) + 60; // 60-90% range
+            coveragePercentage = Math.floor(Math.random() * 40) + 30; // 30-70% range
           }
           
           const coverageCircleColor = getCoverageCircleColor(100);
