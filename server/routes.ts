@@ -5492,14 +5492,12 @@ Return as JSON in this exact format:
           p.category as category,
           c.color as categoryColor,
           -- Customer count per product
-          (SELECT COUNT(DISTINCT cp2.customer_id) 
-           FROM degoudse.opportunities o JOIN degoudse.customers c ON o."clientId" = c.id cp2 
-           WHERE cp2.product_id = p.id) as customerCount
-        FROM degoudse.opportunities o JOIN degoudse.customers c ON o."clientId" = c.id cp
-        INNER JOIN degoudse.products p ON cp.product_id = p.id
-        LEFT JOIN degoudse.product_categories c ON p.category_id = c.id
-        LEFT JOIN degoudse.vendors v ON p.vendor_id = v.id
-        WHERE cp.customer_id = $1
+          (SELECT COUNT(DISTINCT cp2."customerId") 
+           FROM degoudse.customer_products cp2 
+           WHERE cp2."productId" = p.id) as customerCount
+        FROM degoudse.customer_products cp
+        INNER JOIN degoudse.products p ON cp."productId" = p.id
+        WHERE cp."customerId" = $1
         ORDER BY p.name ASC
       `, [customerId]);
       
@@ -5508,6 +5506,91 @@ Return as JSON in this exact format:
     } catch (error) {
       console.error('Error fetching customer product assignments:', error);
       res.status(500).json({ error: 'Failed to fetch customer product assignments' });
+    }
+  });
+
+  // Get customer products assignments with Deutsche Telekom solutions
+  app.get('/api/:envId/customers/:id/products', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envId = req.params.envId;
+      
+      console.log(`Fetching customer products for customer ${customerId} in environment ${envId}`);
+      
+      const envPool = pool;
+      
+      // Get assigned products with details
+      const productsResult = await envPool.query(`
+        SELECT 
+          p.id, p.name, p.category, p.description, p.price,
+          cp.status, cp.value, cp."assignedDate",
+          -- Calculate category metrics
+          (SELECT COUNT(*) FROM ${envId}.customer_products cp2 
+           JOIN ${envId}.products p2 ON cp2."productId" = p2.id 
+           WHERE cp2."customerId" = $1 AND p2.category = p.category) as category_count,
+          (SELECT COUNT(*) FROM ${envId}.products p3 
+           WHERE p3.category = p.category) as category_total
+        FROM ${envId}.customer_products cp
+        JOIN ${envId}.products p ON cp."productId" = p.id
+        WHERE cp."customerId" = $1 AND cp.status = 'Active'
+        ORDER BY cp."assignedDate" DESC
+      `, [customerId]);
+      
+      const products = productsResult.rows.map(product => ({
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        description: product.description,
+        price: product.price,
+        status: product.status,
+        value: product.value,
+        assignedDate: product.assignedDate,
+        categoryCount: parseInt(product.category_count),
+        categoryTotal: parseInt(product.category_total)
+      }));
+      
+      // Get category summary
+      const categorySummary = await envPool.query(`
+        SELECT 
+          p.category,
+          COUNT(*) as assigned_count,
+          SUM(cp.value) as total_value,
+          ROUND(AVG(cp.value), 0) as avg_value
+        FROM ${envId}.customer_products cp
+        JOIN ${envId}.products p ON cp."productId" = p.id
+        WHERE cp."customerId" = $1 AND cp.status = 'Active'
+        GROUP BY p.category
+        ORDER BY total_value DESC
+      `, [customerId]);
+      
+      const categories = categorySummary.rows.map(cat => ({
+        name: cat.category,
+        assignedCount: parseInt(cat.assigned_count),
+        totalValue: parseInt(cat.total_value),
+        avgValue: parseInt(cat.avg_value)
+      }));
+      
+      // Calculate totals
+      const totalProducts = products.length;
+      const totalValue = products.reduce((sum, p) => sum + (p.value || 0), 0);
+      const avgValue = totalProducts > 0 ? Math.round(totalValue / totalProducts) : 0;
+      
+      console.log(`Customer ${customerId} has ${totalProducts} assigned products worth €${totalValue}`);
+      
+      res.json({
+        products: products,
+        categories: categories,
+        summary: {
+          totalProducts: totalProducts,
+          totalValue: totalValue,
+          avgValue: avgValue,
+          topCategory: categories.length > 0 ? categories[0].name : null
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error fetching customer products:', error);
+      res.status(500).json({ error: 'Failed to fetch customer products' });
     }
   });
 
