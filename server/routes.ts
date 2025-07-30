@@ -1988,7 +1988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fetch real-time market data about the company
       let marketIntelligence = null;
       try {
-        const searchQuery = `${partner.name} insurance broker Netherlands news 2024 2025`;
+        const searchQuery = `${partner.name} enterprise technology solutions Deutschland news 2024 2025`;
         
         const webSearchResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -2001,11 +2001,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             messages: [
               {
                 role: "system",
-                content: "You are a market intelligence analyst. Provide recent market context and industry insights for insurance companies and brokers in the Netherlands. Focus on market trends, regulatory changes, competitive landscape, and business opportunities."
+                content: "You are a market intelligence analyst. Provide recent market context and industry insights for technology companies and Deutsche Telekom partners in Germany. Focus on market trends, regulatory changes, competitive landscape, and business opportunities."
               },
               {
                 role: "user",
-                content: `Provide market intelligence and recent industry context for ${partner.name}, an insurance broker in the Netherlands. Include market trends, regulatory changes, competitive positioning, and potential business opportunities in the Dutch insurance market for 2024-2025.`
+                content: `Provide market intelligence and recent industry context for ${partner.name}, a Deutsche Telekom technology partner in Germany. Include market trends, regulatory changes, competitive positioning, and potential business opportunities in the German enterprise technology market for 2024-2025.`
               }
             ],
             max_tokens: 800,
@@ -2048,7 +2048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           messages: [
             {
               role: "system",
-              content: `You are an expert insurance market analyst and account management strategist. Generate 4-6 highly actionable next best actions for insurance account managers based on comprehensive partner analysis, market intelligence, and portfolio insights.
+              content: `You are an expert Deutsche Telekom technology market analyst and account management strategist. Generate 4-6 highly actionable next best actions for enterprise technology account managers based on comprehensive partner analysis, market intelligence, and portfolio insights.
 
 Analyze the partner's:
 - Current task performance and completion patterns
@@ -4429,11 +4429,11 @@ Keep the tone clear and professional. Focus on what will help the account manage
             messages: [
               {
                 role: "system",
-                content: "You are a Dutch insurance market intelligence analyst. Provide current market trends, regulatory changes, competitive landscape insights, and growth opportunities for insurance companies in the Netherlands."
+                content: "You are a German enterprise technology market intelligence analyst. Provide current market trends, regulatory changes, competitive landscape insights, and growth opportunities for Deutsche Telekom and technology companies in Germany."
               },
               {
                 role: "user",
-                content: `Provide market intelligence for ${entity.name} in the Dutch insurance market. Focus on: 1) Current market trends in ${entity.industry || 'insurance brokerage'}, 2) Regulatory changes affecting cross-sell opportunities, 3) Competitive positioning insights, 4) Growth opportunities in insurance product categories, 5) Customer behavior trends for 2024-2025.`
+                content: `Provide market intelligence for ${entity.name} in the German enterprise technology market. Focus on: 1) Current market trends in ${entity.industry || 'enterprise digital transformation'}, 2) Regulatory changes affecting technology cross-sell opportunities, 3) Competitive positioning insights, 4) Growth opportunities in Deutsche Telekom solution categories, 5) Customer behavior trends for 2024-2025.`
               }
             ],
             max_tokens: 600,
@@ -4470,34 +4470,34 @@ Keep the tone clear and professional. Focus on what will help the account manage
           messages: [
             {
               role: "system",
-              content: `You are an AI insurance cross-selling specialist focused on seasonal trending products and broker strategy optimization.
+              content: `You are an AI Deutsche Telekom business development specialist focused on seasonal trending digital solutions and enterprise technology strategy optimization.
 
 Current analysis timestamp: ${new Date().toISOString()}
-Current Season: SUMMER 2025 (July) - Focus on seasonal insurance trends
+Current Season: SUMMER 2025 (July) - Focus on seasonal digital transformation trends
 
 SEASONAL CONTEXT:
-- Summer peak travel season driving travel insurance demand (+34% market growth)
-- Recreational vehicle usage at yearly high (+28% market growth) 
-- Outdoor events and festivals increasing (+22% market growth)
-- Construction and seasonal business activity peaks
-- Holiday home and second property exposures
+- Summer peak business continuity and cloud migration projects (+34% market growth)
+- IoT and smart building implementations at yearly high (+28% market growth) 
+- Digital workplace and remote collaboration solutions increasing (+22% market growth)
+- Enterprise 5G network deployments and infrastructure peaks
+- Cybersecurity upgrades and digital transformation initiatives
 
-BROKER STRATEGY FOCUS:
-You are analyzing for insurance brokers (like Willis, Aon, Marsh) who need to:
-1. Capitalize on seasonal demand patterns
-2. Leverage their multi-client portfolio for cross-sell opportunities
-3. Align product recommendations with current market trends
-4. Focus on high-margin, trending products for summer period
+DEUTSCHE TELEKOM STRATEGY FOCUS:
+You are analyzing for Deutsche Telekom enterprise business development teams who need to:
+1. Capitalize on seasonal digital transformation demand patterns
+2. Leverage their multi-customer portfolio for technology cross-sell opportunities
+3. Align solution recommendations with current market trends
+4. Focus on high-margin, trending digital solutions for summer period
 
 Your task is to identify top 3 seasonal cross-selling opportunities combining:
-- Current trending summer insurance products
-- Entity's strategic positioning as insurance broker
+- Current trending summer digital transformation solutions
+- Entity's strategic positioning as enterprise technology provider
 - Real market data and seasonal patterns
-- Customer base analysis for optimal product-market fit
+- Customer base analysis for optimal solution-market fit
 
 For each opportunity, analyze:
 1. Seasonal demand trends and market growth
-2. Broker positioning and competitive advantage
+2. Deutsche Telekom positioning and competitive advantage
 3. Customer segmentation and targeting strategy
 4. Revenue potential based on seasonal patterns
 
@@ -4507,7 +4507,7 @@ Respond with JSON in this exact format:
     "entityName": "entity name",
     "entityType": "${entityType.slice(0, -1)}",
     "portfolioSummary": "brief current portfolio overview",
-    "seasonalContext": "summer 2025 market trends and broker positioning",
+    "seasonalContext": "summer 2025 market trends and Deutsche Telekom positioning",
     "marketContext": "relevant seasonal market insights"
   },
   "opportunities": [
@@ -4515,17 +4515,17 @@ Respond with JSON in this exact format:
       "id": 1,
       "title": "Seasonal Opportunity Title",
       "description": "Detailed seasonal opportunity description",
-      "productName": "Specific trending summer product",
-      "category": "Insurance category",
+      "productName": "Specific trending summer digital solution",
+      "category": "Technology category",
       "priority": "High|Medium|Low",
       "revenueLabel": "€XX,XXX potential",
       "revenueAmount": 15000,
       "probability": 75,
-      "reasoning": "Why this seasonal trend creates broker opportunity",
+      "reasoning": "Why this seasonal trend creates Deutsche Telekom opportunity",
       "timeframe": "This summer season (July-September)",
       "riskLevel": "Low|Medium|High",
       "seasonalGrowth": "+XX% market growth",
-      "brokerStrategy": "Specific broker approach for this product",
+      "enterpriseStrategy": "Specific Deutsche Telekom approach for this solution",
       "actionableSteps": [
         "First seasonal action step",
         "Second customer targeting step", 
@@ -4541,21 +4541,21 @@ Respond with JSON in this exact format:
   }
 }
 
-Focus on authentic seasonal trends, real market data, and broker-specific strategies. Prioritize products showing strong summer demand growth.`
+Focus on authentic seasonal trends, real market data, and Deutsche Telekom enterprise-specific strategies. Prioritize digital solutions showing strong summer demand growth.`
             },
             {
               role: "user",
               content: `Enhanced SEASONAL Smart Cross Sell analysis request at ${new Date().toISOString()}
 
-SEASONAL FOCUS: SUMMER 2025 (July) - Analyze trending summer insurance products
+SEASONAL FOCUS: SUMMER 2025 (July) - Analyze trending summer digital transformation solutions
 
-Entity Profile (Insurance Broker):
+Entity Profile (Deutsche Telekom Enterprise Customer):
 ${JSON.stringify(enhancedCrossSellData.entity, null, 2)}
 
-Current Product Portfolio:
+Current Technology Portfolio:
 ${JSON.stringify(enhancedCrossSellData.currentProducts, null, 2)}
 
-Available Products for Cross-Sell:
+Available Solutions for Cross-Sell:
 ${JSON.stringify(enhancedCrossSellData.availableProducts, null, 2)}
 
 Market Intelligence & Industry Context:
@@ -4566,13 +4566,13 @@ ${JSON.stringify(enhancedCrossSellData.marketContext, null, 2)}
 
 SEASONAL ANALYSIS REQUEST:
 Generate 3-5 actionable cross-sell recommendations focusing on:
-1. Top trending summer insurance products (Travel +34%, Recreational Vehicle +28%, Event & Festival +22%)
-2. Broker-specific strategy for this insurance broker entity
+1. Top trending summer digital transformation solutions (Cloud Migration +34%, IoT & Smart Building +28%, Digital Workplace +22%)
+2. Deutsche Telekom enterprise-specific strategy for this customer entity
 3. Customer segmentation for optimal seasonal targeting
 4. Revenue potential based on current summer market trends
 5. Implementation timeline aligned with summer season peak demand
 
-Prioritize opportunities that combine authentic seasonal demand data with this broker's customer base and competitive positioning.`
+Prioritize opportunities that combine authentic seasonal demand data with this customer's technology base and competitive positioning.`
             }
           ]
         })
@@ -4738,12 +4738,12 @@ Prioritize opportunities that combine authentic seasonal demand data with this b
           messages: [
             {
               role: "system",
-              content: `You are an AI insurance cross-selling specialist with deep expertise in custom market analysis and strategic planning.
+              content: `You are an AI Deutsche Telekom business development specialist with deep expertise in custom market analysis and strategic digital transformation planning.
 
 Current analysis timestamp: ${new Date().toISOString()}
 
 CUSTOM ANALYSIS MODE:
-You are performing a comprehensive custom analysis using structured prompting input provided by the user. This analysis should be more detailed and specific than standard analyses, incorporating the user's specific market context, strategic priorities, and segmentation preferences.
+You are performing a comprehensive custom analysis using structured prompting input provided by the user. This analysis should be more detailed and specific than standard analyses, incorporating the user's specific market context, strategic priorities, and digital transformation segmentation preferences.
 
 Your task is to provide highly tailored cross-selling recommendations that align with the user's custom parameters:
 1. Market Dynamic Context - Current market conditions and trends

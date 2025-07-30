@@ -228,11 +228,11 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-green-600">{result.totalPremium}</div>
-                        <div className="text-xs text-gray-500">Total Premium</div>
+                        <div className="text-xs text-gray-500">Total Value</div>
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-[#5567E5]">{result.avgPremium}</div>
-                        <div className="text-xs text-gray-500">Avg Premium</div>
+                        <div className="text-xs text-gray-500">Avg Value</div>
                       </div>
                     </div>
                     
@@ -262,7 +262,7 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
             <DialogHeader>
               <DialogTitle>Create New Opportunity</DialogTitle>
               <DialogDescription>
-                Create a new cross-sell opportunity based on the analysis results.
+                Create a new cross-sell opportunity based on the DT technology analysis results.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -364,8 +364,8 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                   <Target className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Summer Trending Products</CardTitle>
-                  <CardDescription>Top 3 seasonal insurance products for summer 2025</CardDescription>
+                  <CardTitle className="text-lg">Summer Trending Solutions</CardTitle>
+                  <CardDescription>Top 3 seasonal DT technology solutions for summer 2025</CardDescription>
                 </div>
               </div>
               <Play className="w-5 h-5 text-[#5567E5]" />
@@ -375,16 +375,16 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
             <div className="flex-1 space-y-3">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">1. Travel Insurance</span>
-                  <span className="font-semibold text-green-600">€45,200</span>
+                  <span className="text-sm text-gray-600">1. IoT Smart Manufacturing</span>
+                  <span className="font-semibold text-green-600">€85,400</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">2. Recreational Vehicle</span>
-                  <span className="font-semibold text-green-600">€38,600</span>
+                  <span className="text-sm text-gray-600">2. SD-WAN Enterprise</span>
+                  <span className="font-semibold text-green-600">€72,300</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">3. Event & Festival</span>
-                  <span className="font-semibold text-green-600">€29,800</span>
+                  <span className="text-sm text-gray-600">3. Digital Workspace Solutions</span>
+                  <span className="font-semibold text-green-600">€64,900</span>
                 </div>
               </div>
             </div>
@@ -544,14 +544,14 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                             onValueChange={(value) => setCustomPrompt(prev => ({ 
                               ...prev, 
                               customerSegmentSelection: value,
-                              customerSegment: savedLists.find(list => list.id.toString() === value)?.name || ''
+                              customerSegment: savedLists.find((list: any) => list.id.toString() === value)?.name || ''
                             }))}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select a customer list" />
                             </SelectTrigger>
                             <SelectContent>
-                              {savedLists.map((list) => (
+                              {savedLists.map((list: any) => (
                                 <SelectItem key={list.id} value={list.id.toString()}>
                                   {list.name}
                                 </SelectItem>
@@ -573,14 +573,14 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                             onValueChange={(value) => setCustomPrompt(prev => ({ 
                               ...prev, 
                               customerSegmentSelection: value,
-                              customerSegment: savedSegments.find(segment => segment.id.toString() === value)?.name || ''
+                              customerSegment: savedSegments.find((segment: any) => segment.id.toString() === value)?.name || ''
                             }))}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select a customer segment" />
                             </SelectTrigger>
                             <SelectContent>
-                              {savedSegments.map((segment) => (
+                              {savedSegments.map((segment: any) => (
                                 <SelectItem key={segment.id} value={segment.id.toString()}>
                                   {segment.name}
                                 </SelectItem>
@@ -641,14 +641,14 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                             onValueChange={(value) => setCustomPrompt(prev => ({ 
                               ...prev, 
                               productSegmentSelection: value,
-                              productSegment: categories.find(cat => cat.id.toString() === value)?.name || ''
+                              productSegment: categories.find((cat: any) => cat.id.toString() === value)?.name || ''
                             }))}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select a product category" />
                             </SelectTrigger>
                             <SelectContent>
-                              {categories.map((category) => (
+                              {categories.map((category: any) => (
                                 <SelectItem key={category.id} value={category.id.toString()}>
                                   <div className="flex items-center space-x-2">
                                     <div 
