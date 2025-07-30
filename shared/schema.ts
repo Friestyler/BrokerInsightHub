@@ -257,6 +257,9 @@ export const customers = pgTable("customers", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
+  industry: text("industry"), // Industry classification
+  size: text("size"), // Company size: Small, Medium, Large, Enterprise
+  status: text("status").default("Active"), // Active, Inactive, Prospect
   ownerId: integer("owner_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
