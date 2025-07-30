@@ -3369,17 +3369,11 @@ Prioritize actions that:
                o."clientId", o."partnerId", o."productId", o.type, o."createdAt", o."updatedAt",
                
                c.name as client_name,
-               COALESCE(contact_counts.contact_count, 0) as contact_count,
+               0 as contact_count,
                'Account Manager' as account_manager_name
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customers c ON o."clientId" = c.id
         LEFT JOIN public.users am ON o."ownerId" = am.id
-        LEFT JOIN (
-          SELECT cr.entity_id, COUNT(DISTINCT cr.contact_id) as contact_count
-          FROM degoudse.contact_relationships cr
-          WHERE cr.entity_type = 'customer'
-          GROUP BY cr.entity_id
-        ) contact_counts ON contact_counts.entity_id = c.id
         WHERE o."partnerId" = $1 AND o.id > 16
         ORDER BY o.id
       `, [partnerId]);
