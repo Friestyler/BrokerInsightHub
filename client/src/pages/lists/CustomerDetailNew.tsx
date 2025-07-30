@@ -124,17 +124,17 @@ export default function CustomerDetailNew() {
     
     // Fallback colors if not in database
     const fallbackColors: any = {
-      'Inkomen Collectief': 'cyan',
+      'Enterprise Services': 'cyan',
       'Cloud Solutions': 'purple',
-      'Schade Zakelijk': 'red',
-      'Overige': 'orange',
+      'Business Solutions': 'red',
+      'Other Services': 'orange',
       'Workplace Solutions': 'cyan',
-      'WGA ERD': 'cyan',
-      'WGA Hiaat': 'cyan',
-      'WIA ERD': 'cyan',
-      'WIA Excedent': 'cyan',
-      'Ziektewet ERD': 'cyan',
-      'NN PPP': 'purple',
+      'Managed IT Services': 'cyan',
+      'Cloud Infrastructure': 'cyan',
+      'Digital Transformation': 'cyan',
+      'Advanced IT Solutions': 'cyan',
+      'Platform Services': 'cyan',
+      'Enterprise Analytics': 'purple',
       'Enterprise Analytics Plus': 'purple',
       'Managed Cloud Platform': 'purple',
       'Advanced Security Platform': 'purple',
@@ -251,8 +251,8 @@ export default function CustomerDetailNew() {
         ]
       },
       {
-        name: 'Schade Zakelijk',
-        ...getCategoryInfo('Schade Zakelijk'),
+        name: 'Business Solutions',
+        ...getCategoryInfo('Business Solutions'),
         covered: 4,
         total: 7,
         percentage: 57,
@@ -271,8 +271,8 @@ export default function CustomerDetailNew() {
         ]
       },
       {
-        name: 'Overige',
-        ...getCategoryInfo('Overige'),
+        name: 'Other Services',
+        ...getCategoryInfo('Other Services'),
         covered: 1,
         total: 4,
         percentage: 25,
@@ -284,7 +284,7 @@ export default function CustomerDetailNew() {
         availableProducts: [
           { name: 'Executive Digital Services', premium: 800 },
           { name: 'Financial Services Platform', premium: 750 },
-          { name: 'Cyberverzekering', premium: 400 }
+          { name: 'Cybersecurity Solution', premium: 400 }
         ]
       }
     ];
@@ -300,9 +300,9 @@ export default function CustomerDetailNew() {
       }
       
       // Check if it's a subcategory - create individual category for it
-      if (selectedCat === 'Verzuimverzekering') {
+      if (selectedCat === 'Absence Management') {
         filteredCategories.push({
-          name: 'Verzuimverzekering',
+          name: 'Absence Management',
           covered: 1,
           total: 2,
           percentage: 50,
@@ -310,15 +310,15 @@ export default function CustomerDetailNew() {
           currentPremium: 900,
           potentialUplift: 900,
           coveredProducts: [
-            { name: 'Verzuimverzekering Basis', premium: 900 }
+            { name: 'Basic Absence Management', premium: 900 }
           ],
           availableProducts: [
-            { name: 'Verzuimverzekering Plus', premium: 900 }
+            { name: 'Advanced Absence Management', premium: 900 }
           ]
         });
-      } else if (selectedCat === 'WGA ERD') {
+      } else if (selectedCat === 'Managed IT Services') {
         filteredCategories.push({
-          name: 'WGA ERD',
+          name: 'Managed IT Services',
           covered: 1,
           total: 2,
           percentage: 50,
@@ -326,15 +326,15 @@ export default function CustomerDetailNew() {
           currentPremium: 980,
           potentialUplift: 980,
           coveredProducts: [
-            { name: 'WGA ERD Standaard', premium: 980 }
+            { name: 'Managed IT Services Standaard', premium: 980 }
           ],
           availableProducts: [
-            { name: 'WGA ERD Uitgebreid', premium: 980 }
+            { name: 'Managed IT Services Uitgebreid', premium: 980 }
           ]
         });
-      } else if (selectedCat === 'WGA Hiaat') {
+      } else if (selectedCat === 'Cloud Infrastructure') {
         filteredCategories.push({
-          name: 'WGA Hiaat',
+          name: 'Cloud Infrastructure',
           covered: 0,
           total: 2,
           percentage: 0,
@@ -343,13 +343,13 @@ export default function CustomerDetailNew() {
           potentialUplift: 1680,
           coveredProducts: [],
           availableProducts: [
-            { name: 'WGA Hiaat Basis', premium: 840 },
-            { name: 'WGA Hiaat Plus', premium: 840 }
+            { name: 'Cloud Infrastructure Basis', premium: 840 },
+            { name: 'Cloud Infrastructure Plus', premium: 840 }
           ]
         });
-      } else if (selectedCat === 'WIA ERD') {
+      } else if (selectedCat === 'Digital Transformation') {
         filteredCategories.push({
-          name: 'WIA ERD',
+          name: 'Digital Transformation',
           covered: 1,
           total: 2,
           percentage: 50,
@@ -357,15 +357,15 @@ export default function CustomerDetailNew() {
           currentPremium: 920,
           potentialUplift: 920,
           coveredProducts: [
-            { name: 'WIA ERD Standaard', premium: 920 }
+            { name: 'Digital Transformation Standaard', premium: 920 }
           ],
           availableProducts: [
-            { name: 'WIA ERD Uitgebreid', premium: 920 }
+            { name: 'Digital Transformation Uitgebreid', premium: 920 }
           ]
         });
-      } else if (selectedCat === 'WIA Excedent') {
+      } else if (selectedCat === 'Advanced IT Solutions') {
         filteredCategories.push({
-          name: 'WIA Excedent',
+          name: 'Advanced IT Solutions',
           covered: 0,
           total: 2,
           percentage: 0,
@@ -374,13 +374,13 @@ export default function CustomerDetailNew() {
           potentialUplift: 1560,
           coveredProducts: [],
           availableProducts: [
-            { name: 'WIA Excedent Basis', premium: 780 },
-            { name: 'WIA Excedent Plus', premium: 780 }
+            { name: 'Advanced IT Solutions Basis', premium: 780 },
+            { name: 'Advanced IT Solutions Plus', premium: 780 }
           ]
         });
-      } else if (selectedCat === 'Ziektewet ERD') {
+      } else if (selectedCat === 'Platform Services') {
         filteredCategories.push({
-          name: 'Ziektewet ERD',
+          name: 'Platform Services',
           covered: 0,
           total: 2,
           percentage: 0,
@@ -389,13 +389,13 @@ export default function CustomerDetailNew() {
           potentialUplift: 2360,
           coveredProducts: [],
           availableProducts: [
-            { name: 'Ziektewet ERD Standaard', premium: 1180 },
-            { name: 'Ziektewet ERD Uitgebreid', premium: 1180 }
+            { name: 'Platform Services Standaard', premium: 1180 },
+            { name: 'Platform Services Uitgebreid', premium: 1180 }
           ]
         });
-      } else if (selectedCat === 'NN PPP') {
+      } else if (selectedCat === 'Enterprise Analytics') {
         filteredCategories.push({
-          name: 'NN PPP',
+          name: 'Enterprise Analytics',
           covered: 1,
           total: 2,
           percentage: 50,
@@ -403,10 +403,10 @@ export default function CustomerDetailNew() {
           currentPremium: 1200,
           potentialUplift: 1200,
           coveredProducts: [
-            { name: 'NN PPP Basis', premium: 1200 }
+            { name: 'Basic Analytics Package', premium: 1200 }
           ],
           availableProducts: [
-            { name: 'NN PPP Plus', premium: 1200 }
+            { name: 'Enterprise Analytics Plus', premium: 1200 }
           ]
         });
       } else if (selectedCat === 'Enterprise Analytics Plus') {

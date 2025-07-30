@@ -139,7 +139,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
           totalPremium: "€296,128",
           avgPremium: "€98,709",
           crossSellPotential: "€45,200",
-          products: ["Cyber Security Dekking", "Bedrijfsschade Continuïteit", "Aansprakelijkheid Professionals"]
+          products: ["Cyber Security Coverage", "Bedrijfsschade Continuïteit", "Aansprakelijkheid Professionals"]
         },
         {
           id: 2,
@@ -149,7 +149,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
           totalPremium: "€177,638",
           avgPremium: "€88,819",
           crossSellPotential: "€32,800",
-          products: ["Cyber Security Dekking", "Bedrijfsschade Continuïteit"]
+          products: ["Cyber Security Coverage", "Bedrijfsschade Continuïteit"]
         },
         {
           id: 3,
@@ -159,7 +159,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
           totalPremium: "€92,468",
           avgPremium: "€23,117",
           crossSellPotential: "€28,500",
-          products: ["Aansprakelijkheid Professionals", "Bedrijfsschade Continuïteit", "Cyber Security Dekking", "Woonverzekering Plus"]
+          products: ["Aansprakelijkheid Professionals", "Bedrijfsschade Continuïteit", "Cyber Security Coverage", "Woonservice Plus"]
         }
       ];
       
@@ -188,7 +188,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
           totalPremium: "€75,117",
           avgPremium: "€37,559",
           crossSellPotential: "€23,123",
-          products: ["Cyber Security Dekking", "Data Protection Plus"]
+          products: ["Cyber Security Coverage", "Data Protection Plus"]
         },
         {
           id: 2,
@@ -199,7 +199,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
           totalPremium: "€354,348",
           avgPremium: "€88,587",
           crossSellPotential: "€23,075",
-          products: ["Bewust Pensioen Plus Regeling", "Duurzame Bedrijfsverzekering"]
+          products: ["Bewust Pensioen Plus Regeling", "Duurzame Bedrijfsservice"]
         },
         {
           id: 3,
@@ -241,7 +241,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
           totalPremium: "€444,372",
           avgPremium: "€88,874",
           crossSellPotential: "€35,600",
-          products: ["Technische Verzekering", "Aansprakelijkheid Professionals", "Bedrijfsschade Continuïteit"]
+          products: ["Technische Service", "Aansprakelijkheid Professionals", "Bedrijfsschade Continuïteit"]
         },
         {
           id: 2,
@@ -252,7 +252,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
           totalPremium: "€641,351",
           avgPremium: "€106,892",
           crossSellPotential: "€28,200",
-          products: ["Cyber Security Dekking", "Technische Verzekering", "Aansprakelijkheid Professionals"]
+          products: ["Cyber Security Coverage", "Technische Service", "Aansprakelijkheid Professionals"]
         }
       ];
       
@@ -1322,13 +1322,13 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
 
             <div>
               <Label htmlFor="insuranceType" className="text-sm font-medium text-gray-700">
-                Verzekering type
+                Service type
               </Label>
               <Input
                 id="insuranceType"
                 value={formData.insuranceType}
                 onChange={(e) => setFormData(prev => ({ ...prev, insuranceType: e.target.value }))}
-                placeholder="bijv. Zakelijke verzekering, Auto verzekering"
+                placeholder="bijv. Zakelijke service, Auto service"
                 className="mt-1"
               />
             </div>

@@ -22,13 +22,13 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
   const getButtonText = () => {
     switch (entityType) {
       case 'partner':
-        return 'Creëer Partner Kans';
+        return 'Create Partner Opportunity';
       case 'customer':
-        return 'Creëer Customer Kans';
+        return 'Create Customer Opportunity';
       case 'opportunity':
-        return 'Creëer Kans';
+        return 'Create Opportunity';
       default:
-        return 'Creëer Kans';
+        return 'Create Opportunity';
     }
   };
 

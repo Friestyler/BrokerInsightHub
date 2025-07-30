@@ -100,10 +100,10 @@ export function ProductListsTab({ className = "" }: ProductListsTabProps) {
   const getWillisColors = (colorName: string, isBlindSpot: boolean, isSelected: boolean) => {
     const getColorByName = (name: string) => {
       const lowerName = name.toLowerCase();
-      if (lowerName.includes('pensioen') || lowerName.includes('pension')) return 'green';
-      if (lowerName.includes('schade') || lowerName.includes('zakelijk') || lowerName.includes('property')) return 'orange';
-      if (lowerName.includes('inkomen') || lowerName.includes('collectief') || lowerName.includes('income')) return 'blue';
-      if (lowerName.includes('overige') || lowerName.includes('specialistische')) return 'purple';
+      if (lowerName.includes('enterprise') || lowerName.includes('pension')) return 'green';
+      if (lowerName.includes('business solutions') || lowerName.includes('property')) return 'orange';
+      if (lowerName.includes('cloud connectivity') || lowerName.includes('income')) return 'blue';
+      if (lowerName.includes('other') || lowerName.includes('analytics')) return 'purple';
       return 'blue';
     };
     
@@ -273,10 +273,10 @@ export function ProductListsTab({ className = "" }: ProductListsTabProps) {
             // Get Willis-style colors for this main category
             const getMainCategoryColor = (categoryName: string) => {
               const lowerName = categoryName.toLowerCase();
-              if (lowerName.includes('pensioen') || lowerName.includes('pension')) return 'green';
-              if (lowerName.includes('schade') || lowerName.includes('zakelijk') || lowerName.includes('property')) return 'orange';
-              if (lowerName.includes('inkomen') || lowerName.includes('collectief') || lowerName.includes('income')) return 'blue';
-              if (lowerName.includes('overige') || lowerName.includes('specialistische')) return 'purple';
+              if (lowerName.includes('enterprise') || lowerName.includes('pension')) return 'green';
+              if (lowerName.includes('business solutions') || lowerName.includes('property')) return 'orange';
+              if (lowerName.includes('cloud connectivity') || lowerName.includes('income')) return 'blue';
+              if (lowerName.includes('other') || lowerName.includes('analytics')) return 'purple';
               return 'blue';
             };
             

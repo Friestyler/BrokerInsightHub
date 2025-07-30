@@ -209,14 +209,14 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
       console.log('Subcategory mapping debug:', { subcategory, productName: product.productname });
       
       // Map specific subcategories to main categories based on actual data
-      if (subcategory === 'NN PPP' || subcategory === 'Collectief Pensioen') {
-        categoryName = 'Pensioen';
-      } else if (subcategory === 'Zorgverzekering Aanvullend' || subcategory === 'Zorgverzekering Basis' || subcategory === 'Zorgverzekering' || subcategory.includes('Zorg') || subcategory === 'WGA ERD' || subcategory === 'WGA Vervolguitkering') {
-        categoryName = 'Inkomen Collectief';
+      if (subcategory === 'Enterprise Analytics' || subcategory === 'Managed Services') {
+        categoryName = 'Enterprise Services';
+      } else if (subcategory === 'Healthcare Service Aanvullend' || subcategory === 'Healthcare Service Basis' || subcategory === 'Healthcare Service' || subcategory.includes('Zorg') || subcategory === 'WGA ERD' || subcategory === 'WGA Vervolguitkering') {
+        categoryName = 'Enterprise Services';
       } else if (subcategory === 'WIA Excedent' || subcategory === 'Ziektewet ERD' || subcategory === 'Arbeidsongeschiktheid') {
-        categoryName = 'Schade Zakelijk';
+        categoryName = 'Business Solutions';
       } else {
-        categoryName = 'Overige';
+        categoryName = 'Other Services';
       }
     }
     
@@ -236,14 +236,14 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     // Apply same category mapping for customers
     if (entityType === 'customers' && product.category) {
       const subcategory = product.category;
-      if (subcategory === 'NN PPP' || subcategory === 'Collectief Pensioen') {
-        category = 'Pensioen';
-      } else if (subcategory === 'Zorgverzekering Aanvullend' || subcategory === 'Zorgverzekering Basis') {
-        category = 'Inkomen Collectief';
+      if (subcategory === 'Enterprise Analytics' || subcategory === 'Managed Services') {
+        category = 'Enterprise Services';
+      } else if (subcategory === 'Healthcare Service Aanvullend' || subcategory === 'Healthcare Service Basis') {
+        category = 'Enterprise Services';
       } else if (subcategory === 'WIA Excedent' || subcategory === 'Ziektewet ERD' || subcategory === 'Arbeidsongeschiktheid') {
-        category = 'Schade Zakelijk';
+        category = 'Business Solutions';
       } else {
-        category = 'Overige';
+        category = 'Other Services';
       }
     }
     
@@ -532,7 +532,7 @@ Create a concise, professional comment (max 200 words) that highlights the digit
   const getCategoryIcon = (categoryName: string) => {
     const name = categoryName.toLowerCase();
     
-    if (name.includes('pensioen') || name.includes('pension')) {
+    if (name.includes('enterprise') || name.includes('enterprise')) {
       return Heart; // Life/Pension insurance
     }
     if (name.includes('schade') || name.includes('damage') || name.includes('zakelijk') || name.includes('business')) {
@@ -542,7 +542,7 @@ Create a concise, professional comment (max 200 words) that highlights the digit
       return Shield; // Income/Collective insurance
     }
     if (name.includes('auto') || name.includes('car') || name.includes('vehicle')) {
-      return Car; // Auto insurance
+      return Car; // Automotive insurance
     }
     if (name.includes('woon') || name.includes('home') || name.includes('huis') || name.includes('house')) {
       return Home; // Home insurance
@@ -563,8 +563,8 @@ Create a concise, professional comment (max 200 words) that highlights the digit
 
   // Get category tag styling based on category color
   const getCategoryTagStyle = (categoryColor: string, categoryName?: string) => {
-    // Special handling for "Schade Zakelijk" - always show as blue
-    if (categoryName === 'Schade Zakelijk') {
+    // Special handling for "Business Solutions" - always show as blue
+    if (categoryName === 'Business Solutions') {
       return 'bg-blue-100 text-blue-800 border-blue-200';
     }
     
@@ -633,9 +633,9 @@ Create a concise, professional comment (max 200 words) that highlights the digit
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {portfolioData.categoryBreakdown
           .sort((a, b) => {
-            // Sort "Overige" or "Overige / Specialistische Producten" to the end
-            if (a.categoryName === "Overige" || a.categoryName === "Overige / Specialistische Producten") return 1;
-            if (b.categoryName === "Overige" || b.categoryName === "Overige / Specialistische Producten") return -1;
+            // Sort "Other Services" or "Other Services / Specialistische Producten" to the end
+            if (a.categoryName === "Other Services" || a.categoryName === "Other Services / Specialistische Producten") return 1;
+            if (b.categoryName === "Other Services" || b.categoryName === "Other Services / Specialistische Producten") return -1;
             return 0;
           })
           .map((category) => {
@@ -672,7 +672,7 @@ Create a concise, professional comment (max 200 words) that highlights the digit
                     style={{ backgroundColor: category.categoryColor }}
                   />
                   <span className="text-sm font-bold text-gray-700">
-                    {category.categoryName === "Overige / Specialistische Producten" ? "Overige" : category.categoryName}
+                    {category.categoryName === "Other Services / Specialistische Producten" ? "Other Services" : category.categoryName}
                   </span>
                 </div>
                 
@@ -782,14 +782,14 @@ Create a concise, professional comment (max 200 words) that highlights the digit
                   // Apply same category mapping for customers
                   if (entityType === 'customers' && p.category) {
                     const subcategory = p.category;
-                    if (subcategory === 'NN PPP' || subcategory === 'Collectief Pensioen') {
-                      category = 'Pensioen';
-                    } else if (subcategory === 'Zorgverzekering Aanvullend' || subcategory === 'Zorgverzekering Basis') {
-                      category = 'Inkomen Collectief';
+                    if (subcategory === 'Enterprise Analytics' || subcategory === 'Managed Services') {
+                      category = 'Enterprise Services';
+                    } else if (subcategory === 'Healthcare Service Aanvullend' || subcategory === 'Healthcare Service Basis') {
+                      category = 'Enterprise Services';
                     } else if (subcategory === 'WIA Excedent' || subcategory === 'Ziektewet ERD' || subcategory === 'Arbeidsongeschiktheid') {
-                      category = 'Schade Zakelijk';
+                      category = 'Business Solutions';
                     } else {
-                      category = 'Overige';
+                      category = 'Other Services';
                     }
                   }
                   return category;

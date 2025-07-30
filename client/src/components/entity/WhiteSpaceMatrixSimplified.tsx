@@ -597,7 +597,7 @@ export function WhiteSpaceMatrix({
               size="sm"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Creëer Kans
+              Create Opportunity
             </Button>
             <Button variant="outline" size="sm" onClick={onCreateCampaign}>
               <Zap className="w-4 h-4 mr-2" />

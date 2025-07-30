@@ -160,7 +160,7 @@ export default function WhiteSpaceMatrix({
           
           // Calculate other metrics
           const potentialCustomers = 30 + ((fromHash + toHash * 2) % 180);
-          const avgDealSize = fromCategory === "Pensioen" ? 3500 : fromCategory === "Schade Zakelijk" ? 2800 : 1800;
+          const avgDealSize = fromCategory === "Enterprise Services" ? 3500 : fromCategory === "Business Solutions" ? 2800 : 1800;
           const revenue = Math.floor(potentialCustomers * avgDealSize * (0.8 + (hashValue % 40) / 100));
           
           // Priority based on how much actual rate exceeds benchmark
@@ -377,7 +377,7 @@ export default function WhiteSpaceMatrix({
               size="sm"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Creëer Kans
+              Create Opportunity
             </Button>
             <Button variant="outline" size="sm" onClick={onCreateCampaign}>
               <Zap className="w-4 h-4 mr-2" />
@@ -543,7 +543,7 @@ export default function WhiteSpaceMatrix({
               size="sm"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Creëer Kans
+              Create Opportunity
             </Button>
             <Button variant="outline" size="sm" onClick={onCreateCampaign}>
               <Zap className="w-4 h-4 mr-2" />
