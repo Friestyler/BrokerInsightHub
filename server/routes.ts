@@ -1405,7 +1405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.content,
           null as priority,
           false as completed,
-          c.user_id as assigned_to,
+          c.author_id as assigned_to,
           c.entity_type,
           c.entity_id,
           c.visible_to_partner,
@@ -2851,9 +2851,9 @@ Prioritize actions that:
       const envPool = pool;
       
       const result = await envPool.query(`
-        SELECT id, name, email, role, partner_id, created_at, updated_at
+        SELECT id, full_name as name, email, role, created_at, updated_at
         FROM ${envId}.users 
-        ORDER BY name
+        ORDER BY full_name
       `);
       
       const users = result.rows.map((user: any) => ({
