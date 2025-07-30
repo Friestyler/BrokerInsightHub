@@ -89,8 +89,20 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRecords, setSelectedRecords] = useState<any[]>([]);
   const [isListSelectorOpen, setIsListSelectorOpen] = useState(false);
+  const [userSelectedOrgNode, setUserSelectedOrgNode] = useState(false);
 
   const svgRef = useRef<SVGSVGElement>(null);
+  
+  // Protected setSelectedNode function that respects user org chart selections
+  const setSelectedNodeProtected = (node: any) => {
+    // If user has manually selected an org chart node, don't allow automatic overrides
+    if (userSelectedOrgNode && node && node.type === 'customer') {
+      console.log('🛡️ BLOCKED automatic customer selection - user has selected org chart node');
+      return;
+    }
+    console.log('✅ Setting selectedNode:', node?.name || 'null', node?.type || 'none');
+    setSelectedNode(node);
+  };
 
   // Fetch real data from API using direct degoudse endpoints
   const { data: customers } = useQuery({
@@ -616,6 +628,9 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
     console.log('🔥 LEGACY Network node clicked:', node.name || node.title || node.full_name, node.type || 'contact');
     console.log('🔥 LEGACY Raw node data received:', node);
     
+    // Reset the org chart flag when network node is clicked
+    setUserSelectedOrgNode(false);
+    
     // Enhance node data with entityData for details panel
     const enhancedNode = {
       ...node,
@@ -625,7 +640,7 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
     };
     
     console.log('🔥 LEGACY Enhanced node data for details panel:', enhancedNode);
-    setSelectedNode(enhancedNode);
+    setSelectedNodeProtected(enhancedNode);
   };
 
   // Drag functionality for mouse navigation
@@ -1066,7 +1081,11 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
             };
             
             console.log('🔥 Formatted org chart node data:', nodeData);
+            console.log('🔥 BEFORE setSelectedNode - current selectedNode:', selectedNode);
+            setUserSelectedOrgNode(true); // Mark that user manually selected an org chart node
             setSelectedNode(nodeData);
+            console.log('🔥 AFTER setSelectedNode - new selectedNode should be:', nodeData);
+            console.log('🔥 Set userSelectedOrgNode flag to TRUE to prevent automatic overrides');
           }}
         >
           <div className="flex items-center space-x-3 mb-1">
@@ -1499,7 +1518,11 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
                 <h3 className="text-lg font-semibold text-gray-900">Relationship Network</h3>
                 <div className="flex bg-gray-100 rounded-xl p-1">
                   <button
-                    onClick={() => setActiveView('network')}
+                    onClick={() => {
+                      setActiveView('network');
+                      setUserSelectedOrgNode(false);
+                      setSelectedNode(null);
+                    }}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       activeView === 'network' 
                         ? 'bg-white text-gray-900 shadow-sm' 
@@ -1510,7 +1533,11 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
                     Network View
                   </button>
                   <button
-                    onClick={() => setActiveView('orgchart')}
+                    onClick={() => {
+                      setActiveView('orgchart');
+                      setUserSelectedOrgNode(false);
+                      setSelectedNode(null);
+                    }}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       activeView === 'orgchart' 
                         ? 'bg-white text-gray-900 shadow-sm' 
@@ -1538,6 +1565,10 @@ export default function NetworkVisualization({ entityType, entityId, entityName 
               </h3>
             </div>
             <div className="p-6">
+              {(() => {
+                console.log('🔍 DETAILS PANEL RENDER - selectedNode:', selectedNode);
+                return null;
+              })()}
               {selectedNode ? (
                 <div className="space-y-4">
                   <div className="text-center">
