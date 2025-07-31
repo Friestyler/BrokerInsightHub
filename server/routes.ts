@@ -8232,7 +8232,7 @@ Return as JSON in this exact format:
           tm.name as template_name,
           tm.description as template_description,
           tm.tags
-        FROM degoudse.okr_template_assignments ta
+        FROM degoudse.template_assignments ta
         LEFT JOIN degoudse.okr_metrics tm ON ta.template_id = tm.id
         WHERE ta.entity_type = $1
         ORDER BY ta.assigned_at DESC
@@ -8254,11 +8254,11 @@ Return as JSON in this exact format:
       const results = [];
       for (const templateId of templateIds) {
         const result = await envPool.query(`
-          INSERT INTO degoudse.okr_template_assignments 
-          (template_id, entity_type, entity_id, assigned_by, assigned_at, notes)
-          VALUES ($1, $2, $3, $4, NOW(), $5)
+          INSERT INTO degoudse.template_assignments 
+          (template_id, entity_type, entity_id, assigned_by, assigned_at)
+          VALUES ($1, $2, $3, $4, NOW())
           RETURNING *
-        `, [templateId, entityType, entityId, assignedBy, notes]);
+        `, [templateId, entityType, entityId, assignedBy]);
         
         results.push(result.rows[0]);
       }
