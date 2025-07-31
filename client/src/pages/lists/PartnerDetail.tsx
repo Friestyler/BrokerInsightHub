@@ -1696,7 +1696,7 @@ export default function PartnerDetail() {
                 onClick={() => setIsOpportunityModalOpen(true)}
               >
                 <Target className="w-4 h-4 mr-2" />
-                Creëer Partner Kans
+                Create Partner Opportunity
               </Button>
             </div>
           </div>
