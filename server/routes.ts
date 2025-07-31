@@ -3342,7 +3342,7 @@ Prioritize actions that:
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.opportunities o ON c.id = o."clientId" AND o."partnerId" = $1
-        WHERE pc.partnerId = $1
+        WHERE pc.partner_id = $1
         GROUP BY c.id, c.name, c.description, c.industry, c.status, c.size
         ORDER BY c.id
       `, [partnerId]);
@@ -3372,7 +3372,7 @@ Prioritize actions that:
       const envPool = pool;
       const result = await envPool.query(`
         SELECT o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o.probability,
-               o."expectedCloseDate", o.start_date, o.insurance_description, o."ownerId",
+               o."expectedCloseDate", o."createdAt" as start_date, o."ownerId",
                o."clientId", o."partnerId", o."productId", o.type, o."createdAt", o."updatedAt",
                
                c.name as client_name,
@@ -3398,7 +3398,7 @@ Prioritize actions that:
         clientName: opp.client_name,
         expected_close_date: opp.expected_close_date,
         start_date: opp.start_date,
-        insurance_description: opp.insurance_description,
+        insurance_description: opp.description,
         account_manager_name: opp.account_manager_name,
         contactCount: parseInt(opp.contact_count) || 0,
         assessmentStatus: opp.assessment_status,
