@@ -425,7 +425,7 @@ export default function PartnerDetail() {
 
   // Fetch related products for this partner
   const { data: relatedProducts, isLoading: productsLoading } = useQuery({
-    queryKey: [`/api/partners/${id}/products`],
+    queryKey: [`/api/degoudse/partners/${id}/products`],
     enabled: !!id,
   });
 

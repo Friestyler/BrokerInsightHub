@@ -1287,7 +1287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT a.*, u.full_name as author_name
         FROM degoudse.activity_attachments a
         LEFT JOIN degoudse.users u ON a.uploaded_by_id = u.id
-        WHERE a.partnerId = $1
+        WHERE a.partner_id = $1
         ORDER BY a.created_at DESC
       `, [partnerId]);
       
@@ -3477,13 +3477,15 @@ Prioritize actions that:
     try {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
-      // Get products through proper product assignments, not through opportunities
+      // Get products through customer-product assignments for this partner's customers
       const result = await envPool.query(`
         SELECT DISTINCT p.id, p.name, p.description, p.category,
-               p.created_at, p.updated_at
+               COUNT(DISTINCT cpa.id) as assignment_count
         FROM degoudse.products p
-        INNER JOIN degoudse.partner_products pp ON p.id = pp.product_id
-        WHERE pp.partner_id = $1
+        INNER JOIN degoudse.customer_product_assignments cpa ON p.id = cpa."productId"
+        INNER JOIN degoudse.partner_customers pc ON cpa."customerId" = pc.customer_id
+        WHERE pc.partner_id = $1
+        GROUP BY p.id, p.name, p.description, p.category
         ORDER BY p.name
       `, [partnerId]);
       
@@ -3492,8 +3494,7 @@ Prioritize actions that:
         name: product.name,
         description: product.description,
         category: product.category,
-        created_at: product.created_at,
-        updated_at: product.updated_at
+        assignment_count: parseInt(product.assignment_count || '0')
       }));
       
       res.json(products);
