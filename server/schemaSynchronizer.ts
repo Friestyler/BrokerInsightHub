@@ -179,6 +179,81 @@ const CORE_SCHEMA: TableSchema[] = [
         "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `
+  },
+  {
+    name: 'activity_tasks',
+    createStatement: `
+      CREATE TABLE IF NOT EXISTS activity_tasks (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        status TEXT NOT NULL DEFAULT 'pending',
+        priority TEXT NOT NULL DEFAULT 'medium',
+        assigned_to_id INTEGER,
+        assigned_by_id INTEGER,
+        entity_type TEXT NOT NULL,
+        entity_id INTEGER NOT NULL,
+        related_entity_type TEXT,
+        related_entity_id INTEGER,
+        due_date TIMESTAMP,
+        completed_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `
+  },
+  {
+    name: 'activity_comments',
+    createStatement: `
+      CREATE TABLE IF NOT EXISTS activity_comments (
+        id SERIAL PRIMARY KEY,
+        content TEXT NOT NULL,
+        author_id INTEGER NOT NULL,
+        entity_type TEXT NOT NULL,
+        entity_id INTEGER NOT NULL,
+        assigned_to_id INTEGER,
+        parent_comment_id INTEGER,
+        related_entity_type TEXT,
+        related_entity_id INTEGER,
+        is_internal BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `
+  },
+  {
+    name: 'activity_reactions',
+    createStatement: `
+      CREATE TABLE IF NOT EXISTS activity_reactions (
+        id SERIAL PRIMARY KEY,
+        activity_type TEXT NOT NULL,
+        activity_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        emoji TEXT NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `
+  },
+  {
+    name: 'activity_attachments',
+    createStatement: `
+      CREATE TABLE IF NOT EXISTS activity_attachments (
+        id SERIAL PRIMARY KEY,
+        filename TEXT NOT NULL,
+        original_name TEXT NOT NULL,
+        file_type TEXT NOT NULL,
+        file_size INTEGER NOT NULL,
+        file_path TEXT,
+        url TEXT,
+        uploaded_by_id INTEGER NOT NULL,
+        entity_type TEXT NOT NULL,
+        entity_id INTEGER NOT NULL,
+        related_entity_type TEXT,
+        related_entity_id INTEGER,
+        description TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `
   }
 ];
 
