@@ -12909,11 +12909,11 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const result = await envPool.query(`
         INSERT INTO ${envId}.activity_tasks (
           title, description, priority, visible_to_partner, 
-          entity_type, entity_id, assigned_to, assigned_by_id,
+          entity_type, entity_id, assigned_to,
           created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
         RETURNING *
-      `, [title, title, priority, visibleToPartner, entityType, entityId, assignedTo, assignedById]);
+      `, [title, title, priority, visibleToPartner, entityType, entityId, assignedTo]);
       
       console.log('Task created successfully:', result.rows[0]);
       res.status(201).json(result.rows[0]);
