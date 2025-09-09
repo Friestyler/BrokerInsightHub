@@ -1231,13 +1231,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool; // Always use degoudse database
       
-      // Fetch tasks for this partner AND related opportunity tasks from degoudse schema
+      // Fetch tasks for this partner AND related opportunity tasks from environment schema
       const tasksResult = await envPool.query(`
         SELECT t.*, u.name as assigned_to_name, 
                CASE WHEN t.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
-        FROM degoudse.activity_tasks t
-        LEFT JOIN degoudse.users u ON t.assigned_to = u.id
-        LEFT JOIN degoudse.opportunities o ON t.entity_id = o.id AND t.entity_type = 'opportunity'
+        FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${envId}.opportunities o ON t.entity_id = o.id AND t.entity_type = 'opportunity'
         WHERE (t.entity_type = 'partner' AND t.partner_id = $1)
            OR (t.entity_type = 'opportunity' AND t.entity_id IN (
                SELECT o2.id FROM degoudse.opportunities o2 WHERE o2.partner_id = $1
@@ -1245,11 +1245,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY t.created_at DESC
       `, [partnerId]);
       
-      // Fetch comments for this partner AND related opportunity comments from degoudse schema
+      // Fetch comments for this partner AND related opportunity comments from environment schema
       const commentsResult = await envPool.query(`
         SELECT c.*, u.name as author_name
-        FROM degoudse.activity_comments c
-        LEFT JOIN degoudse.users u ON c.user_id = u.id
+        FROM ${envId}.activity_comments c
+        LEFT JOIN ${envId}.users u ON c.user_id = u.id
         WHERE c.partner_id = $1
         ORDER BY c.created_at DESC
       `, [partnerId]);
@@ -7725,7 +7725,7 @@ Return as JSON in this exact format:
       
       // Insert task using the correct partner_id and entity linking
       const result = await envPool.query(`
-        INSERT INTO degoudse.activity_tasks 
+        INSERT INTO ${envId}.activity_tasks 
         (partner_id, title, description, priority, assigned_to, status, entity_type, entity_id, visible_to_partner)
         VALUES ($1, $2, $3, $4, $5, 'pending', 'opportunity', $6, $7)
         RETURNING *
@@ -7763,7 +7763,7 @@ Return as JSON in this exact format:
       
       // Insert comment using the correct partner_id and entity linking
       const result = await envPool.query(`
-        INSERT INTO degoudse.activity_comments 
+        INSERT INTO ${envId}.activity_comments 
         (partner_id, content, user_id, visible_to_partner, entity_type, entity_id)
         VALUES ($1, $2, 1, $3, 'opportunity', $4)
         RETURNING *

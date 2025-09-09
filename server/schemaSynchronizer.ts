@@ -258,7 +258,7 @@ const CORE_SCHEMA: TableSchema[] = [
 ];
 
 // Available environments that need schema synchronization
-const ENVIRONMENTS = ['degoudse'];
+const ENVIRONMENTS = ['degoudse', 'myqollabi', 'acmeco', 'globexcorp'];
 
 /**
  * Synchronizes schema across all environments
