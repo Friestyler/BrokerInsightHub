@@ -1442,22 +1442,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (type === 'comment') {
         // Create comment activity
         const result = await envPool.query(`
-          INSERT INTO ${envId}.activities 
-          (activity_type, content, visible_to_partner, entity_type, entity_id, source_entity_type, source_entity_id, source_entity_name, assigned_to, created_at, updated_at)
-          VALUES ($1, $2, $3, 'partner', $4, $5, $6, $7, $8, NOW(), NOW())
+          INSERT INTO ${envId}.activity_comments 
+          (partner_id, content, visible_to_partner, user_id, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, NOW(), NOW())
           RETURNING *
-        `, [type, content, visible_to_partner || false, partnerId, source_entity_type || null, source_entity_id || null, source_entity_name || null, assigned_to || null]);
+        `, [partnerId, content, visible_to_partner || false, assigned_to || 1]);
         
         console.log(`Created ${type} activity for partner ${partnerId} from ${source_entity_type || 'direct'}`);
         res.status(201).json(result.rows[0]);
       } else if (type === 'task') {
         // Create task activity
         const result = await envPool.query(`
-          INSERT INTO ${envId}.activities 
-          (activity_type, title, content, priority, completed, visible_to_partner, entity_type, entity_id, source_entity_type, source_entity_id, source_entity_name, assigned_to, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, false, $5, 'partner', $6, $7, $8, $9, $10, NOW(), NOW())
+          INSERT INTO ${envId}.activity_tasks 
+          (partner_id, title, description, priority, completed, visible_to_partner, assigned_to, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, false, $5, $6, NOW(), NOW())
           RETURNING *
-        `, [type, content, content, 'medium', visible_to_partner || false, partnerId, source_entity_type || null, source_entity_id || null, source_entity_name || null, assigned_to || null]);
+        `, [partnerId, content, content, 'medium', visible_to_partner || false, assigned_to || null]);
         
         console.log(`Created ${type} activity for partner ${partnerId} from ${source_entity_type || 'direct'}`);
         res.status(201).json(result.rows[0]);
