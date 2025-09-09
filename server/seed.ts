@@ -1,4 +1,7 @@
 import { storage } from './storage';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
+import { sql } from 'drizzle-orm';
 
 async function seedDatabase() {
   console.log('Starting database seeding...');
@@ -186,10 +189,47 @@ async function seedDatabase() {
       }
     ];
 
-    for (const opportunityData of opportunities) {
+    for (const opportunityData of additionalOpportunities) {
       await storage.createOpportunity(opportunityData);
       console.log(`Created opportunity: ${opportunityData.title}`);
     }
+
+    // Create sample activity data using direct database access
+    const db = drizzle(neon(process.env.DATABASE_URL!));
+    
+    // Create sample activity tasks using SQL
+    console.log('Creating sample activity tasks...');
+    await db.execute(sql`
+      INSERT INTO activity_tasks (title, description, priority, entity_type, entity_id, assigned_to_id, assigned_by_id)
+      VALUES 
+        ('Review partnership agreement', 'Review and update the partnership agreement with Jeroen Hypotheek Advies', 'high', 'partner', ${samplePartner.id}, ${user.id}, ${user.id}),
+        ('Follow up on cyber insurance proposal', 'Contact Van Damme BVBA regarding the cyber insurance proposal', 'medium', 'customer', ${sampleCustomer.id}, ${user.id}, ${user.id}),
+        ('Prepare quarterly business review', 'Prepare materials for Q2 business review meeting', 'medium', 'partner', ${samplePartner.id}, ${user.id}, ${user.id})
+    `);
+    console.log('Created 3 activity tasks');
+
+    // Create sample activity comments using SQL
+    console.log('Creating sample activity comments...');
+    await db.execute(sql`
+      INSERT INTO activity_comments (content, author_id, entity_type, entity_id)
+      VALUES 
+        ('Initial meeting went very well. Client is interested in expanding coverage.', ${user.id}, 'customer', ${sampleCustomer.id}),
+        ('Partner has been consistently delivering quality leads. Consider expanding relationship.', ${user.id}, 'partner', ${samplePartner.id}),
+        ('Client requested additional information about cyber coverage limits.', ${user.id}, 'opportunity', ${sampleOpportunity.id}),
+        ('Scheduled follow-up call for next week to discuss proposal details.', ${user.id}, 'partner', ${samplePartner.id})
+    `);
+    console.log('Created 4 activity comments');
+
+    // Create sample activity reactions using SQL
+    console.log('Creating sample activity reactions...');
+    await db.execute(sql`
+      INSERT INTO activity_reactions (activity_type, activity_id, user_id, emoji)
+      VALUES 
+        ('comment', 1, ${user.id}, '👍'),
+        ('comment', 2, ${user.id}, '⭐'),
+        ('comment', 3, ${user.id}, '✅')
+    `);
+    console.log('Created 3 activity reactions');
     
     console.log('Database seeding completed successfully!');
   } catch (error) {
