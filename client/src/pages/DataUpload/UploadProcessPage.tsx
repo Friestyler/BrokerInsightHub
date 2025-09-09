@@ -834,8 +834,8 @@ export default function UploadProcessPage({ entityType: propEntityType, formatTy
                 });
                 
                 // Call onUploadComplete if provided (for modal usage)
-                if (onUploadComplete && results.data) {
-                  onUploadComplete(results.data);
+                if (onUploadComplete && results.createdRecords) {
+                  onUploadComplete(results.createdRecords);
                 }
               }}
             />

@@ -153,8 +153,12 @@ function Router() {
               />
             )}
           </Route>
-          <Route path="/data-upload-2/process/:type" component={UploadProcessPage} />
-          <Route path="/data-upload-3/process/:type" component={UploadProcessPage} />
+          <Route path="/data-upload-2/process/:type">
+            {(params) => <UploadProcessPage entityType={params.type} />}
+          </Route>
+          <Route path="/data-upload-3/process/:type">
+            {(params) => <UploadProcessPage entityType={params.type} />}
+          </Route>
           <Route path="/data-upload-3/entities" component={EntitySelectPage} />
 
           {/* Reports section */}
