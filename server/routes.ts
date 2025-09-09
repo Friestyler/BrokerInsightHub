@@ -12907,13 +12907,13 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const envPool = pool;
       
       const result = await envPool.query(`
-        INSERT INTO ${envId}.activities (
-          activity_type, title, priority, visible_to_partner, 
-          entity_type, entity_id, author_id, assigned_to, assigned_by_id,
+        INSERT INTO ${envId}.activity_tasks (
+          title, description, priority, visible_to_partner, 
+          entity_type, entity_id, assigned_to, assigned_by_id,
           created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
         RETURNING *
-      `, ['task', title, priority, visibleToPartner, entityType, entityId, authorId, assignedTo, assignedById]);
+      `, [title, title, priority, visibleToPartner, entityType, entityId, assignedTo, assignedById]);
       
       console.log('Task created successfully:', result.rows[0]);
       res.status(201).json(result.rows[0]);
@@ -12931,9 +12931,9 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const envPool = pool;
       
       const result = await envPool.query(`
-        UPDATE ${envId}.activities 
+        UPDATE ${envId}.activity_tasks 
         SET completed = $1, completed_at = $2, updated_at = NOW()
-        WHERE id = $3 AND activity_type = 'task'
+        WHERE id = $3
         RETURNING *
       `, [completed, completedAt, parseInt(taskId)]);
       
@@ -12956,13 +12956,13 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const envPool = pool;
       
       const result = await envPool.query(`
-        INSERT INTO ${envId}.activities (
-          activity_type, content, visible_to_partner, 
-          entity_type, entity_id, author_id,
+        INSERT INTO ${envId}.activity_comments (
+          content, visible_to_partner, 
+          entity_type, entity_id, user_id,
           created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
         RETURNING *
-      `, ['comment', content, visibleToPartner, entityType, entityId, authorId]);
+      `, [content, visibleToPartner, entityType, entityId, authorId]);
       
       console.log('Comment created successfully:', result.rows[0]);
       res.status(201).json(result.rows[0]);
