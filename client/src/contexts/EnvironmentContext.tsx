@@ -4,6 +4,7 @@ import qollabiLogo from "../assets/qollabi-placeholder.svg";
 import baloiseLogoPng from "../assets/baloise-logo.png";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
+import induverLogo from "@assets/image_1760528799428.png";
 
 export interface Environment {
   id: string;
@@ -15,7 +16,8 @@ export interface Environment {
 
 // Helper function to get logo for environment
 const getEnvironmentLogo = (envId: string): string | undefined => {
-  if (envId === 'myqollabi' || envId === 'degoudse') return qollabiLogo;
+  if (envId === 'myqollabi') return qollabiLogo;
+  if (envId === 'degoudse') return induverLogo;
   if (envId === 'baloise') return baloiseLogoPng;
   return undefined;
 };
@@ -24,8 +26,8 @@ const getEnvironmentLogo = (envId: string): string | undefined => {
 const FALLBACK_ENVIRONMENTS: Environment[] = [
   { 
     id: "degoudse", 
-    name: "De Goudse", 
-    logo: qollabiLogo,
+    name: "Induver", 
+    logo: induverLogo,
     apiBaseUrl: "/api/degoudse",
     databaseId: "degoudse_db"
   },

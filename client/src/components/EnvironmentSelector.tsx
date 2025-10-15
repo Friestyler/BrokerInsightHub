@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEnvironment } from "../contexts/EnvironmentContext";
-import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
+import induverLogo from "@assets/image_1760528799428.png";
 import baloiseLogo from "@assets/Baloise_1750499789244.png";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
@@ -31,7 +31,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
     }
     
     // Fallback to hardcoded logos for built-in environments
-    if (envId === 'degoudse') return deGoudseLogo;
+    if (envId === 'degoudse') return induverLogo;
     if (envId === 'baloise') return baloiseLogo;
     if (envId === 'nn') return nnLogo;
     if (envId === 'concordia') return concordiaLogo;
